@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>coordwatch · constellation</title>
+<link rel="stylesheet" href="/app.css">
+</head>
+<body>
+<canvas id="cv" aria-label="Constellation of narratives and coordinated account groups"></canvas>
+
+<header id="top" class="glass">
+  <div class="brand"><span class="logo"></span><b>coordwatch</b><small>constellation</small></div>
+  <input id="topic" placeholder="Topic: keyword, #hashtag, person, brand…  (use OR for alternatives)" aria-label="Topic" maxlength="200">
+  <input id="since" type="date" aria-label="From"><span class="arrow">→</span><input id="until" type="date" aria-label="To">
+  <div id="chips" role="group" aria-label="Platforms"></div>
+  <input id="tgch" class="hidden" placeholder="@public_channel1, @channel2" aria-label="Telegram channels">
+  <label class="chk" title="Ignore verified accounts as coordination evidence (reduces false positives on news outlets)"><input type="checkbox" id="dv"> skip verified</label>
+  <button id="run" class="btn primary">Analyse</button>
+  <button id="demo" class="btn">Demo data</button>
+  <button id="exp" class="btn ico hidden" title="Export">⭳</button>
+  <button id="posts-btn" class="btn ico hidden" title="Posts table">☰</button>
+  <button id="gear" class="btn ico" title="API keys &amp; settings">⚙</button>
+  <input type="file" id="fi" class="hidden" accept=".json,.jsonl,.ndjson,.csv">
+</header>
+<div id="exp-menu" class="glass hidden"></div>
+
+<aside id="tl" class="hidden">
+  <button id="play" title="Play the spread over time">▶</button>
+  <div id="tl-wrap"><div id="tl-ticks"></div><input id="tlr" type="range" min="0" max="1000" value="1000" aria-label="Time cursor"><div id="tl-bubble"></div></div>
+</aside>
+
+<section id="legend" class="glass hidden">
+  <h4>Legend</h4>
+  <div><i class="d core"></i>Topic (core)</div>
+  <div><i class="d nar"></i>Narrative <small>size = volume</small></div>
+  <div><i class="d alert"></i>Narrative pushed by coordinated accounts</div>
+  <div><i class="d grp"></i>Coordinated group</div>
+  <div><i class="d" style="background:#4de0b8"></i><i class="d" style="background:#9aa8ff"></i><i class="d" style="background:#ff8a65"></i>Accounts by platform</div>
+  <div class="mut">Gold beam = topic → narrative · Teal line = group pushed narrative</div>
+</section>
+
+<section id="panel" class="glass hidden"></section>
+
+<section id="notes" class="glass hidden"></section>
+<section id="dock" class="glass hidden">
+  <div id="kpis"></div>
+  <form id="ask-form"><input id="ask" placeholder="Ask the data: “where did #0 start?”, “who pushed it?”, “top accounts”…" autocomplete="off" aria-label="Ask the data"><button class="send" aria-label="Ask">➤</button></form>
+  <div class="dock-foot"><button id="notes-btn" class="pill">✦ Analyst notes</button><span class="mut">Answers come from this run’s data using local rules — no AI model is called.</span></div>
+</section>
+
+<div id="tip" class="glass hidden"></div>
+
+<section id="welcome">
+  <div class="w-card glass">
+    <div class="logo big"></div>
+    <h1>See who’s really pushing a narrative.</h1>
+    <p>Pick a topic and a time window. coordwatch finds the storylines, the accounts acting together, and where each one started — across platforms, in one view.</p>
+    <div class="w-actions"><button id="w-demo" class="btn primary">Explore the demo</button><button id="w-key" class="btn">Add API keys</button></div>
+    <small class="mut">Findings are investigative leads, not attribution. Coordination ≠ inauthenticity.</small>
+  </div>
+</section>
+
+<div id="overlay" class="hidden"><div class="o-card glass"><div class="spin"></div><h3 id="o-title">Collecting…</h3><pre id="o-log"></pre></div></div>
+
+<div id="modal" class="hidden"><div class="m-card glass">
+  <button class="x" id="m-close" aria-label="Close">✕</button>
+  <h2>API keys &amp; storage</h2>
+  <p class="mut">Keys are <b>write-only</b>: they are saved on this machine and never sent back to the browser. Environment variables
+  (e.g. <b>Codespaces secrets</b>) take priority over saved values.</p>
+  <div id="keys"></div>
+  <p class="mut small" id="storage-note"></p>
+  <div class="m-actions"><button class="btn primary" id="m-save">Save</button><button class="btn" id="m-cancel">Cancel</button></div>
+  <details><summary>How do I get each key?</summary><ul class="small">
+    <li><b>YouTube</b>: Google Cloud Console → new project → enable <i>YouTube Data API v3</i> → Credentials → API key (free quota).</li>
+    <li><b>Telegram</b>: my.telegram.org → API development tools → api_id / api_hash. Then run <code>python -m coordwatch telegram-login</code> once in a terminal.</li>
+    <li><b>X</b>: developer.x.com → Basic tier or higher (paid) → Bearer token.</li>
+    <li><b>TikTok / Instagram / Facebook / Snapchat</b>: no public search API — import an export file (JSON/CSV) with the chip.</li>
+  </ul></details>
+</div></div>
+
+<section id="drawer" class="glass hidden">
+  <div class="dr-head"><b>Posts</b><input id="pf" placeholder="filter…"><span id="pcount" class="mut"></span><button class="x" id="dr-close" aria-label="Close">✕</button></div>
+  <div class="dr-body"><table><thead><tr><th>Date</th><th>Platform</th><th>Account</th><th>Text</th><th>♥</th><th>↻</th><th>💬</th><th>N</th><th>G</th></tr></thead><tbody id="ptb"></tbody></table></div>
+</section>
+
+<script src="/app.js"></script>
+</body>
+</html>
