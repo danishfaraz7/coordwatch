@@ -55,6 +55,12 @@ CSV/JSON/JSONL). A row only needs `text`, a date, an author and (optionally) eng
 
 ---------------------------------------------------------------------------------------------------
 
+### The dashboard (`report.html`)
+Single offline file (no CDN, all scraped text HTML-escaped): dark bento layout with a **streamgraph** of volume per platform,
+a clickable **narrative bubble map** (bubble colour = share of posts from coordinated accounts; click filters the posts table),
+per-group **link graphs with signal-strength bars and evidence**, and a **spread map** per narrative showing the first appearance on
+each platform and the hop delays (e.g. `telegram → x +38m → youtube +26h`).
+
 ## 2. Architecture
 
 ```
