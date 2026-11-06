@@ -1,0 +1,5 @@
+# Core analysis + demo/file mode + report: NO third-party packages (stdlib only, Python 3.9+).
+# Optional, only for live collection:
+requests>=2.31        # X + YouTube collectors, avatar download
+Pillow>=10.0          # profile-photo perceptual hashing
+telethon>=1.36        # Telegram collector

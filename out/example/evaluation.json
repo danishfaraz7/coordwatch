@@ -1,0 +1,70 @@
+{
+ "narrative_quality": {
+  "purity": 1.0,
+  "true_topics": 9,
+  "found_narratives": 13,
+  "per_true_topic": {
+   "speculation": {
+    "clusters_holding_80pct": 1
+   },
+   "fees": {
+    "clusters_holding_80pct": 1
+   },
+   "outage": {
+    "clusters_holding_80pct": 1
+   },
+   "praise": {
+    "clusters_holding_80pct": 1
+   },
+   "other": {
+    "clusters_holding_80pct": 2
+   },
+   "insolvent": {
+    "clusters_holding_80pct": 1
+   },
+   "official": {
+    "clusters_holding_80pct": 2
+   },
+   "meme": {
+    "clusters_holding_80pct": 1
+   },
+   "ceo_fled": {
+    "clusters_holding_80pct": 2
+   }
+  },
+  "labelled_posts_left_unclustered": 0
+ },
+ "precision": 1.0,
+ "recall": 1.0,
+ "f1": 1.0,
+ "true_positives": 34,
+ "false_positives": [],
+ "false_negatives": [],
+ "per_campaign": {
+  "coordinated_A": {
+   "recall": 1.0,
+   "found": 28,
+   "total": 28
+  },
+  "coordinated_B": {
+   "recall": 1.0,
+   "found": 6,
+   "total": 6
+  }
+ },
+ "decoys": {
+  "decoy_newswire": {
+   "wrongly_flagged": 0,
+   "total": 5
+  },
+  "decoy_meme": {
+   "wrongly_flagged": 0,
+   "total": 40
+  },
+  "decoy_fans": {
+   "wrongly_flagged": 0,
+   "total": 2
+  }
+ },
+ "n_groups": 2
+}
