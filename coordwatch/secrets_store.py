@@ -7,7 +7,7 @@ import os
 from pathlib import Path
 from typing import Dict, Optional
 
-KEYS = ["X_BEARER_TOKEN", "YOUTUBE_API_KEY", "TELEGRAM_API_ID", "TELEGRAM_API_HASH"]
+KEYS = ["X_BEARER_TOKEN", "YOUTUBE_API_KEY", "TELEGRAM_API_ID", "TELEGRAM_API_HASH", "GEMINI_API_KEY"]
 
 
 def home() -> Path:

@@ -48,7 +48,7 @@
 <section id="dock" class="glass hidden">
   <div id="kpis"></div>
   <form id="ask-form"><input id="ask" placeholder="Ask the data: “where did #0 start?”, “who pushed it?”, “top accounts”…" autocomplete="off" aria-label="Ask the data"><button class="send" aria-label="Ask">➤</button></form>
-  <div class="dock-foot"><button id="notes-btn" class="pill">✦ Analyst notes</button><span class="mut">Answers come from this run’s data using local rules — no AI model is called.</span></div>
+  <div class="dock-foot"><button id="notes-btn" class="pill">✦ Analyst notes</button><label class="chk" title="Opt-in: sends a summary of this run to Google Gemini"><input type="checkbox" id="ai-on"> AI answers (Gemini)</label><span class="mut" id="ai-hint">Off: answers use local rules — nothing leaves your machine.</span></div>
 </section>
 
 <div id="tip" class="glass hidden"></div>
@@ -82,6 +82,7 @@
   <details><summary>How do I get each key?</summary><ul class="small">
     <li><b>YouTube</b>: Google Cloud Console → new project → enable <i>YouTube Data API v3</i> → Credentials → API key (free quota).</li>
     <li><b>Telegram</b>: my.telegram.org → API development tools → api_id / api_hash. Then run <code>python -m coordwatch telegram-login</code> once in a terminal.</li>
+    <li><b>Gemini (optional AI chat)</b>: aistudio.google.com/apikey → Create API key (free tier). Off by default; opt-in per session with the AI checkbox.</li>
     <li><b>X</b>: developer.x.com → Basic tier or higher (paid) → Bearer token.</li>
     <li><b>TikTok / Instagram / Facebook / Snapchat</b>: no public search API — import an export file (JSON/CSV) with the chip.</li>
   </ul></details>

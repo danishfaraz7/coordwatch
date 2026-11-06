@@ -7,7 +7,7 @@ const pcol = p => PC[p] || '#9ca3a3';
 const LABEL = {x:'X', youtube:'YouTube', telegram:'Telegram', tiktok:'TikTok', instagram:'Instagram', facebook:'Facebook', snapchat:'Snapchat'};
 const ORDER = ['x','youtube','telegram','tiktok','instagram','facebook','snapchat'];
 const SIGNAL = {text_dup:'Copy-pasted text', sync:'Posting in sync', amplify:'Reshare loops', avatar:'Reused avatars', created:'Created together', handle:'Same handle'};
-const KEYS = [['YOUTUBE_API_KEY','YouTube API key'],['TELEGRAM_API_ID','Telegram api_id'],['TELEGRAM_API_HASH','Telegram api_hash'],['X_BEARER_TOKEN','X bearer token']];
+const KEYS = [['YOUTUBE_API_KEY','YouTube API key'],['TELEGRAM_API_ID','Telegram api_id'],['TELEGRAM_API_HASH','Telegram api_hash'],['X_BEARER_TOKEN','X bearer token'],['GEMINI_API_KEY','Gemini key (optional AI chat)']];
 const GOLD = '#e8b86a', PINK = '#ef7aa0', VIOL = '#9a8cff', HOT = '#ff5a4d', TEAL = '#4de0d0';
 
 const st = {status: null, sel: new Set(), uploads: {}, demo: false, jobId: null, res: null, scene: null, selected: null,
@@ -474,7 +474,25 @@ function renderNotes(extra = '') {
   $('#notes').querySelectorAll('.go').forEach(a => a.onclick = () => { const n = items[+a.dataset.i]; const t = n.gid ? st.scene.nodes.find(x => x.kind === 'grp' && x.id === n.gid) : st.scene.byNar.get(n.nid); if (t) { select(t); $('#notes').classList.add('hidden'); } });
 }
 $('#notes-btn').onclick = () => { renderNotes(); $('#notes').classList.toggle('hidden'); };
-$('#ask-form').addEventListener('submit', e => { e.preventDefault(); const q = $('#ask').value.trim(); if (!q || !st.res) return; renderNotes(`<div class="note q"><b>You asked: ${esc(q)}</b>${answer(q)}</div>`); $('#notes').classList.remove('hidden'); $('#ask').value = ''; });
+$('#ai-on').addEventListener('change', e => {
+  const hint = () => { $('#ai-hint').textContent = $('#ai-on').checked ? 'On: a summary of this run is sent to Gemini; answers are AI-generated.' : 'Off: answers use local rules — nothing leaves your machine.'; setTimeout(hint, 0);
+  };
+  if (!e.target.checked) return hint();
+  if (!st.status.credentials.GEMINI_API_KEY.set) { e.target.checked = false; openSettings(); return; }
+  if (!confirm('Send a SUMMARY of this run (narrative stats, group reasons and ~8 short quotes — not all posts) to Google Gemini to answer your questions?\n\nOn free tiers Google may use prompts to improve its products. Answers are AI-generated and may be wrong.')) e.target.checked = false;
+  hint();
+});
+$('#ask-form').addEventListener('submit', async e => {
+  e.preventDefault(); const q = $('#ask').value.trim(); if (!q || !st.res) return; $('#ask').value = '';
+  if (!$('#ai-on').checked) { renderNotes(`<div class="note q"><b>You asked: ${esc(q)}</b>${answer(q)}</div>`); $('#notes').classList.remove('hidden'); return; }
+  renderNotes(`<div class="note q"><b>You asked: ${esc(q)}</b><span class="mut">✦ asking Gemini…</span></div>`); $('#notes').classList.remove('hidden');
+  try {
+    const r = await api('/api/ask', {method: 'POST', body: JSON.stringify({ai: true, job_id: st.jobId, question: q})});
+    renderNotes(`<div class="note q"><b>You asked: ${esc(q)}</b><span class="badge b-warn">✦ AI-generated · ${esc(r.model)} · may be wrong</span><div style="white-space:pre-wrap;margin-top:6px">${esc(r.answer)}</div></div>`);
+  } catch (err) {
+    renderNotes(`<div class="note q"><b>You asked: ${esc(q)}</b><span class="badge b-hot">AI unavailable</span> ${esc(err.message)}<div style="margin-top:6px"><span class="mut">Local answer:</span> ${answer(q)}</div></div>`);
+  }
+});
 function answer(q) {
   const res = st.res, l = q.toLowerCase(), m = l.match(/#?(\d+)/), nid = m ? +m[1] : null, o = nid !== null ? res.origins.find(x => x.narrative_id === nid) : null;
   const gm = l.match(/\bg(\d+)\b/), g = gm ? res.coordinated_groups.find(x => x.id.toLowerCase() === 'g' + gm[1]) : null;
