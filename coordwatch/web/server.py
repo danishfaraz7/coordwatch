@@ -23,6 +23,7 @@ from urllib.parse import parse_qs, urlparse
 
 from .. import __version__
 from .. import ai
+from .. import validate as V
 from .. import secrets_store as S
 from ..collectors.base import Cancelled
 from ..collect import ALL_PLATFORMS, FILE_ONLY, LIVE, collect_posts
@@ -249,6 +250,11 @@ class Handler(BaseHTTPRequestHandler):
                 j.cancel.set()
                 j.log("abort requested - stopping after the current request…")
                 return self._json(200, {"ok": True})
+            if url.path == "/api/validate":
+                body = json.loads(self._body(2_000) or b"{}")
+                if body.get("service") not in ("youtube", "gemini", "x", "telegram"):
+                    raise ValueError("Unknown service.")
+                return self._json(200, V.validate(body["service"]))
             if url.path == "/api/ask":
                 body = json.loads(self._body(20_000) or b"{}")
                 if not body.get("ai"):
