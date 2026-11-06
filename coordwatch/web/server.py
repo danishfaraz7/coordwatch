@@ -23,6 +23,7 @@ from urllib.parse import parse_qs, urlparse
 
 from .. import __version__
 from .. import secrets_store as S
+from ..collectors.base import Cancelled
 from ..collect import ALL_PLATFORMS, FILE_ONLY, LIVE, collect_posts
 from ..config import Config
 from ..export import export_all
@@ -48,6 +49,7 @@ class Job:
         self.result: Optional[dict] = None
         self.dir = S.home() / "runs" / self.id
         self.t0 = time.time()
+        self.cancel = threading.Event()
 
     def log(self, msg: str):
         self.logs.append(f"{time.time() - self.t0:5.1f}s  {msg}")
@@ -64,7 +66,10 @@ def run_job(job: Job):
     try:
         files = [(UPLOADS[u]["path"], UPLOADS[u]["platform"]) for u in p["upload_ids"] if u in UPLOADS]
         posts, notes = collect_posts(p["topic"], p["since"], p["until"], p["platforms"], use_demo=p["demo"], files=files,
-                                     telegram_channels=p["telegram_channels"], limit=p["limit"], log=job.log)
+                                     telegram_channels=p["telegram_channels"], limit=p["limit"], depth=p["depth"],
+                                     cancelled=job.cancel.is_set, log=job.log)
+        if job.cancel.is_set():
+            raise Cancelled()
         job.log(f"{len(posts)} posts collected - analysing…")
         cfg = Config(discount_verified=p["discount_verified"])
         result = analyse(posts, p["topic"], p["since"], p["until"], None, cfg, notes, topic_filter=False)
@@ -72,6 +77,9 @@ def run_job(job: Job):
         export_all(result, str(job.dir))
         (job.dir / "report.html").write_text(render(result), encoding="utf-8")
         job.result, job.status = result, "done"
+    except Cancelled:
+        job.status, job.error = "cancelled", "Aborted by user."
+        job.log("aborted by user")
     except SystemExit as e:                      # analyse() raises this when nothing matched
         job.error, job.status = str(e) or "No posts matched.", "error"
         if notes_hint := _hint(job):
@@ -117,7 +125,8 @@ def parse_run(body: dict) -> dict:
         raise ValueError("Select at least one platform, import a file, or use the demo data.")
     return {"topic": topic, "since": since.astimezone(timezone.utc), "until": until.astimezone(timezone.utc),
             "platforms": plats, "upload_ids": ups, "demo": demo, "telegram_channels": str(body.get("telegram_channels", ""))[:500],
-            "limit": max(50, min(int(body.get("limit") or 500), 5000)), "discount_verified": bool(body.get("discount_verified"))}
+            "limit": max(50, min(int(body.get("limit") or 500), 5000)),
+            "depth": body.get("depth") if body.get("depth") in ("quick", "standard", "deep") else "standard", "discount_verified": bool(body.get("discount_verified"))}
 
 
 class Handler(BaseHTTPRequestHandler):
@@ -181,7 +190,7 @@ class Handler(BaseHTTPRequestHandler):
             j = JOBS.get(m.group(1))
             if not j:
                 return self._json(404, {"error": "unknown job"})
-            return self._json(200, {"id": j.id, "status": j.status, "log": j.logs, "error": j.error,
+            return self._json(200, {"id": j.id, "status": j.status, "log": j.logs, "error": j.error, "elapsed": round(time.time() - j.t0, 1),
                                     "summary": j.result["meta"] if j.result else None})
         m = re.fullmatch(r"/api/jobs/([a-f0-9]+)/result", path)
         if m:
@@ -231,6 +240,14 @@ class Handler(BaseHTTPRequestHandler):
                     raise ValueError("No usable posts found (need text + a date column/field).")
                 UPLOADS[uid] = {"path": str(path), "platform": plat, "filename": name, "posts": n}
                 return self._json(200, {"id": uid, "platform": plat, "filename": name, "posts": n})
+            m = re.fullmatch(r"/api/jobs/([a-f0-9]+)/cancel", url.path)
+            if m:
+                j = JOBS.get(m.group(1))
+                if not j:
+                    return self._json(404, {"error": "unknown job"})
+                j.cancel.set()
+                j.log("abort requested - stopping after the current request…")
+                return self._json(200, {"ok": True})
             if url.path == "/api/run":
                 params = parse_run(json.loads(self._body(100_000) or b"{}"))
                 job = Job(params)

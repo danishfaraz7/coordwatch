@@ -15,6 +15,8 @@
   <input id="since" type="date" aria-label="From"><span class="arrow">→</span><input id="until" type="date" aria-label="To">
   <div id="chips" role="group" aria-label="Platforms"></div>
   <input id="tgch" class="hidden" placeholder="@public_channel1, @channel2" aria-label="Telegram channels">
+  <select id="depth" title="How much to fetch per platform: Quick = fast / low quota, Deep = more videos and comments" aria-label="Depth">
+    <option value="quick">Quick</option><option value="standard" selected>Standard</option><option value="deep">Deep</option></select>
   <label class="chk" title="Ignore verified accounts as coordination evidence (reduces false positives on news outlets)"><input type="checkbox" id="dv"> skip verified</label>
   <button id="run" class="btn primary">Analyse</button>
   <button id="demo" class="btn">Demo data</button>
@@ -61,7 +63,13 @@
   </div>
 </section>
 
-<div id="overlay" class="hidden"><div class="o-card glass"><div class="spin"></div><h3 id="o-title">Collecting…</h3><pre id="o-log"></pre></div></div>
+<div id="overlay" class="hidden"><div class="o-card glass" role="dialog" aria-label="Analysis progress">
+  <div class="o-head"><div class="spin" id="o-spin"></div><h3 id="o-title">Collecting…</h3><span class="o-el" id="o-el"></span></div>
+  <div class="o-hb" id="o-hb"></div>
+  <pre id="o-log"></pre>
+  <div class="o-actions"><button class="btn" id="o-min">Minimize</button><button class="btn danger" id="o-abort">Abort run</button><button class="btn primary hidden" id="o-close">Close</button></div>
+</div></div>
+<div id="jobchip" class="glass hidden" role="button" tabindex="0" title="Click to show progress"><div class="spin"></div><span class="t" id="jc-t"></span><button class="btn danger" id="jc-abort">Abort</button></div>
 
 <div id="modal" class="hidden"><div class="m-card glass">
   <button class="x" id="m-close" aria-label="Close">✕</button>

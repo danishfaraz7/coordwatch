@@ -7,7 +7,7 @@ from datetime import datetime
 from typing import Callable, List, Optional, Tuple
 
 from . import secrets_store as S
-from .collectors.base import PlatformBlocked
+from .collectors.base import Cancelled, PlatformBlocked
 from .filtering import filter_posts
 from .models import Post
 
@@ -18,8 +18,8 @@ ALL_PLATFORMS = LIVE + FILE_ONLY
 
 def collect_posts(topic: str, since: datetime, until: datetime, platforms: List[str], *, use_demo: bool = False,
                   files: Optional[List[Tuple[str, Optional[str]]]] = None, telegram_channels: str = "",
-                  x_archive: bool = False, limit: int = 1000, seed: int = 42,
-                  log: Callable[[str], None] = lambda m: None) -> Tuple[List[Post], List[str]]:
+                  x_archive: bool = False, limit: int = 1000, seed: int = 42, depth: str = "standard",
+                  cancelled: Callable[[], bool] = lambda: False, log: Callable[[str], None] = lambda m: None) -> Tuple[List[Post], List[str]]:
     posts: List[Post] = []
     notes: List[str] = []
     if use_demo:
@@ -37,13 +37,18 @@ def collect_posts(topic: str, since: datetime, until: datetime, platforms: List[
     for pl in platforms:
         if pl not in LIVE:
             continue
+        if cancelled():
+            raise Cancelled()
         try:
-            log(f"{pl}: collecting…")
-            c = _live_collector(pl, telegram_channels, x_archive)
+            log(f"{pl}: starting…")
+            c = _live_collector(pl, telegram_channels, x_archive, depth)
+            c.log, c.cancelled = log, cancelled
             got = c.collect(topic, since, until, limit)      # server-side topic search; no local re-filter
             posts += got
             notes += c.notes
             log(f"{pl}: {len(got)} posts")
+        except Cancelled:
+            raise
         except PlatformBlocked as e:
             notes.append(f"{pl}: BLOCKED/INCOMPLETE - {e}")
             log(f"{pl}: blocked - {e}")
@@ -57,13 +62,17 @@ def collect_posts(topic: str, since: datetime, until: datetime, platforms: List[
     return posts, notes
 
 
-def _live_collector(pl: str, telegram_channels: str, x_archive: bool):
+DEPTH = {"quick": (12, 100), "standard": (30, 200), "deep": (60, 400)}   # (videos, comments per video)
+
+
+def _live_collector(pl: str, telegram_channels: str, x_archive: bool, depth: str = "standard"):
     if pl == "x":
         from .collectors.x import XCollector
         return XCollector(bearer=S.get("X_BEARER_TOKEN"), archive=x_archive)
     if pl == "youtube":
         from .collectors.youtube import YouTubeCollector
-        return YouTubeCollector(api_key=S.get("YOUTUBE_API_KEY"))
+        mv, mc = DEPTH.get(depth, DEPTH["standard"])
+        return YouTubeCollector(api_key=S.get("YOUTUBE_API_KEY"), max_videos=mv, max_comments=mc)
     from .collectors.telegram import TelegramCollector
     if not S.telegram_logged_in():
         raise RuntimeError("Telegram needs a one-time login: run `python -m coordwatch telegram-login` in a terminal.")

@@ -77,6 +77,8 @@ class TelegramCollector(Collector):
                     log.warning("telegram: cannot resolve %s (%s) - skipped", ch, e)
                     continue
                 for term in topic_terms(topic):
+                    self._check()
+                    self.log(f"telegram: searching {ch} for '{term}'…")
                     while True:
                         try:
                             async for m in client.iter_messages(ent, search=term, offset_date=until, limit=limit):
@@ -85,6 +87,9 @@ class TelegramCollector(Collector):
                                     break
                                 posts.append(message_to_post(m, getattr(ent, "username", ch), str(ent.id),
                                                              getattr(ent, "title", ch)))
+                                if len(posts) % 50 == 0:
+                                    self._check()
+                                    self.log(f"telegram: {len(posts)} messages so far")
                             break
                         except errors.FloodWaitError as e:
                             log.warning("telegram FloodWait %ss on %s - sleeping", e.seconds, ch)

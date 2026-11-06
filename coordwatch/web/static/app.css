@@ -79,3 +79,12 @@ a{color:#9fe8ff}.ex{margin:6px 0;padding:8px 10px;border-radius:12px;background:
 ::-webkit-scrollbar{width:9px;height:9px}::-webkit-scrollbar-thumb{background:#ffffff22;border-radius:9px}
 @media(max-width:900px){#top{left:14px}#tl,#legend{display:none}#panel{top:auto;height:52vh;left:14px;width:auto}#dock{min-width:0;width:calc(100vw - 28px)}#notes{min-width:0;width:calc(100vw - 28px)}}
 @media(prefers-reduced-motion:reduce){*{animation:none!important}}
+
+select{font:inherit;color:var(--tx);background:#00000040;border:1px solid var(--line);border-radius:12px;padding:7px 10px;color-scheme:dark}
+.o-head{display:flex;align-items:center;gap:12px}.o-head h3{margin:0;flex:1}.o-head .spin{width:26px;height:26px;border-width:3px;flex:none}.o-el{color:var(--mut);font-variant-numeric:tabular-nums}
+.o-hb{margin:8px 0 10px;font-size:12px;color:var(--mut);min-height:16px}.o-hb.slow{color:#ffd68a}
+.o-card pre{height:240px}.o-actions{display:flex;gap:10px;justify-content:flex-end;margin-top:14px}
+.btn.danger{border-color:#ff5a4d88;color:#ff9a90}.btn.danger:hover{background:#ff5a4d22}
+#jobchip{position:fixed;right:14px;bottom:14px;z-index:40;display:flex;align-items:center;gap:10px;padding:9px 12px 9px 14px;cursor:pointer;max-width:min(480px,94vw);border:1px solid #e8b86a77;box-shadow:0 0 26px #e8b86a33,0 12px 40px #0009}
+#jobchip .spin{width:18px;height:18px;border-width:2px;flex:none}#jobchip .t{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1;font-size:12.5px}#jobchip .btn{padding:3px 10px;font-size:12px}
+#jobchip.bad{border-color:#ff5a4d99;box-shadow:0 0 26px #ff5a4d33,0 12px 40px #0009}#jobchip.bad .spin,.o-card.bad .spin,.o-card.stopped .spin{animation:none;border-color:#ff5a4d88}.o-card.stopped .spin{border-color:#9ca3a3}

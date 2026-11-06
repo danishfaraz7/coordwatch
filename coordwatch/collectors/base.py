@@ -8,6 +8,7 @@ import json
 import logging
 import os
 import random
+import threading
 import time
 from datetime import datetime
 from typing import Dict, List, Optional
@@ -15,6 +16,10 @@ from typing import Dict, List, Optional
 from ..models import Post
 
 log = logging.getLogger("coordwatch")
+
+
+class Cancelled(Exception):
+    """Raised when the user aborts a run; propagates out of every collector."""
 
 
 class PlatformBlocked(RuntimeError):
@@ -25,6 +30,13 @@ class Collector:
     platform = "?"
     #: human-readable limitations that are copied into the report ("collector_notes")
     notes: List[str] = []
+    # set by collect_posts(): progress sink + abort check (class-level no-ops so collectors work standalone)
+    log = staticmethod(lambda m: None)
+    cancelled = staticmethod(lambda: False)
+
+    def _check(self):
+        if self.cancelled():
+            raise Cancelled()
 
     def collect(self, topic: str, since: datetime, until: datetime, limit: int = 1000) -> List[Post]:
         raise NotImplementedError
@@ -43,6 +55,9 @@ class HttpClient:
         self.s, self.min_interval, self.max_retries, self.sleep = session, min_interval, max_retries, sleep
         self.cache_dir = cache_dir
         self._last = 0.0
+        self.lock = threading.Lock()
+        self.notify = lambda m: None          # progress sink (rate-limit waits are reported through it)
+        self.cancelled = None                 # optional abort check
         self.stats = {"requests": 0, "retries": 0, "cache_hits": 0, "throttled_s": 0.0}
         if cache_dir:
             os.makedirs(cache_dir, exist_ok=True)
@@ -60,11 +75,14 @@ class HttpClient:
                 with open(cp) as f:
                     return json.load(f)
         for attempt in range(self.max_retries + 1):
-            wait = self.min_interval - (time.time() - self._last)
+            if self.cancelled and self.cancelled():
+                raise Cancelled()
+            with self.lock:                    # safe for the parallel fetchers
+                wait = self.min_interval - (time.time() - self._last)
+                self._last = time.time() + max(wait, 0)
             if wait > 0:
                 self.stats["throttled_s"] += wait
                 self.sleep(wait)
-            self._last = time.time()
             self.stats["requests"] += 1
             r = self.s.get(url, params=params, headers=headers, timeout=30)
             if r.status_code == 200:
@@ -81,11 +99,21 @@ class HttpClient:
                 log.warning("HTTP %s from %s - sleeping %.1fs (attempt %d/%d)", r.status_code, url, delay,
                             attempt + 1, self.max_retries)
                 self.stats["retries"] += 1
-                self.sleep(delay)
+                self.notify(f"HTTP {r.status_code} (rate limit / server busy) - waiting {delay:.0f}s before retry {attempt + 1}/{self.max_retries}")
+                self._wait(delay)
                 continue
             raise RuntimeError(f"HTTP {r.status_code} from {url}: {r.text[:200]}")
         raise PlatformBlocked(f"Gave up on {url} after {self.max_retries} retries (rate-limited). "
                               f"Partial results are kept; rerun later - the disk cache avoids repeating calls.")
+
+    def _wait(self, delay: float):
+        if self.cancelled is None:
+            return self.sleep(delay)
+        end = time.time() + delay                # sliced so an abort is honoured within ~1s
+        while time.time() < end:
+            if self.cancelled():
+                raise Cancelled()
+            self.sleep(min(1.0, max(end - time.time(), 0)))
 
     @staticmethod
     def _retry_delay(r, attempt: int) -> float:
