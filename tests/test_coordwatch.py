@@ -171,6 +171,26 @@ class CollectorTests(unittest.TestCase):
         self.assertLessEqual((int(h1, 16) ^ int(h2, 16)).bit_count(), 6)
 
 
+class FutureWindowTests(unittest.TestCase):
+    def test_youtube_never_queries_the_future(self):
+        from datetime import datetime, timezone, timedelta
+        seen = []
+
+        class FakeClient:
+            def get_json(self, url, params=None, headers=None):
+                if url.endswith("/search"):
+                    seen.append(params)
+                return {"items": []}
+        c = ytcol.YouTubeCollector(api_key="k", client=FakeClient())
+        now = datetime.now(timezone.utc)
+        c.collect("x", now - timedelta(days=3), now + timedelta(days=2))      # range extends into the future
+        self.assertTrue(seen)
+        for p in seen:
+            self.assertLess(p["publishedAfter"], now.strftime("%Y-%m-%dT%H:%M:%SZ"))
+            self.assertLess(p["publishedAfter"], p["publishedBefore"])
+            self.assertLessEqual(p["publishedBefore"], now.strftime("%Y-%m-%dT%H:%M:%SZ"))
+
+
 class FakeResp:
     def __init__(self, code, body=None, headers=None):
         self.status_code, self._b, self.headers, self.text = code, body or {}, headers or {}, "x"

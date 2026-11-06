@@ -60,7 +60,9 @@ class XCollector(Collector):
         self.hash_avatars = hash_avatars
 
     def collect(self, topic, since, until, limit=1000):
+        from datetime import datetime, timedelta, timezone
         from ..filtering import topic_terms
+        until = min(until, datetime.now(timezone.utc) - timedelta(seconds=30))   # X rejects end_time in the future
         q = "(" + " OR ".join(f'"{t}"' if " " in t else t for t in topic_terms(topic)) + ")"
         params = {"query": q, "max_results": 100, "start_time": since.strftime("%Y-%m-%dT%H:%M:%SZ"),
                   "end_time": until.strftime("%Y-%m-%dT%H:%M:%SZ"),
