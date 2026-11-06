@@ -22,6 +22,7 @@ from typing import Dict, List, Optional
 from urllib.parse import parse_qs, urlparse
 
 from .. import __version__
+from .. import ai
 from .. import secrets_store as S
 from ..collectors.base import Cancelled
 from ..collect import ALL_PLATFORMS, FILE_ONLY, LIVE, collect_posts
@@ -248,6 +249,24 @@ class Handler(BaseHTTPRequestHandler):
                 j.cancel.set()
                 j.log("abort requested - stopping after the current request…")
                 return self._json(200, {"ok": True})
+            if url.path == "/api/ask":
+                body = json.loads(self._body(20_000) or b"{}")
+                if not body.get("ai"):
+                    raise ValueError("AI answers are off. Tick the AI box to send a summary of this run to Gemini.")
+                job = JOBS.get(str(body.get("job_id", "")))
+                if not job or not job.result:
+                    raise ValueError("No finished run to ask about.")
+                key = S.get("GEMINI_API_KEY")
+                if not key:
+                    raise ValueError("Add a Gemini API key in ⚙ Settings first.")
+                question = str(body.get("question", "")).strip()
+                if not question:
+                    raise ValueError("Type a question.")
+                try:
+                    text, model = ai.ask(key, question, ai.build_context(job.result))
+                except ai.AIError as e:
+                    return self._json(502, {"error": str(e)})
+                return self._json(200, {"answer": text, "model": model})
             if url.path == "/api/run":
                 params = parse_run(json.loads(self._body(100_000) or b"{}"))
                 job = Job(params)
