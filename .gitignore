@@ -1,0 +1,6 @@
+__pycache__/
+.cache/
+*.session
+.env
+out/*
+!out/example/
