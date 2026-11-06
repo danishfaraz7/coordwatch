@@ -34,9 +34,11 @@ detail panel (origin, hops between platforms, evidence); the dock answers simple
   the server except to their own API). Shows connected / key saved / invalid / limited (quota, billing, access) / offline.
 * **API keys, once:** ⚙ Settings saves them to `~/.coordwatch/credentials.json` (outside the repo, never returned to the browser).
   Environment variables win, so in **GitHub Codespaces** use *Settings → Codespaces → Secrets* and they are picked up automatically.
-* **Optional AI answers (Gemini free tier):** add a Gemini key in ⚙ Settings, then tick *AI answers* under the question box. Off by default; when on, only a
-  *summary* of the run (stats, group reasons, ~8 short quotes) is sent to Google - never all posts. Posts are treated as untrusted data in the prompt, the model has
-  no tools, and replies are shown as escaped text tagged *AI-generated*. Without it, answers come from local rules and nothing leaves your machine.
+* **Optional AI answers (choose your provider):** ⚙ Settings → *AI answers*. Gemini (free tier), Groq, OpenRouter (free Qwen models), Qwen/DashScope, Mistral,
+  Cerebras, xAI Grok, **Ollama (local - nothing leaves your machine)**, or any OpenAI-compatible endpoint. Off by default; opt-in with the *AI answers* box.
+  Only a *summary* of the run (stats, group reasons, ~8 short quotes, names of the most active public accounts) is sent - never all posts. Posts are treated as
+  untrusted data in the prompt, the model has no tools, replies are shown as escaped text tagged *AI-generated*, and keys never go over plain http to a remote host.
+  Without it, answers come from local rules. Free tiers and model names change often: use *Validate* to see what your key can reach.
 * **Telegram** needs one extra step: `python -m coordwatch telegram-login` (phone + code, once).
 * **Codespaces:** *Code → Codespaces → Create*; `.devcontainer/` installs the extras and starts the app on forwarded port 8000 (private).
   (Written from the Codespaces docs, not yet tried in a real Codespace.) Behind a different proxy use `--allow-host <name>`.
@@ -50,7 +52,7 @@ git clone <this repo> && cd coordwatch
 python3 -m coordwatch run --topic "Acme Bank" --since 2026-10-01 --until 2026-10-14 \
         --source demo --discount-verified --out out/demo
 open out/demo/report.html          # or xdg-open / start
-python3 -m unittest discover -s tests -v     # 55 tests
+python3 -m unittest discover -s tests -v     # 66 tests
 python3 scripts/stress.py                    # accuracy sweep (10 seeds x 5 scenarios)
 ```
 
@@ -165,7 +167,7 @@ No third-party analysis libraries: MinHash-LSH, TF-IDF, union-find, dHash are ~1
      Narratives were over-fragmented (37 clusters for 9 topics) → threshold sweep.
   3. **Stress test** (10 seeds × 5 scenarios) exposed two real defects: creation-time coincidence among *old* accounts created false groups
      (fixed with the "fresh account" condition), and paraphrase-ring recall of 0.5–0.67 (improved by same-narrative short-window synchrony).
-  4. 55 unit tests, including adversarial cases (default avatars, XSS in scraped text, 403 not retried, cache correctness).
+  4. 66 unit tests, including adversarial cases (default avatars, XSS in scraped text, 403 not retried, cache correctness).
   5. API parsers are tested against payloads shaped like the documented responses – **not against live APIs** (no keys in this repo's CI).
      Treat the live collectors as unverified until you run them with your keys.
 * **Caveat I want to be explicit about:** I iterated thresholds against my own generator, so the numbers below show the *method's behaviour*, not real-world accuracy.
@@ -205,7 +207,7 @@ paraphrasing + mutual-reshare ring; decoys = 5 verified newswire outlets, 40-use
 ## 8. Layout
 ```
 coordwatch/            package (web/ (server + constellation UI), collect.py, secrets_store.py, collectors/, narratives.py, coordination.py, origin.py, pipeline.py, report.py, export.py, evaluate.py, cli.py)
-tests/                 55 unit tests (unittest; pytest also works)
+tests/                 66 unit tests (unittest; pytest also works)
 scripts/stress.py      multi-seed accuracy + ablation table
 sample_data/           synthetic posts + ground truth JSON (importable via --source file)
 out/example/           pre-generated report, JSON and CSVs

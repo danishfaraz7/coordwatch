@@ -133,3 +133,5 @@ td.md{white-space:nowrap}td.md a{display:inline-block;margin:0 6px 2px 0;font-si
 tr.pr{cursor:pointer}tr.pr.open td{background:#ffffff0a}tr.px td{background:#0000002e;padding:12px 16px}.px .full{white-space:pre-wrap;word-break:break-word;max-width:980px}.px .meta{color:var(--mut);font-size:12px;margin-top:8px}
 .px .mlist a{margin-right:10px}.px .thumb{width:160px;height:96px;display:inline-block;margin-right:8px}
 .dr-head input[type=checkbox]{flex:none;min-width:0;width:auto}.dr-head .chk{white-space:nowrap}
+
+.svc-keys select,.svc-keys input[type=text]{flex:1 1 220px;min-width:180px}.svc-keys input:disabled{opacity:.45}

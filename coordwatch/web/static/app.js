@@ -14,8 +14,8 @@ const SERVICES = [
    help: 'my.telegram.org → <b>API development tools</b> → create an app. Then run <code>python -m coordwatch telegram-login</code> once in a terminal (phone + code).'},
   {id: 'x', short: 'X', name: 'X (Twitter) API', color: '#9aa8ff', blurb: 'Recent search (paid credits)', keys: [['X_BEARER_TOKEN', 'Bearer token']],
    help: 'console.x.com → Apps → your app → Keys &amp; Tokens → <b>Bearer Token</b>. Searching needs paid credits; otherwise import X data from a file.'},
-  {id: 'gemini', short: 'Gemini AI', name: 'Gemini (AI answers)', color: '#e8b86a', blurb: 'Optional · free tier', keys: [['GEMINI_API_KEY', 'API key']],
-   help: 'aistudio.google.com/apikey → <b>Create API key</b>. Optional: only used when you tick “AI answers”, and only a summary of a run is sent.'}
+  {id: 'ai', short: 'AI', name: 'AI answers (optional)', color: '#e8b86a', blurb: 'Gemini · Groq · Qwen · Grok · Ollama…', keys: [], custom: true,
+   help: 'Off by default. Pick a provider, paste its key (Ollama needs none), then press <b>Save &amp; validate</b>. Free tiers change — check each provider’s current limits and data-use terms.'}
 ];
 const STATE_LABEL = {connected: 'connected', saved: 'key saved', unset: 'not set', invalid: 'invalid key', limited: 'limited', unverified: 'saved', unreachable: 'offline', checking: 'checking…'};
 const GOLD = '#e8b86a', PINK = '#ef7aa0', VIOL = '#9a8cff', HOT = '#ff5a4d', TEAL = '#4de0d0';
@@ -74,8 +74,8 @@ $('#fi').addEventListener('change', async e => {
 });
 st.conn = {};
 function connState(id) {
-  const svc = SERVICES.find(x => x.id === id), c = st.status.credentials, set = svc.keys.every(([k]) => c[k].set);
-  if (!set) return {state: 'unset', message: id === 'gemini' ? 'Not set (optional).' : 'Not set.'};
+  const svc = SERVICES.find(x => x.id === id), c = st.status.credentials, set = svc.custom ? st.status.ai.ready : svc.keys.every(([k]) => c[k].set);
+  if (!set) return {state: 'unset', message: id === 'ai' ? 'Not configured (optional).' : 'Not set.'};
   return st.conn[id] || {state: 'saved', message: 'Key saved — not validated yet.'};
 }
 function renderConns() {
@@ -85,40 +85,61 @@ function renderConns() {
 }
 async function validateService(id, quiet) {
   st.conn[id] = {state: 'checking', message: 'Checking…'}; renderConns(); if (!$('#modal').classList.contains('hidden')) renderSettings();
-  try { st.conn[id] = await api('/api/validate', {method: 'POST', body: JSON.stringify({service: id})}); }
+  try { st.conn[id] = await api('/api/validate', {method: 'POST', body: JSON.stringify({service: id})}); if (st.conn[id].models) st.aiModels = st.conn[id].models; }
   catch (e) { st.conn[id] = {state: 'unreachable', message: e.message}; }
   renderConns(); if (!$('#modal').classList.contains('hidden')) renderSettings();
   if (quiet && window.__bootLog) { const r = st.conn[id], sv = SERVICES.find(x => x.id === id); window.__bootLog(`${sv.short.toLowerCase()} ${r.state === 'connected' ? '✓ connected' : r.state === 'unverified' ? '✓ keys saved' : r.state === 'invalid' ? '✗ invalid key' : '! ' + (STATE_LABEL[r.state] || r.state)}`, r.state === 'connected' || r.state === 'unverified' ? 'ok' : r.state === 'invalid' ? 'hot' : 'warn'); }
   return st.conn[id];
 }
 function autoValidate() {
-  const c = st.status.credentials;
-  SERVICES.filter(s => s.id !== 'x' && s.keys.every(([k]) => c[k].set)).forEach(s => validateService(s.id, true));   // X is manual: its check may touch paid quota
+  SERVICES.filter(sv => sv.id !== 'x' && connState(sv.id).state === 'saved').forEach(sv => validateService(sv.id, true));   // X is manual: its check may touch paid quota
+}
+function aiCardHtml(s, cs) {
+  const ai = st.status.ai, pre = st.status.ai_presets, c = st.status.credentials, prov = (c.AI_PROVIDER.value || ai.provider || 'gemini');
+  const p = pre[prov] || pre.gemini, keySet = prov === 'gemini' ? c.GEMINI_API_KEY.set : c.AI_API_KEY.set, models = st.aiModels || [];
+  return `<div class="svc" data-s="ai"><div class="svc-top"><i class="dot" style="background:${s.color};box-shadow:0 0 8px ${s.color}"></i><b>${esc(s.name)}</b><span class="bl">${esc(s.blurb)}</span><span class="pill2 ${cs.state}">${esc(STATE_LABEL[cs.state] || cs.state)}</span></div>
+    <div class="svc-msg">${esc(cs.message)}</div>
+    <div class="svc-keys"><select id="ai-prov" aria-label="AI provider">${Object.entries(pre).map(([k, v]) => `<option value="${esc(k)}" ${k === prov ? 'selected' : ''}>${esc(v.label)}</option>`).join('')}</select></div>
+    <div class="svc-keys"><input type="text" id="ai-base" data-k="AI_BASE_URL" aria-label="API base URL" value="${esc(c.AI_BASE_URL.value || '')}" placeholder="${esc(p.base || 'https://…/v1 (API base URL)')}" ${prov === 'gemini' ? 'disabled' : ''}>
+      <input type="text" id="ai-model" data-k="AI_MODEL" list="ai-models" aria-label="Model" value="${esc(c.AI_MODEL.value || '')}" placeholder="model (blank = auto-pick)"><datalist id="ai-models">${models.map(m => `<option value="${esc(m)}">`).join('')}</datalist></div>
+    <div class="svc-keys"><input type="password" autocomplete="off" id="ai-key" data-k="${prov === 'gemini' ? 'GEMINI_API_KEY' : 'AI_API_KEY'}" aria-label="AI API key" ${p.needs_key ? '' : 'disabled'}
+      placeholder="${!p.needs_key ? 'no key needed (local)' : keySet ? 'API key — saved (' + esc(((prov === 'gemini' ? c.GEMINI_API_KEY : c.AI_API_KEY).source === 'env') ? 'env var' : 'file') + '), type to replace' : 'API key'}">
+      <button class="btn" data-act="save">Save &amp; validate</button><button class="btn" data-act="val">Validate</button></div>
+    <div class="svc-msg">Get a key: ${esc(p.hint)}${prov === 'ollama' ? '' : '. When enabled, a <b>summary</b> of a run is sent to this provider.'}</div>
+    <details><summary>About this option</summary><p>${s.help}</p></details></div>`;
 }
 function renderSettings(focus) {
-  const c = st.status.credentials, active = document.activeElement && document.activeElement.dataset ? document.activeElement.dataset.k : null;
-  const keep = {}; document.querySelectorAll('#svc-list input').forEach(i => { if (i.value) keep[i.dataset.k] = i.value; });
+  const c = st.status.credentials;
+  const keep = {}; document.querySelectorAll('#svc-list input').forEach(i => { if (i.value && i.type === 'password') keep[i.id || i.dataset.k] = i.value; });
   $('#svc-list').innerHTML = SERVICES.map(s => {
     const cs = connState(s.id);
+    if (s.custom) return aiCardHtml(s, cs);
     const inputs = s.keys.map(([k, lab]) => `<input type="password" autocomplete="off" data-k="${k}" aria-label="${esc(s.name + ' ' + lab)}" placeholder="${c[k].set ? esc(lab) + ' — saved (' + (c[k].source === 'env' ? 'env var' : 'file') + '), type to replace' : esc(lab)}">`).join('');
     return `<div class="svc" data-s="${s.id}"><div class="svc-top"><i class="dot" style="background:${s.color};box-shadow:0 0 8px ${s.color}"></i><b>${esc(s.name)}</b><span class="bl">${esc(s.blurb)}</span><span class="pill2 ${cs.state}">${esc(STATE_LABEL[cs.state] || cs.state)}</span></div>
       <div class="svc-msg">${esc(cs.message)}</div>
       <div class="svc-keys">${inputs}<button class="btn" data-act="save">Save &amp; validate</button><button class="btn" data-act="val">Validate</button></div>
       <details><summary>How do I get this?</summary><p>${s.help}</p></details></div>`;
   }).join('');
-  document.querySelectorAll('#svc-list input').forEach(i => { if (keep[i.dataset.k]) i.value = keep[i.dataset.k]; });
+  document.querySelectorAll('#svc-list input[type=password]').forEach(i => { const v = keep[i.id || i.dataset.k]; if (v) i.value = v; });
+  const prov = $('#ai-prov'); if (prov) prov.onchange = () => {            // switching provider: refresh defaults, keep nothing stale
+    st.status.credentials.AI_PROVIDER.value = prov.value; st.status.credentials.AI_BASE_URL.value = ''; st.status.credentials.AI_MODEL.value = ''; st.aiModels = []; renderSettings(); };
   document.querySelectorAll('#svc-list .svc').forEach(card => {
     const id = card.dataset.s;
     card.querySelector('[data-act=val]').onclick = () => validateService(id);
     card.querySelector('[data-act=save]').onclick = async () => {
-      const upd = {}; card.querySelectorAll('input').forEach(i => { if (i.value.trim()) upd[i.dataset.k] = i.value.trim(); });
+      const upd = {};
+      if (id === 'ai') {
+        upd.AI_PROVIDER = $('#ai-prov').value; upd.AI_MODEL = $('#ai-model').value.trim();
+        upd.AI_BASE_URL = $('#ai-prov').value === 'gemini' || $('#ai-base').value.trim() === (st.status.ai_presets[$('#ai-prov').value].base || '') ? '' : $('#ai-base').value.trim();
+        const k = $('#ai-key'); if (k.value.trim()) upd[k.dataset.k] = k.value.trim();
+      } else card.querySelectorAll('input').forEach(i => { if (i.value.trim()) upd[i.dataset.k] = i.value.trim(); });
       if (!Object.keys(upd).length) return validateService(id);
       try { st.status = await api('/api/credentials', {method: 'POST', body: JSON.stringify(upd)}); delete st.conn[id]; renderChips(); renderConns(); }
       catch (err) { alert(err.message); return; }
-      card.querySelectorAll('input').forEach(i => i.value = ''); validateService(id);
+      card.querySelectorAll('input[type=password]').forEach(i => i.value = ''); validateService(id);
     };
   });
-  if (focus) { const card = $(`#svc-list .svc[data-s="${focus}"]`); if (card) { card.scrollIntoView({block: 'center'}); const i = card.querySelector('input'); if (i) i.focus(); } }
+  if (focus) { const card = $(`#svc-list .svc[data-s="${focus}"]`); if (card) { card.scrollIntoView({block: 'center'}); const i = card.querySelector('input:not([disabled])'); if (i) i.focus(); } }
 }
 function openSettings(focus) {
   $('#storage-note').textContent = st.status.in_codespaces
@@ -532,17 +553,17 @@ function renderNotes(extra = '') {
 }
 $('#notes-btn').onclick = () => { renderNotes(); $('#notes').classList.toggle('hidden'); };
 $('#ai-on').addEventListener('change', e => {
-  const hint = () => { $('#ai-hint').textContent = $('#ai-on').checked ? 'On: a summary of this run is sent to Gemini; answers are AI-generated.' : 'Off: answers use local rules — nothing leaves your machine.'; };
+  const hint = () => { const ai = st.status.ai; $('#ai-hint').textContent = $('#ai-on').checked ? (ai.local ? 'On: answers come from your local model — nothing leaves this machine.' : `On: a summary of this run is sent to ${ai.label.split(' (')[0]}; answers are AI-generated.`) : 'Off: answers use local rules — nothing leaves your machine.'; };
   if (!e.target.checked) return hint();
-  if (!st.status.credentials.GEMINI_API_KEY.set) { e.target.checked = false; openSettings('gemini'); return; }
-  if (!confirm('Send a SUMMARY of this run to Google Gemini to answer your questions?\n\nIt includes narrative stats, group reasons, ~8 short quotes and the public names of the most active accounts — not all posts.\nOn free tiers Google may use prompts to improve its products. Answers are AI-generated and may be wrong.')) e.target.checked = false;
+  if (!st.status.ai.ready) { e.target.checked = false; openSettings('ai'); return; }
+  if (!st.status.ai.local && !confirm(`Send a SUMMARY of this run to ${st.status.ai.label.split(' (')[0]} to answer your questions?\n\nIt includes narrative stats, group reasons, ~8 short quotes and the public names of the most active accounts — not all posts.\nFree tiers may use prompts to improve their products. Answers are AI-generated and may be wrong.`)) e.target.checked = false;
   hint();
 });
 $('#ask-form').addEventListener('submit', async e => {
   e.preventDefault(); const q = $('#ask').value.trim(); if (!q || !st.res) return; $('#ask').value = '';
   const show = html => { renderNotes(html); $('#notes').classList.remove('hidden'); };
   if (!$('#ai-on').checked) return show(`<div class="note q"><b>${esc(q)}</b>${answer(q)}</div>`);
-  show(`<div class="note q"><b>${esc(q)}</b><span class="mut">✦ asking Gemini… (retries automatically if it is busy)</span></div>`);
+  show(`<div class="note q"><b>${esc(q)}</b><span class="mut">✦ asking ${esc(st.status.ai.label.split(' (')[0])}… (retries automatically if it is busy)</span></div>`);
   try {
     const r = await api('/api/ask', {method: 'POST', body: JSON.stringify({ai: true, job_id: st.jobId, question: q})});
     show(`<div class="note q"><b>${esc(q)}</b><span class="badge b-warn">✦ AI-generated · ${esc(r.model)} · may be wrong</span><div style="white-space:pre-wrap;margin-top:6px">${esc(r.answer)}</div></div>`);

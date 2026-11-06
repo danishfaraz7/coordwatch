@@ -10,8 +10,11 @@ from . import ai
 from . import secrets_store as S
 
 
-def _res(service: str, state: str, message: str) -> dict:
-    return {"service": service, "state": state, "message": message}
+def _res(service: str, state: str, message: str, models: Optional[list] = None) -> dict:
+    out = {"service": service, "state": state, "message": message}
+    if models is not None:
+        out["models"] = models[:80]
+    return out
 
 
 def validate(service: str, get: Optional[Callable] = None) -> dict:
@@ -22,6 +25,8 @@ def validate(service: str, get: Optional[Callable] = None) -> dict:
             return _youtube(get)
         if service == "gemini":
             return _gemini(get)
+        if service == "ai":
+            return _ai(get)
         if service == "x":
             return _x(get)
         if service == "telegram":
@@ -83,3 +88,25 @@ def _telegram() -> dict:
     if not S.telegram_logged_in():
         return _res("telegram", "limited", "Keys saved, but no login session yet - run: python -m coordwatch telegram-login")
     return _res("telegram", "unverified", "Keys saved and a login session exists (not network-tested here).")
+
+
+def _ai(get) -> dict:
+    cfg = ai.current_config()
+    if not cfg["ready"]:
+        return _res("ai", "unset", "No AI provider configured (optional).")
+    if cfg["provider"] == "gemini":
+        r = _gemini(get)
+        r["service"] = "ai"
+        return r
+    try:
+        models = ai.list_models_openai(cfg["base"], cfg["key"], get)
+    except ai.AIError as e:
+        msg = str(e)
+        state = "limited" if "rate limit" in msg else "invalid" if ("key" in msg or "rejected" in msg) else "unverified"
+        return _res("ai", state, msg)
+    chosen = cfg["model"] or ai.pick_openai_model(models, cfg["provider"])
+    where = "locally" if cfg["local"] else cfg["label"].split(" (")[0]
+    note = "" if cfg["model"] else " (auto-picked; choose one below to pin it)"
+    if cfg["model"] and models and cfg["model"] not in models:
+        return _res("ai", "limited", f"Connected to {where}, but model '{cfg['model']}' was not in its model list.", models)
+    return _res("ai", "connected", f"Connected to {where} - {len(models)} models; will use {chosen or 'n/a'}{note}.", models)
