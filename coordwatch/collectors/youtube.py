@@ -37,7 +37,7 @@ def parse_video(item: dict, channels: Dict[str, dict]) -> Post:
     return Post(
         id=item["id"] if isinstance(item["id"], str) else item["id"]["videoId"], platform="youtube",
         author_id=sn["channelId"], author_name=sn.get("channelTitle", ""),
-        text=f"{sn.get('title', '')}. {sn.get('description', '')}".strip(), created_at=parse_dt(sn["publishedAt"]),
+        text=f"{sn.get('title', '')}. {(sn.get('description', '') or '')[:200]}".strip(), created_at=parse_dt(sn["publishedAt"]),
         url=f"https://www.youtube.com/watch?v={item['id'] if isinstance(item['id'], str) else item['id']['videoId']}",
         likes=int(st.get("likeCount", 0)), replies=int(st.get("commentCount", 0)), views=int(st.get("viewCount", 0)),
         media=[{"type": "video", "url": f"https://www.youtube.com/watch?v={item['id'] if isinstance(item['id'], str) else item['id']['videoId']}"},
@@ -50,7 +50,7 @@ class YouTubeCollector(Collector):
     notes = ["YouTube: official Data API v3; search.list costs 100 quota units so at most `max_videos` videos are "
              "searched; comments are top-level only; comment search is limited to the sampled videos."]
 
-    def __init__(self, api_key: str = None, client: HttpClient = None, max_videos: int = 25, max_comments: int = 300,
+    def __init__(self, api_key: str = None, client: HttpClient = None, max_videos: int = 40, max_comments: int = 300,
                  hash_avatars: bool = True):
         self.key = api_key or os.environ.get("YOUTUBE_API_KEY")
         if not self.key:
@@ -71,17 +71,19 @@ class YouTubeCollector(Collector):
         return out
 
     def collect(self, topic, since, until, limit=1000):
-        vids, token = [], None
-        while len(vids) < self.max_videos:
-            p = {"part": "snippet", "q": topic, "type": "video", "maxResults": 50, "order": "date",
-                 "publishedAfter": _iso(since), "publishedBefore": _iso(until), "key": self.key}
-            if token:
-                p["pageToken"] = token
-            d = self.c.get_json(f"{API}/search", p)
-            vids += [it["id"]["videoId"] for it in d.get("items", [])]
-            token = d.get("nextPageToken")
-            if not token:
-                break
+        from datetime import timedelta
+        vids = []
+        # search.list returns newest-first, so one query only ever reaches the last few hours.
+        # Slice the range into day windows (max 14) and take the top videos of each.
+        days = max(1, min(14, (until - since).days + 1))
+        per_window = max(3, self.max_videos // days)
+        for d in range(days):
+            w0 = since + timedelta(days=d)
+            w1 = min(until, w0 + timedelta(days=1))
+            p = {"part": "snippet", "q": topic, "type": "video", "maxResults": min(50, per_window), "order": "relevance",
+                 "publishedAfter": _iso(w0), "publishedBefore": _iso(w1), "key": self.key}
+            d_ = self.c.get_json(f"{API}/search", p)
+            vids += [it["id"]["videoId"] for it in d_.get("items", [])]
         vids = vids[:self.max_videos]
         stats = {}
         for i in range(0, len(vids), 50):
