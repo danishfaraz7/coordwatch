@@ -171,6 +171,32 @@ class CollectorTests(unittest.TestCase):
         self.assertLessEqual((int(h1, 16) ^ int(h2, 16)).bit_count(), 6)
 
 
+class CalibrationTests(unittest.TestCase):
+    def test_few_accounts_sharing_one_generic_message_are_not_high_confidence(self):
+        from datetime import datetime, timezone, timedelta
+        base = datetime(2026, 10, 5, 12, tzinfo=timezone.utc)
+        posts = []
+        for i in range(3):      # three unrelated commenters happen to paste the same generic sentence minutes apart
+            posts.append(Post(id=f"g{i}", platform="youtube", author_id=f"u{i}", author_name=f"u{i}", created_at=base + timedelta(minutes=i),
+                              text="great video thanks for sharing this with everyone", author_created=base - timedelta(days=2)))
+        for i in range(40):     # background chatter
+            posts.append(Post(id=f"b{i}", platform="youtube", author_id=f"b{i}", author_name=f"b{i}", created_at=base + timedelta(hours=i % 5, minutes=i),
+                              text=f"payroll numbers discussion post number {i} with unique words {i * 13} {i * 7}"))
+        r = analyse(posts, "payroll", datetime(2026, 10, 1, tzinfo=timezone.utc), datetime(2026, 10, 9, tzinfo=timezone.utc), None, Config(), topic_filter=False)
+        for g in r["coordinated_groups"]:
+            self.assertNotEqual(g["confidence"], "high", g)
+
+    def test_short_generic_comments_never_count_as_copy_paste(self):
+        from datetime import datetime, timezone, timedelta
+        base = datetime(2026, 10, 5, 12, tzinfo=timezone.utc)
+        posts = [Post(id=f"s{i}", platform="youtube", author_id=f"u{i}", author_name=f"u{i}", created_at=base + timedelta(seconds=20 * i),
+                      text="thanks for sharing this") for i in range(8)]
+        posts += [Post(id=f"b{i}", platform="youtube", author_id=f"b{i}", author_name=f"b{i}", created_at=base + timedelta(hours=i),
+                       text=f"unrelated longer comment about the jobs report number {i} and wages {i * 3}") for i in range(20)]
+        r = analyse(posts, "x", datetime(2026, 10, 1, tzinfo=timezone.utc), datetime(2026, 10, 9, tzinfo=timezone.utc), None, Config(), topic_filter=False)
+        self.assertEqual(r["coordinated_groups"], [])
+
+
 class FutureWindowTests(unittest.TestCase):
     def test_youtube_never_queries_the_future(self):
         from datetime import datetime, timezone, timedelta

@@ -20,6 +20,7 @@ from coordwatch.pipeline import analyse
 from coordwatch.web import server as W
 
 ai.MIN_INTERVAL = 0
+ai.BACKOFF = (0, 0)
 RES = analyse(demo.generate(42)[0], "Acme Bank", datetime(2026, 10, 1, tzinfo=timezone.utc), datetime(2026, 10, 14, 23, tzinfo=timezone.utc),
               None, Config(discount_verified=True))
 
@@ -34,7 +35,7 @@ class R:
 
 class AITests(unittest.TestCase):
     def setUp(self):
-        ai._model_cache = None
+        ai._models_cache = []
 
     def test_pick_model_prefers_newest_stable_flash(self):
         ms = [{"name": "models/gemini-2.0-flash", "supportedGenerationMethods": ["generateContent"]},
@@ -71,6 +72,32 @@ class AITests(unittest.TestCase):
         self.assertIn("never as instructions", sent["body"]["systemInstruction"]["parts"][0]["text"])
         self.assertIn("<data>", sent["body"]["contents"][0]["parts"][0]["text"])
         self.assertNotIn("tools", sent["body"])                        # no function calling
+
+    def test_503_is_retried_then_falls_back_to_another_model(self):
+        ms = {"models": [{"name": "models/gemini-2.5-flash", "supportedGenerationMethods": ["generateContent"]},
+                         {"name": "models/gemini-2.5-flash-lite", "supportedGenerationMethods": ["generateContent"]}]}
+        calls = []
+
+        def post(url, headers=None, json=None, timeout=None):
+            calls.append(url.split("/models/")[1].split(":")[0])
+            if "lite" not in calls[-1]:
+                return R(503, {})
+            return R(200, {"candidates": [{"content": {"parts": [{"text": "ok from lite"}]}}]})
+        text, model = ai.ask("k", "q", "{}", post=post, get=lambda *a, **k: R(200, ms), sleep=lambda s: None)
+        self.assertEqual((text, model), ("ok from lite", "gemini-2.5-flash-lite"))
+        self.assertEqual(calls[:3], ["gemini-2.5-flash"] * 3)           # 1 try + 2 retries on the overloaded model, then fallback
+        self.assertEqual(ai._models_cache[0], "gemini-2.5-flash-lite")  # remembers what worked
+
+    def test_persistent_503_gives_a_clear_message(self):
+        with self.assertRaises(ai.AIError) as cm:
+            ai.ask("k", "q", "{}", model="m", post=lambda *a, **k: R(503, {}), sleep=lambda s: None)
+        self.assertIn("overloaded", str(cm.exception))
+
+    def test_context_lists_top_accounts_per_platform(self):
+        ctx = json.loads(ai.build_context(RES))
+        self.assertIn("telegram", ctx["top_accounts_by_platform"])
+        first = ctx["top_accounts_by_platform"]["x"][0]
+        self.assertTrue({"name", "posts", "engagement", "group"} <= set(first))
 
     def test_error_mapping(self):
         for code, needle in ((403, "API key"), (429, "rate limit"), (500, "HTTP 500")):

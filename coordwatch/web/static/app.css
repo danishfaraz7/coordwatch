@@ -122,3 +122,6 @@ body.idle .brand{display:none}body.idle #topic{flex:1 1 100%;font-size:17px;padd
 @keyframes riseC{from{opacity:0;transform:translateX(-50%) translateY(14px)}to{opacity:1;transform:translateX(-50%)}}
 #hero{animation:riseC .9s .1s ease both}body.idle #top{animation:riseC .9s .3s ease both}#conns{animation:riseC .9s .5s ease both}#hero-demo{animation:riseC .9s .7s ease both}
 #conns{top:clamp(500px,calc(40vh + 246px),700px)}#hero-demo{top:clamp(548px,calc(40vh + 296px),750px)}
+
+.acc{padding:5px 0;border-bottom:1px solid #ffffff0d}.acc:last-of-type{border:0}.n-sub{margin:14px 0 4px;font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--mut)}
+#notes{max-height:52vh}#notes .note.q{border-color:#e8b86a66;background:linear-gradient(90deg,#e8b86a14,#00000026)}

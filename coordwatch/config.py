@@ -10,7 +10,7 @@ class Config:
     min_narrative_size: int = 4        # smaller clusters are folded into "other"
     # --- near-duplicate text ---------------------------------------------
     dup_jaccard: float = 0.70          # 3-word-shingle Jaccard for "near identical"
-    min_tokens_for_dup: int = 4        # ignore "lol", "wow", very short posts
+    min_tokens_for_dup: int = 6        # ignore "thanks for sharing"-style short comments for BOTH copy-paste and sync evidence
     max_dup_authors: int = 150         # cap pair enumeration per duplicate cluster
     # --- coordination signals -------------------------------------------
     sync_window_s: int = 300           # "within minutes of each other"
