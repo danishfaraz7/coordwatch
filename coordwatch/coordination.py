@@ -79,7 +79,8 @@ def detect(posts: List[Post], vecs, cfg: Config, assign=None) -> dict:
             ev[_pair(a, b)]["text_dup"].add(cid)
 
     # ---- 2. synchrony: similar content within a short window -----------------------------
-    order = sorted((i for i in range(n) if not posts[i].is_reshare and eligible(i)),
+    ntok = [len(normalize(p.text)) for p in posts]
+    order = sorted((i for i in range(n) if not posts[i].is_reshare and eligible(i) and ntok[i] >= cfg.min_tokens_for_dup),
                    key=lambda i: posts[i].created_at)
     win: deque = deque()
     for j in order:
@@ -171,7 +172,12 @@ def detect(posts: List[Post], vecs, cfg: Config, assign=None) -> dict:
         score = 1.0
         for s, c in cover.items():
             score *= 1 - WEIGHTS[s] * min(1.0, 1.5 * c / n_edges)
-        score = round(1 - score, 3)
+        score = 1 - score
+        # calibration: a handful of accounts sharing ONE message is weak evidence (generic comments, spam bursts) - don't call it 'high'
+        score *= min(1.0, 0.45 + 0.11 * len(comp))
+        if len({c for _, e in edges for c in e["text_dup"]}) <= 1 and not ({"avatar", "amplify"} & set(cover)):
+            score *= 0.8
+        score = round(score, 3)
         members_posts = [p for p in posts if p.account in cs]
         created = sorted(acct[a]["created"] for a in comp if acct[a]["created"])
         lags = [abs(l) for _, e in edges for (_, _, l) in e["sync"]]
