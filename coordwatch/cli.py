@@ -22,7 +22,7 @@ def _collect(args, since, until):
     files = [(p, args.file_platform) for p in args.input] if args.source == "file" else []
     posts, notes = collect_posts(args.topic, since, until, args.platforms if args.source == "live" else [],
                                  use_demo=args.source == "demo", files=files, telegram_channels=args.telegram_channels or "",
-                                 x_archive=args.x_archive, limit=args.limit, seed=args.seed, log=log)
+                                 x_archive=args.x_archive, limit=args.limit, seed=args.seed, depth=args.depth, log=log)
     truth = None
     if args.source == "demo":
         from .collectors import demo
@@ -43,6 +43,7 @@ def main(argv=None):
     r.add_argument("--file-platform", help="platform name for rows lacking a 'platform' field (tiktok, instagram...)")
     r.add_argument("--telegram-channels", help="comma separated public channels, e.g. @chan1,@chan2")
     r.add_argument("--x-archive", action="store_true", help="use X full-archive search (needs Pro/Enterprise)")
+    r.add_argument("--depth", choices=["quick", "standard", "deep"], default="standard", help="how much to fetch per platform")
     r.add_argument("--limit", type=int, default=1000, help="max posts per platform")
     r.add_argument("--out", default="out")
     r.add_argument("--seed", type=int, default=42, help="demo data seed")

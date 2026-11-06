@@ -191,6 +191,69 @@ class FutureWindowTests(unittest.TestCase):
             self.assertLessEqual(p["publishedBefore"], now.strftime("%Y-%m-%dT%H:%M:%SZ"))
 
 
+class ProgressAndAbortTests(unittest.TestCase):
+    def _yt(self, cancel_after=None):
+        from coordwatch.collectors.base import Cancelled
+        calls = {"n": 0}
+        logs = []
+
+        class FakeClient:
+            notify = None
+            cancelled = None
+            s = None
+
+            def get_json(self_, url, params=None, headers=None):
+                calls["n"] += 1
+                if cancel_after and calls["n"] > cancel_after:
+                    flag["x"] = True
+                if url.endswith("/search"):
+                    return {"items": [{"id": {"videoId": f"v{params['publishedAfter'][8:10]}"}}]}
+                if url.endswith("/videos"):
+                    return {"items": [{"id": i, "snippet": {"channelId": "UC1", "channelTitle": "c", "title": "t", "description": "d",
+                                                            "publishedAt": "2026-10-02T10:00:00Z"}, "statistics": {}} for i in params["id"].split(",")]}
+                if url.endswith("/commentThreads"):
+                    return {"items": [{"snippet": {"totalReplyCount": 0, "topLevelComment": {"id": "c" + params["videoId"], "snippet": {
+                        "authorChannelId": {"value": "UC2"}, "authorDisplayName": "a", "textOriginal": "hi there", "publishedAt": "2026-10-02T11:00:00Z", "likeCount": 1}}}}]}
+                if url.endswith("/channels"):
+                    return {"items": [{"id": i, "snippet": {"publishedAt": "2026-01-01T00:00:00Z", "thumbnails": {}}} for i in params["id"].split(",")]}
+                return {}
+        flag = {"x": False}
+        c = ytcol.YouTubeCollector(api_key="k", client=FakeClient(), hash_avatars=False, max_videos=6)
+        c.log, c.cancelled = logs.append, (lambda: flag["x"])
+        return c, logs, Cancelled
+
+    def test_youtube_reports_each_step(self):
+        from datetime import datetime, timezone
+        c, logs, _ = self._yt()
+        posts = c.collect("x", datetime(2026, 10, 1, tzinfo=timezone.utc), datetime(2026, 10, 3, 23, tzinfo=timezone.utc))
+        text = "\n".join(logs)
+        for needle in ("searching videos", "fetching their statistics", "downloading comments", "comments 1/", "channel profiles", "done"):
+            self.assertIn(needle, text)
+        self.assertGreater(len(posts), 0)
+
+    def test_youtube_abort_midway(self):
+        from datetime import datetime, timezone
+        c, logs, Cancelled = self._yt(cancel_after=2)
+        with self.assertRaises(Cancelled):
+            c.collect("x", datetime(2026, 10, 1, tzinfo=timezone.utc), datetime(2026, 10, 5, tzinfo=timezone.utc))
+
+    def test_http_retry_is_reported_and_abortable(self):
+        from coordwatch.collectors.base import Cancelled
+        msgs = []
+        c = HttpClient(min_interval=0, session=FakeSession([FakeResp(429, headers={"Retry-After": "30"})] * 3), sleep=lambda s: None)
+        c.notify = msgs.append
+        flag = {"x": False}
+        c.cancelled = lambda: flag["x"]
+        flag["x"] = True
+        with self.assertRaises(Cancelled):
+            c.get_json("http://t")
+        flag["x"] = False
+        c2 = HttpClient(min_interval=0, session=FakeSession([FakeResp(429, headers={"Retry-After": "2"}), FakeResp(200, {"ok": 1})]), sleep=lambda s: None)
+        c2.notify = msgs.append
+        self.assertEqual(c2.get_json("http://t"), {"ok": 1})
+        self.assertTrue(any("waiting" in m for m in msgs))
+
+
 class FakeResp:
     def __init__(self, code, body=None, headers=None):
         self.status_code, self._b, self.headers, self.text = code, body or {}, headers or {}, "x"

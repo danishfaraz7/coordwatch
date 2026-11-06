@@ -82,36 +82,75 @@ $('#m-save').onclick = async () => {
   catch (err) { alert(err.message); }
 };
 
-// ------------------------------------------------------------------ run + poll
+// ------------------------------------------------------------------ run + poll (job card, minimise chip, abort)
 function setDefaultDates() {
   const u = new Date(), s = new Date(Date.now() - 7 * 864e5);
   $('#until').value = fmtDate(u); $('#since').value = fmtDate(s);
 }
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+const fmtEl = s => { s = Math.round(s); return s >= 60 ? `${Math.floor(s / 60)}m ${String(s % 60).padStart(2, '0')}s` : `${s}s`; };
+let jobTimer = null;
+
 async function startRun(demo) {
+  if (st.job && st.job.running) { st.job.min = false; renderJob(); return; }       // a run is already in progress: just show it
   const topic = $('#topic').value.trim();
   if (!topic) { $('#topic').focus(); return; }
   st.demo = demo;
-  const body = {topic, since: $('#since').value, until: $('#until').value, platforms: [...st.sel],
-    upload_ids: Object.values(st.uploads).map(u => u.id), demo, telegram_channels: $('#tgch').value,
-    discount_verified: $('#dv').checked};
-  $('#o-title').textContent = 'Collecting & analysing…'; $('#o-log').textContent = ''; $('#overlay').classList.remove('hidden');
-  try {
-    const {id} = await api('/api/run', {method: 'POST', body: JSON.stringify(body)});
-    st.jobId = id;
-    for (;;) {
-      await new Promise(r => setTimeout(r, 600));
-      const j = await api('/api/jobs/' + id);
-      $('#o-log').textContent = j.log.join('\n'); $('#o-log').scrollTop = 1e9;
-      if (j.status === 'error') { $('#o-title').textContent = 'Could not complete the run'; $('#o-log').textContent += '\n\n✖ ' + j.error;
-        setTimeout(() => $('#overlay').onclick = () => { $('#overlay').classList.add('hidden'); $('#overlay').onclick = null; }, 0); return; }
-      if (j.status === 'done') break;
-    }
-    st.res = await api(`/api/jobs/${id}/result`);
-    $('#overlay').classList.add('hidden');
-    loadResult();
-  } catch (err) { $('#o-title').textContent = 'Error'; $('#o-log').textContent += '\n✖ ' + err.message;
-    $('#overlay').onclick = () => { $('#overlay').classList.add('hidden'); $('#overlay').onclick = null; }; }
+  const body = {topic, since: $('#since').value, until: $('#until').value, platforms: [...st.sel], depth: $('#depth').value,
+    upload_ids: Object.values(st.uploads).map(u => u.id), demo, telegram_channels: $('#tgch').value, discount_verified: $('#dv').checked};
+  let id;
+  try { ({id} = await api('/api/run', {method: 'POST', body: JSON.stringify(body)})); }
+  catch (err) { st.job = {id: null, running: false, min: false, status: 'error', log: [], error: err.message, topic, t0: Date.now(), lastChange: Date.now()}; renderJob(); return; }
+  st.job = {id, running: true, min: false, status: 'running', log: [], error: null, topic, t0: Date.now(), lastChange: Date.now(), lastLen: 0};
+  st.jobId = id; renderJob();
+  clearInterval(jobTimer); jobTimer = setInterval(renderJob, 1000);
+  pollJob(st.job);
 }
+async function pollJob(job) {
+  try {
+    while (job.running) {
+      await sleep(700);
+      const j = await api('/api/jobs/' + job.id);
+      job.status = j.status; job.log = j.log; job.error = j.error;
+      if (j.log.length !== job.lastLen) { job.lastLen = j.log.length; job.lastChange = Date.now(); }
+      if (j.status === 'done') {
+        job.running = false; st.res = await api(`/api/jobs/${job.id}/result`);
+        clearInterval(jobTimer); $('#overlay').classList.add('hidden'); $('#jobchip').classList.add('hidden'); st.job = null; loadResult(); return;
+      }
+      if (j.status === 'error' || j.status === 'cancelled') { job.running = false; job.min = false; clearInterval(jobTimer); }
+      renderJob();
+    }
+  } catch (err) { job.running = false; job.status = 'error'; job.error = 'Lost connection to the coordwatch server: ' + err.message; job.min = false; clearInterval(jobTimer); renderJob(); }
+}
+function renderJob() {
+  const j = st.job, ov = $('#overlay'), chip = $('#jobchip'); if (!j) { ov.classList.add('hidden'); chip.classList.add('hidden'); return; }
+  const el = (Date.now() - j.t0) / 1000, last = j.log.length ? j.log[j.log.length - 1].replace(/^\s*[\d.]+s\s+/, '') : 'starting…';
+  const cancelling = j.running && j.cancelling, finished = !j.running;
+  ov.classList.toggle('hidden', j.min && j.running); $('#o-spin').parentElement.parentElement.classList.toggle('bad', finished && j.status === 'error');
+  $('#o-spin').parentElement.parentElement.classList.toggle('stopped', finished && j.status === 'cancelled');
+  $('#o-title').textContent = cancelling ? 'Aborting…' : j.running ? `Analysing “${j.topic}”` : j.status === 'cancelled' ? 'Run aborted' : 'Run failed';
+  $('#o-el').textContent = fmtEl(el);
+  const idle = (Date.now() - j.lastChange) / 1000, hb = $('#o-hb');
+  hb.className = 'o-hb' + (j.running && idle > 20 ? ' slow' : '');
+  hb.textContent = !j.running ? (j.error || '') : idle > 20 ? `No new step for ${fmtEl(idle)} — still working. Big requests or API rate limits can take a while; you can minimise this and keep using the app, or abort.` : `Last update ${Math.round(idle)}s ago`;
+  const pre = $('#o-log'), atBottom = pre.scrollTop + pre.clientHeight >= pre.scrollHeight - 30;
+  pre.textContent = j.log.join('\n') + (finished && j.error && j.status === 'error' ? '\n\n✖ ' + j.error : ''); if (atBottom) pre.scrollTop = pre.scrollHeight;
+  $('#o-min').classList.toggle('hidden', finished); $('#o-abort').classList.toggle('hidden', finished); $('#o-abort').disabled = !!cancelling; $('#o-close').classList.toggle('hidden', !finished);
+  chip.classList.toggle('hidden', !(j.min && j.running)); chip.classList.toggle('bad', false);
+  $('#jc-t').textContent = `${j.topic} · ${fmtEl(el)} · ${cancelling ? 'aborting…' : last}`;
+}
+async function abortJob() {
+  const j = st.job; if (!j || !j.running || j.cancelling) return;
+  if (!confirm('Abort this lookup? Posts collected so far will be discarded.')) return;
+  j.cancelling = true; renderJob();
+  try { await api(`/api/jobs/${j.id}/cancel`, {method: 'POST', body: '{}'}); } catch (e) { j.cancelling = false; alert(e.message); }
+}
+$('#o-min').onclick = () => { if (st.job) { st.job.min = true; renderJob(); } };
+$('#o-abort').onclick = $('#jc-abort').onclick = e => { e.stopPropagation(); abortJob(); };
+$('#o-close').onclick = () => { st.job = null; renderJob(); };
+$('#overlay').addEventListener('mousedown', e => { if (e.target === $('#overlay') && st.job) { if (st.job.running) { st.job.min = true; } else st.job = null; renderJob(); } });   // click outside = minimise, never abort
+$('#jobchip').onclick = () => { if (st.job) { st.job.min = false; renderJob(); } };
+$('#jobchip').addEventListener('keydown', e => { if (e.key === 'Enter' && st.job) { st.job.min = false; renderJob(); } });
 $('#run').onclick = () => startRun(false);
 $('#demo').onclick = $('#w-demo').onclick = () => { $('#topic').value = 'Acme Bank'; $('#since').value = '2026-10-01'; $('#until').value = '2026-10-14'; $('#dv').checked = true; startRun(true); };
 $('#topic').addEventListener('keydown', e => { if (e.key === 'Enter') startRun(false); });
@@ -146,7 +185,7 @@ function buildScene(res) {
   const nodes = [], byNar = new Map();
   nars.forEach((n, i) => {
     const rank = nars.length > 1 ? i / (nars.length - 1) : 0, R = 150 + 190 * Math.pow(rank, 0.85), ang = i * 2.39996 + 0.6;
-    const node = {kind: 'nar', id: n.id, d: n, ang, R, x: Math.cos(ang) * R, y: Math.sin(ang) * R * 0.8, r: 12 + 26 * Math.sqrt(n.posts / maxP),
+    const node = {kind: 'nar', id: n.id, d: n, rank: i, ang, R, x: Math.cos(ang) * R, y: Math.sin(ang) * R * 0.8, r: 12 + 26 * Math.sqrt(n.posts / maxP),
       ts: narTs.get(n.id) || [], first: Date.parse(n.first_seen), share: n.coordinated_post_share || 0, sats: []};
     const accts = [...(narAcct.get(n.id) || new Map()).entries()].sort((a, b) => a[1] - b[1]);
     const step = Math.max(1, Math.floor(accts.length / 14));
@@ -288,9 +327,11 @@ function frame(now) {
       orb(n.x, n.y, r, hot ? '#ffb4a8' : '#ffc3d6', hot ? '#a8281d' : '#8d2c52');
       ctx.strokeStyle = rgba('#ffe9d6', .75); ctx.lineWidth = 1.4; ctx.beginPath(); ctx.arc(n.x, n.y, r + 3, 0, 7); ctx.stroke();
       if (hot) { ctx.setLineDash([3, 5]); ctx.lineDashOffset = -T * 8; ctx.strokeStyle = rgba(HOT, .8); ctx.beginPath(); ctx.arc(n.x, n.y, r + 9, 0, 7); ctx.stroke(); ctx.setLineDash([]); }
+      const labelled = n.rank < 10 || hot || isSel || isHov || cam.k > 1.35 || related(n) && st.selected;
+      if (!labelled) { txt('#' + n.id, n.x, n.y + 3.5, 10, 'rgba(255,255,255,.8)', 700, 'center'); } else {
       const L = n.x < 0, lx = L ? n.x - r - 12 : n.x + r + 12;
       txt('#' + n.id + ' ' + title((n.d.keywords || []).slice(0, 2).join(' · ') || 'narrative'), lx, n.y - 2, 13, '#f3f6f7', 600, L ? 'right' : 'left');
-      pill(Math.round(n.share * 100) + '% coord. · ' + n.d.posts + ' posts', lx, n.y + 14, hot ? '#ff9a90' : '#9fe8ff', L);
+      pill(Math.round(n.share * 100) + '% coord. · ' + n.d.posts + ' posts', lx, n.y + 14, hot ? '#ff9a90' : '#9fe8ff', L); }
     } else {
       glow(n.x, n.y, r, VIOL, .38); orb(n.x, n.y, r, '#e4dcff', '#4a3a9a');
       ctx.strokeStyle = rgba('#e4dcff', .8); ctx.lineWidth = 1.3; ctx.beginPath(); ctx.arc(n.x, n.y, r + 3, 0, 7); ctx.stroke();
@@ -340,7 +381,7 @@ cv.addEventListener('click', e => {
 });
 cv.addEventListener('wheel', e => { e.preventDefault(); const f = e.deltaY < 0 ? 1.1 : .91, k = clamp(st.cam.tk * f, .3, 3.2); const [wx, wy] = toWorld(e.clientX, e.clientY);
   st.cam.tk = k; st.cam.k = k; st.cam.tx = st.cam.x = e.clientX - W / 2 - wx * k; st.cam.ty = st.cam.y = e.clientY - H / 2 - wy * k; }, {passive: false});
-addEventListener('keydown', e => { if (e.key === 'Escape') { hidePanel(); $('#modal').classList.add('hidden'); $('#notes').classList.add('hidden'); $('#drawer').classList.add('hidden'); $('#exp-menu').classList.add('hidden'); } });
+addEventListener('keydown', e => { if (e.key === 'Escape') { if (st.job && st.job.running && !st.job.min) { st.job.min = true; renderJob(); return; } hidePanel(); $('#modal').classList.add('hidden'); $('#notes').classList.add('hidden'); $('#drawer').classList.add('hidden'); $('#exp-menu').classList.add('hidden'); } });
 
 function select(n, focus = true) {
   st.selected = n; showPanel(n);

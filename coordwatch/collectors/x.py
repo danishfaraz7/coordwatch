@@ -72,7 +72,12 @@ class XCollector(Collector):
                   "media.fields": "type,url,preview_image_url"}
         hasher = (lambda u: avatar_hash_from_url(self.c, u.replace("_normal", "_400x400"))) if self.hash_avatars else (lambda u: None)
         posts: List[Post] = []
+        self.c.notify, self.c.cancelled = self.log, self.cancelled
+        page = 0
         while len(posts) < limit:
+            self._check()
+            page += 1
+            self.log(f"x: requesting page {page} ({len(posts)} posts so far)…")
             d = self.c.get_json(self.url, params, {"Authorization": f"Bearer {self.bearer}"})
             posts += parse_response(d, hasher)
             nt = (d.get("meta") or {}).get("next_token")

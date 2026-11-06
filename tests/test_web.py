@@ -101,7 +101,7 @@ class WebTests(Base):
         t = time.time()
         while time.time() - t < timeout:
             j = json.loads(self.call("GET", f"/api/jobs/{jid}")[1])
-            if j["status"] in ("done", "error"):
+            if j["status"] in ("done", "error", "cancelled"):
                 return j
             time.sleep(0.2)
         self.fail("job timed out")
@@ -126,6 +126,30 @@ class WebTests(Base):
         j = self._wait(jid)
         self.assertEqual(j["status"], "error")
         self.assertIn("skipped", j["error"])          # tells the user *why* (missing keys), not a stack trace
+
+    def test_abort_stops_a_running_job(self):
+        from coordwatch.collectors.base import Cancelled
+        started = threading.Event()
+
+        def slow(*a, cancelled=None, log=None, **k):          # stands in for a long live collection
+            log("fake: working…")
+            started.set()
+            for _ in range(200):
+                if cancelled():
+                    raise Cancelled()
+                time.sleep(0.05)
+            return [], []
+        orig, W.collect_posts = W.collect_posts, slow
+        try:
+            jid = json.loads(self.call("POST", "/api/run", {"topic": "x", "since": "2026-10-01", "until": "2026-10-02", "demo": True})[1])["id"]
+            self.assertTrue(started.wait(5))
+            self.assertEqual(self.call("POST", f"/api/jobs/{jid}/cancel", {})[0], 200)
+            j = self._wait(jid, 10)
+            self.assertEqual(j["status"], "cancelled")
+            self.assertTrue(any("abort" in l for l in j["log"]))
+            self.assertIn("elapsed", j)
+        finally:
+            W.collect_posts = orig
 
     def test_upload_validates_and_feeds_a_run(self):
         row = [{"id": "1", "text": "Acme Bank scandal everywhere today wow", "createTimeISO": "2026-10-03T10:00:00Z",
