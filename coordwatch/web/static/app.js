@@ -569,6 +569,7 @@ function accountsAnswer(q, plat) {
 function answer(q) {
   const res = st.res, l = q.toLowerCase(), m = l.match(/#(\d+)|\bnarrative (\d+)/), nid = m ? +(m[1] || m[2]) : null, o = nid !== null ? res.origins.find(x => x.narrative_id === nid) : null;
   const gm = l.match(/\bg(\d+)\b/), g = gm ? res.coordinated_groups.find(x => x.id.toLowerCase() === 'g' + gm[1]) : null, plat = detectPlat(l);
+  if (/\b(fetch|scrape|collect|download|crawl|search for|look up|get me more|pull)\b/.test(l)) return 'I can only answer questions about the data already collected in this run — I can’t fetch new data from chat. To get more, change the <b>topic</b> (e.g. <code>NFP OR topgtraders</code>), the dates or the <b>depth</b> (Quick / Standard / Deep) above and press <b>Analyse</b>.';
   if (g) return `<b>${esc(g.id)}</b>: ${g.size} accounts, ${esc(g.confidence)} confidence (${g.score}). ${g.reasons.map(esc).join(' ')}`;
   if (/(coordinat|campaign|\bbots?\b|inauthentic|spam|astroturf|seeded|seed\b|pushed|pushing)/.test(l)) {
     if (o && o.seeding_group) { const g2 = res.coordinated_groups.find(x => x.id === o.seeding_group); return `Narrative #${o.narrative_id} was seeded by ${esc(o.seeding_group)}${g2 ? ` (${g2.size} accounts; ${esc(g2.reasons[0] || '')})` : ''}.`; }
@@ -586,20 +587,67 @@ function answer(q) {
   return 'Try: “who posted on YouTube?”, “which accounts mention nfp?”, “where did #0 start?”, “who is coordinating?”, “top posts”, “main narratives”, or “G1”. (Local rules, no AI model — tick AI answers for open-ended questions.)';
 }
 
-// ------------------------------------------------------------------ posts drawer + export
-let pfilter = '';
-function fillPosts() { renderPosts(); }
-function renderPosts() {
-  const sc = st.scene; if (!sc) return; const f = pfilter.toLowerCase(); let rows = sc.posts;
-  const m = f.match(/^([ngp]):(.+)$/); if (m) rows = rows.filter(p => m[1] === 'n' ? String(p.narrative_id) === m[2] : m[1] === 'p' ? p.platform === m[2] : (p.coordinated_group || '').toLowerCase() === m[2].toLowerCase());
-  else if (f) rows = rows.filter(p => (p.text + ' ' + p.author_name + ' ' + p.platform).toLowerCase().includes(f));
-  rows = [...rows].sort((a, b) => b.engagement - a.engagement); $('#pcount').textContent = `${Math.min(rows.length, 500)} of ${rows.length}`;
-  $('#ptb').innerHTML = rows.slice(0, 500).map(p => `<tr><td>${p.url && /^https?:/.test(p.url) ? `<a href="${esc(p.url)}" target="_blank" rel="noopener noreferrer">${esc(fmtDT(p.created_at))}</a>` : esc(fmtDT(p.created_at))}</td>
-    <td style="color:${pcol(p.platform)}">${esc(p.platform)}</td><td>${esc(p.author_name)}</td><td>${esc(short(p.text, 240))}</td><td>${p.likes}</td><td>${p.shares}</td><td>${p.replies}</td><td>${p.narrative_id >= 0 ? p.narrative_id : '–'}</td><td>${esc(p.coordinated_group || '')}</td></tr>`).join('');
+// ------------------------------------------------------------------ posts drawer: filters, sorting, media, expandable rows + export
+const pf = {q: '', plat: '', nar: '', grp: '', media: '', sort: 'eng', thumbs: false, limit: 300, open: new Set()};
+const isHttp = u => /^https?:\/\//i.test(u || '');
+function fillPosts() {
+  const sc = st.scene, res = st.res, plats = [...new Set(sc.posts.map(p => p.platform))];
+  $('#f-plat').innerHTML = '<option value="">All platforms</option>' + plats.map(p => `<option value="${esc(p)}">${esc(LABEL[p] || p)}</option>`).join('');
+  $('#f-nar').innerHTML = '<option value="">All narratives</option><option value="none">Unclustered</option>' + sc.nars.map(n => `<option value="${n.id}">#${n.id} ${esc(title(n.label).slice(0, 30))} (${n.posts})</option>`).join('');
+  $('#f-grp').innerHTML = '<option value="">All accounts</option><option value="any">Coordinated only</option>' + res.coordinated_groups.map(g => `<option value="${esc(g.id)}">${esc(g.id)} · ${g.size} accounts</option>`).join('');
+  $('#f-media').innerHTML = '<option value="">Any media</option><option value="photo">Has photo</option><option value="video">Has video</option><option value="none">No media</option>';
+  $('#f-sort').innerHTML = '<option value="eng">Most engagement</option><option value="new">Newest first</option><option value="old">Oldest first</option><option value="likes">Most likes</option><option value="replies">Most replies</option>';
+  resetFilters(false);
 }
-function openPosts(f) { pfilter = f || ''; $('#pf').value = pfilter; renderPosts(); $('#drawer').classList.remove('hidden'); }
-$('#posts-btn').onclick = () => $('#drawer').classList.toggle('hidden'); $('#dr-close').onclick = () => $('#drawer').classList.add('hidden');
-$('#pf').addEventListener('input', e => { pfilter = e.target.value; renderPosts(); });
+function syncControls() { $('#pf').value = pf.q; $('#f-plat').value = pf.plat; $('#f-nar').value = pf.nar; $('#f-grp').value = pf.grp; $('#f-media').value = pf.media; $('#f-sort').value = pf.sort; $('#f-thumbs').checked = pf.thumbs; }
+function resetFilters(render = true) { Object.assign(pf, {q: '', plat: '', nar: '', grp: '', media: '', sort: 'eng', limit: 300}); pf.open.clear(); syncControls(); if (render) renderPosts(); }
+function filteredPosts() {
+  const q = pf.q.trim().toLowerCase();
+  const rows = st.scene.posts.filter(p => {
+    if (pf.plat && p.platform !== pf.plat) return false;
+    if (pf.nar === 'none' ? p.narrative_id >= 0 : (pf.nar && String(p.narrative_id) !== pf.nar)) return false;
+    if (pf.grp === 'any' ? !p.coordinated_group : (pf.grp && p.coordinated_group !== pf.grp)) return false;
+    if (pf.media) { const has = t => p.media.some(m => m.type === t); if (pf.media === 'none' ? p.media.length > 0 : !has(pf.media)) return false; }
+    if (q && !(p.text + ' ' + p.author_name + ' ' + p.account).toLowerCase().includes(q)) return false;
+    return true;
+  });
+  const key = {eng: p => -p.engagement, new: p => -p.ts, old: p => p.ts, likes: p => -p.likes, replies: p => -p.replies}[pf.sort];
+  return rows.sort((a, b) => key(a) - key(b));
+}
+function mediaCell(p, big) {
+  return p.media.filter(m => isHttp(m.url)).slice(0, big ? 12 : 3).map(m => {
+    const img = pf.thumbs && m.type === 'photo' && /\.(jpe?g|png|webp|gif)(\?|$)|ytimg\.com|twimg\.com|cdninstagram|fbcdn/i.test(m.url);
+    return `<a href="${esc(m.url)}" target="_blank" rel="noopener noreferrer" title="${esc(m.url)}">${img ? `<img class="thumb" loading="lazy" referrerpolicy="no-referrer" src="${esc(m.url)}" alt="">` : ''}${m.type === 'video' ? '🎞 video' : '🖼 photo'}</a>`;
+  }).join('') || '<span class="mut">–</span>';
+}
+function renderPosts() {
+  const sc = st.scene; if (!sc) return; const rows = filteredPosts(), shown = rows.slice(0, pf.limit);
+  $('#pcount').textContent = `${shown.length} of ${rows.length} (${sc.posts.length} total)`;
+  $('#ptb').innerHTML = shown.map(p => {
+    const k = p.platform + ':' + p.id, open = pf.open.has(k);
+    const link = isHttp(p.url) ? `<a href="${esc(p.url)}" target="_blank" rel="noopener noreferrer">${esc(fmtDT(p.created_at))}</a>` : esc(fmtDT(p.created_at));
+    let h = `<tr class="pr ${open ? 'open' : ''}" data-k="${esc(k)}"><td>${link}</td><td style="color:${pcol(p.platform)}">${esc(p.platform)}</td><td>${esc(p.author_name)}</td><td>${esc(short(p.text, 200))}</td>
+      <td class="md">${mediaCell(p, false)}</td><td>${p.likes}</td><td>${p.shares}</td><td>${p.replies}</td><td>${p.narrative_id >= 0 ? p.narrative_id : '–'}</td><td>${esc(p.coordinated_group || '')}</td></tr>`;
+    if (open) h += `<tr class="px"><td colspan="10"><div class="full">${esc(p.text)}</div><div class="mlist" style="margin-top:8px">${mediaCell(p, true)}</div>
+      <div class="meta">${esc(p.platform)} · ${esc(p.account)} · ${esc(fmtDT(p.created_at))} UTC · ${p.likes} likes · ${p.shares} shares · ${p.replies} replies${p.views ? ' · ' + p.views.toLocaleString() + ' views' : ''}${p.author_created ? ' · account created ' + esc(p.author_created.slice(0, 10)) : ''}${isHttp(p.url) ? ` · <a href="${esc(p.url)}" target="_blank" rel="noopener noreferrer">open original ↗</a>` : ''}</div></td></tr>`;
+    return h;
+  }).join('') || '<tr><td colspan="10" class="mut" style="padding:24px;text-align:center">No posts match these filters. <a href="#" id="p-clear">Reset filters</a></td></tr>';
+  $('#ptb').querySelectorAll('tr.pr').forEach(r => r.onclick = e => { if (e.target.closest('a')) return; const k = r.dataset.k; pf.open.has(k) ? pf.open.delete(k) : pf.open.add(k); renderPosts(); });
+  const pc = $('#p-clear'); if (pc) pc.onclick = e => { e.preventDefault(); resetFilters(); };
+  $('#p-more').innerHTML = rows.length > shown.length ? `<button class="btn" id="p-more-btn">Show ${Math.min(300, rows.length - shown.length)} more</button>` : '';
+  const mb = $('#p-more-btn'); if (mb) mb.onclick = () => { pf.limit += 300; renderPosts(); };
+}
+function openPosts(spec) {
+  resetFilters(false); const m = (spec || '').match(/^([npg]):(.+)$/);
+  if (m) { if (m[1] === 'p') pf.plat = m[2]; else if (m[1] === 'n') pf.nar = m[2]; else pf.grp = m[2].toUpperCase(); } else pf.q = spec || '';
+  syncControls(); renderPosts(); $('#drawer').classList.remove('hidden');
+}
+$('#posts-btn').onclick = () => { $('#drawer').classList.toggle('hidden'); if (!$('#drawer').classList.contains('hidden')) renderPosts(); };
+$('#dr-close').onclick = () => $('#drawer').classList.add('hidden');
+$('#pf').addEventListener('input', e => { pf.q = e.target.value; pf.limit = 300; renderPosts(); });
+[['#f-plat', 'plat'], ['#f-nar', 'nar'], ['#f-grp', 'grp'], ['#f-media', 'media'], ['#f-sort', 'sort']].forEach(([id, k]) => $(id).addEventListener('change', e => { pf[k] = e.target.value; pf.limit = 300; renderPosts(); }));
+$('#f-thumbs').addEventListener('change', e => { pf.thumbs = e.target.checked; renderPosts(); });
+$('#f-reset').onclick = () => resetFilters();
 $('#exp').onclick = () => $('#exp-menu').classList.toggle('hidden');
 document.addEventListener('click', e => { if (!e.target.closest('#exp') && !e.target.closest('#exp-menu')) $('#exp-menu').classList.add('hidden'); });
 

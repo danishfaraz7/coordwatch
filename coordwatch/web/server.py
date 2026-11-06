@@ -40,7 +40,7 @@ DOWNLOADS = {"results.json": "application/json", "posts.csv": "text/csv", "narra
              "volume_by_platform.csv": "text/csv", "coordinated_groups.csv": "text/csv", "origins.csv": "text/csv",
              "report.html": "text/html; charset=utf-8"}
 MAX_UPLOAD = 60 * 1024 * 1024
-CSP = ("default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src 'self'; "
+CSP = ("default-src 'self'; img-src 'self' data: https:; style-src 'self' 'unsafe-inline'; script-src 'self'; "
        "connect-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'")
 
 

@@ -88,6 +88,24 @@ class AITests(unittest.TestCase):
         self.assertEqual(calls[:3], ["gemini-2.5-flash"] * 3)           # 1 try + 2 retries on the overloaded model, then fallback
         self.assertEqual(ai._models_cache[0], "gemini-2.5-flash-lite")  # remembers what worked
 
+    def test_read_timeout_is_retried_and_fails_over(self):
+        class ReadTimeout(Exception):
+            pass
+        ms = {"models": [{"name": "models/gemini-2.5-flash", "supportedGenerationMethods": ["generateContent"]},
+                         {"name": "models/gemini-2.0-flash", "supportedGenerationMethods": ["generateContent"]}]}
+        seen = []
+
+        def post(url, headers=None, json=None, timeout=None):
+            seen.append(url.split("/models/")[1].split(":")[0])
+            if seen[-1] == "gemini-2.5-flash":
+                raise ReadTimeout("slow")
+            return R(200, {"candidates": [{"content": {"parts": [{"text": "answer"}]}}]})
+        text, model = ai.ask("k", "q", "{}", post=post, get=lambda *a, **k: R(200, ms), sleep=lambda s: None)
+        self.assertEqual((text, model), ("answer", "gemini-2.0-flash"))
+        with self.assertRaises(ai.AIError) as cm:
+            ai.ask("k", "q", "{}", model="m", post=lambda *a, **k: (_ for _ in ()).throw(ReadTimeout("x")), sleep=lambda s: None)
+        self.assertIn("did not answer in time", str(cm.exception))
+
     def test_persistent_503_gives_a_clear_message(self):
         with self.assertRaises(ai.AIError) as cm:
             ai.ask("k", "q", "{}", model="m", post=lambda *a, **k: R(503, {}), sleep=lambda s: None)

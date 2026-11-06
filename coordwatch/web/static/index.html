@@ -92,8 +92,14 @@
 </div></div>
 
 <section id="drawer" class="glass hidden">
-  <div class="dr-head"><b>Posts</b><input id="pf" placeholder="filter…"><span id="pcount" class="mut"></span><button class="x" id="dr-close" aria-label="Close">✕</button></div>
-  <div class="dr-body"><table><thead><tr><th>Date</th><th>Platform</th><th>Account</th><th>Text</th><th>♥</th><th>↻</th><th>💬</th><th>N</th><th>G</th></tr></thead><tbody id="ptb"></tbody></table></div>
+  <div class="dr-head">
+    <b>Posts</b><input id="pf" placeholder="search text or account…" aria-label="Search posts">
+    <select id="f-plat" aria-label="Platform"></select><select id="f-nar" aria-label="Narrative"></select><select id="f-grp" aria-label="Coordination"></select>
+    <select id="f-media" aria-label="Media"></select><select id="f-sort" aria-label="Sort"></select>
+    <label class="chk" title="Loads images from the platforms' servers, which reveals your IP address to them"><input type="checkbox" id="f-thumbs"> thumbnails</label>
+    <button class="btn" id="f-reset">Reset</button><span id="pcount" class="mut"></span><button class="x" id="dr-close" aria-label="Close">✕</button>
+  </div>
+  <div class="dr-body"><table><thead><tr><th>Date</th><th>Platform</th><th>Account</th><th>Text</th><th>Media</th><th title="likes">♥</th><th title="shares">↻</th><th title="replies">💬</th><th>N</th><th>G</th></tr></thead><tbody id="ptb"></tbody></table><div id="p-more"></div></div>
 </section>
 
 <script src="/app.js"></script>

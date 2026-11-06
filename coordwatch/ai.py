@@ -119,11 +119,20 @@ def ask(key: str, question: str, context: str, model: Optional[str] = None, post
                 _check(r)
                 _models_cache = rank_models(r.json().get("models", [])) or [FALLBACK_MODEL]
             candidates = _models_cache[:4]
-        deadline, last, tried = time.time() + 45, None, 0
+        deadline, last, tried = time.time() + 75, None, 0
         for m in candidates:
             tried += 1
             for attempt in range(len(BACKOFF) + 1):
-                r = post(f"{API}/models/{m}:generateContent", headers=hdr, json=body, timeout=40)
+                try:
+                    r = post(f"{API}/models/{m}:generateContent", headers=hdr, json=body, timeout=30)
+                except Exception as e:                         # timeout / connection reset: treat like "busy", retry then fail over
+                    if type(e).__name__ in ("ReadTimeout", "ConnectTimeout", "Timeout", "ConnectionError", "ChunkedEncodingError") and time.time() < deadline:
+                        last = "timeout"
+                        if attempt < len(BACKOFF):
+                            sleep(BACKOFF[attempt])
+                            continue
+                        break
+                    raise
                 if r.status_code == 200:
                     d = r.json()
                     parts = (((d.get("candidates") or [{}])[0]).get("content") or {}).get("parts") or []
@@ -148,6 +157,8 @@ def ask(key: str, question: str, context: str, model: Optional[str] = None, post
         raise AIError(f"Could not reach Gemini: {type(e).__name__}")
     if last == 429:
         raise AIError("Gemini free-tier rate limit reached - wait a minute and ask again.")
+    if last == "timeout":
+        raise AIError(f"Gemini did not answer in time (timed out on {tried} model(s)). It is probably busy - try again in a minute.")
     raise AIError(f"Gemini is overloaded right now (HTTP {last}); I retried and tried {tried} model(s). Wait a minute and ask again.")
 
 
