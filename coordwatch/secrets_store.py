@@ -7,7 +7,9 @@ import os
 from pathlib import Path
 from typing import Dict, Optional
 
-KEYS = ["X_BEARER_TOKEN", "YOUTUBE_API_KEY", "TELEGRAM_API_ID", "TELEGRAM_API_HASH", "GEMINI_API_KEY"]
+SECRET_KEYS = ["X_BEARER_TOKEN", "YOUTUBE_API_KEY", "TELEGRAM_API_ID", "TELEGRAM_API_HASH", "GEMINI_API_KEY", "AI_API_KEY"]
+PLAIN_KEYS = ["AI_PROVIDER", "AI_BASE_URL", "AI_MODEL"]          # not secret: shown back in the UI
+KEYS = SECRET_KEYS + PLAIN_KEYS
 
 
 def home() -> Path:
@@ -33,8 +35,11 @@ def get(name: str) -> Optional[str]:
 
 def status() -> Dict[str, dict]:
     f = _load()
-    return {k: {"set": bool(os.environ.get(k) or f.get(k)), "source": "env" if os.environ.get(k) else ("file" if f.get(k) else None)}
-            for k in KEYS}
+    out = {k: {"set": bool(os.environ.get(k) or f.get(k)), "source": "env" if os.environ.get(k) else ("file" if f.get(k) else None)}
+           for k in KEYS}
+    for k in PLAIN_KEYS:                       # only non-secret settings are ever echoed back
+        out[k]["value"] = os.environ.get(k) or f.get(k) or ""
+    return out
 
 
 def save(updates: Dict[str, Optional[str]]) -> None:

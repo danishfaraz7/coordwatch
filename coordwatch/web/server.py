@@ -108,6 +108,8 @@ def platform_status() -> dict:
             **{p: {"mode": "file", "ready": True, "needs": []} for p in FILE_ONLY},
         },
         "credentials": st,
+        "ai": {k: v for k, v in ai.current_config().items() if k != "key"},
+        "ai_presets": {k: {"label": p["label"], "base": p.get("base", ""), "needs_key": p["needs_key"], "hint": p["hint"]} for k, p in ai.PRESETS.items()},
         "in_codespaces": bool(os.environ.get("CODESPACES")),
     }
 
@@ -252,7 +254,7 @@ class Handler(BaseHTTPRequestHandler):
                 return self._json(200, {"ok": True})
             if url.path == "/api/validate":
                 body = json.loads(self._body(2_000) or b"{}")
-                if body.get("service") not in ("youtube", "gemini", "x", "telegram"):
+                if body.get("service") not in ("youtube", "gemini", "ai", "x", "telegram"):
                     raise ValueError("Unknown service.")
                 return self._json(200, V.validate(body["service"]))
             if url.path == "/api/ask":
@@ -262,14 +264,14 @@ class Handler(BaseHTTPRequestHandler):
                 job = JOBS.get(str(body.get("job_id", "")))
                 if not job or not job.result:
                     raise ValueError("No finished run to ask about.")
-                key = S.get("GEMINI_API_KEY")
-                if not key:
-                    raise ValueError("Add a Gemini API key in ⚙ Settings first.")
+                cfg = ai.current_config()
+                if not cfg["ready"]:
+                    raise ValueError("Set up an AI provider in ⚙ Settings first.")
                 question = str(body.get("question", "")).strip()
                 if not question:
                     raise ValueError("Type a question.")
                 try:
-                    text, model = ai.ask(key, question, ai.build_context(job.result))
+                    text, model = ai.answer(question, ai.build_context(job.result), cfg)
                 except ai.AIError as e:
                     return self._json(502, {"error": str(e)})
                 return self._json(200, {"answer": text, "model": model})
