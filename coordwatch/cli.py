@@ -17,42 +17,17 @@ from .report import render
 
 
 def _collect(args, since, until):
-    notes, posts = [], []
+    from .collect import collect_posts
+    log = (lambda m: logging.info(m))
+    files = [(p, args.file_platform) for p in args.input] if args.source == "file" else []
+    posts, notes = collect_posts(args.topic, since, until, args.platforms if args.source == "live" else [],
+                                 use_demo=args.source == "demo", files=files, telegram_channels=args.telegram_channels or "",
+                                 x_archive=args.x_archive, limit=args.limit, seed=args.seed, log=log)
+    truth = None
     if args.source == "demo":
         from .collectors import demo
-        posts, truth = demo.generate(args.seed)
-        notes.append("DEMO MODE: synthetic data with a planted ground truth - not real social-media content.")
-        return posts, notes, truth
-    if args.source == "file":
-        from .collectors.fileimport import load_file
-        for path in args.input:
-            posts += load_file(path, args.file_platform)
-        notes.append("Loaded from file export(s): " + ", ".join(args.input))
-        return posts, notes, None
-    # live
-    from .collectors.base import PlatformBlocked
-    for pl in args.platforms:
-        try:
-            if pl == "x":
-                from .collectors.x import XCollector
-                c = XCollector(archive=args.x_archive)
-            elif pl == "youtube":
-                from .collectors.youtube import YouTubeCollector
-                c = YouTubeCollector()
-            elif pl == "telegram":
-                from .collectors.telegram import TelegramCollector
-                c = TelegramCollector([x for x in (args.telegram_channels or "").split(",") if x])
-            else:
-                raise SystemExit(f"No live collector for '{pl}'. Export data (Apify/own tooling) and use --source file --file-platform {pl}.")
-            t = time.time()
-            got = c.collect(args.topic, since, until, args.limit)
-            logging.info("%s: %d posts in %.0fs", pl, len(got), time.time() - t)
-            posts += got
-            notes += c.notes
-        except PlatformBlocked as e:               # keep whatever the other platforms returned
-            notes.append(f"{pl}: BLOCKED/INCOMPLETE - {e}")
-            logging.error("%s: %s", pl, e)
-    return posts, notes, None
+        truth = demo.generate(args.seed)[1]
+    return posts, notes, truth
 
 
 def main(argv=None):
@@ -77,9 +52,29 @@ def main(argv=None):
     g = sub.add_parser("sample-data", help="write the synthetic demo dataset + ground truth to a folder")
     g.add_argument("--out", default="sample_data")
     g.add_argument("--seed", type=int, default=42)
+    w = sub.add_parser("web", help="start the web app (default http://127.0.0.1:8000)")
+    w.add_argument("--host", default="127.0.0.1", help="use 0.0.0.0 inside Codespaces/containers")
+    w.add_argument("--port", type=int, default=8000)
+    w.add_argument("--allow-host", action="append", default=[], help="extra Host header to accept")
+    sub.add_parser("telegram-login", help="one-time interactive Telegram login (phone + code)")
     args = ap.parse_args(argv)
     logging.basicConfig(level=logging.INFO if getattr(args, "verbose", False) else logging.WARNING, format="%(levelname)s %(message)s")
 
+    if args.cmd == "web":
+        from .web.server import serve
+        return serve(args.host, args.port, args.allow_host)
+    if args.cmd == "telegram-login":
+        from . import secrets_store as S
+        try:
+            from telethon.sync import TelegramClient
+        except ImportError:
+            raise SystemExit("pip install telethon")
+        i, h = S.get("TELEGRAM_API_ID"), S.get("TELEGRAM_API_HASH")
+        if not (i and h):
+            raise SystemExit("Save TELEGRAM_API_ID / TELEGRAM_API_HASH first (web app -> Settings, or environment variables).")
+        with TelegramClient(S.telegram_session_path(), int(i), h) as cl:   # prompts for phone + code
+            print("Logged in as", cl.get_me().username or cl.get_me().id, "- session saved.")
+        return 0
     if args.cmd == "sample-data":
         from .collectors import demo
         demo.write_sample(args.out, args.seed)
@@ -94,8 +89,9 @@ def main(argv=None):
     if args.discount_verified:
         cfg.discount_verified = True
     posts, notes, truth = _collect(args, since, until)
+    # topic matching already happened inside collect_posts (server-side for live APIs, locally for demo/file)
     result = analyse(posts, args.topic, since, until, None if args.source != "live" else args.platforms, cfg, notes,
-                      topic_filter=args.source != "live")  # live APIs already searched the topic; comments rarely repeat it
+                     topic_filter=False)
     paths = export_all(result, args.out)
     html_path = os.path.join(args.out, "report.html")
     with open(html_path, "w", encoding="utf-8") as f:

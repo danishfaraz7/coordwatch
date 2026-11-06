@@ -15,14 +15,35 @@ Core analysis is **pure Python standard library** (no numpy/sklearn) so it insta
 
 ---------------------------------------------------------------------------------------------------
 
-## 1. Quick start (works offline, 1 second)
+## 0. Web app (one place for every platform)
+
+```bash
+pip install requests Pillow telethon      # optional extras for live collection
+python -m coordwatch web                  # -> http://localhost:8000
+```
+Pick a topic + dates + platforms, press **Analyse**. The result is an interactive **constellation**: the topic is the glowing core,
+narratives orbit it (gold beams, thickness = volume, red = pushed by coordinated accounts), coordinated groups are purple orbs linked to the
+narratives they pushed, and small dots are individual accounts coloured by platform. A time scrubber replays how it spread; click anything for the
+detail panel (origin, hops between platforms, evidence); the dock answers simple questions from the data (local rules, **no AI model**).
+
+* **Platforms:** X, YouTube, Telegram are live (official APIs). TikTok / Instagram / Facebook / Snapchat: use the chip to **import an export file**.
+  Several sources can be mixed in one run.
+* **API keys, once:** ⚙ Settings saves them to `~/.coordwatch/credentials.json` (outside the repo, never returned to the browser).
+  Environment variables win, so in **GitHub Codespaces** use *Settings → Codespaces → Secrets* and they are picked up automatically.
+* **Telegram** needs one extra step: `python -m coordwatch telegram-login` (phone + code, once).
+* **Codespaces:** *Code → Codespaces → Create*; `.devcontainer/` installs the extras and starts the app on forwarded port 8000 (private).
+  (Written from the Codespaces docs, not yet tried in a real Codespace.) Behind a different proxy use `--allow-host <name>`.
+* **Safety:** binds to 127.0.0.1 by default; Host-header allow-list, CSRF header + same-origin check on every POST, strict CSP, uploads are extension-checked
+  and only parsed as data. Do not expose it to the public internet - there is no login.
+
+## 1. Command line (works offline, 1 second)
 
 ```bash
 git clone <this repo> && cd coordwatch
 python3 -m coordwatch run --topic "Acme Bank" --since 2026-10-01 --until 2026-10-14 \
         --source demo --discount-verified --out out/demo
 open out/demo/report.html          # or xdg-open / start
-python3 -m unittest discover -s tests -v     # 21 tests
+python3 -m unittest discover -s tests -v     # 31 tests
 python3 scripts/stress.py                    # accuracy sweep (10 seeds x 5 scenarios)
 ```
 
@@ -137,7 +158,7 @@ No third-party analysis libraries: MinHash-LSH, TF-IDF, union-find, dHash are ~1
      Narratives were over-fragmented (37 clusters for 9 topics) → threshold sweep.
   3. **Stress test** (10 seeds × 5 scenarios) exposed two real defects: creation-time coincidence among *old* accounts created false groups
      (fixed with the "fresh account" condition), and paraphrase-ring recall of 0.5–0.67 (improved by same-narrative short-window synchrony).
-  4. 21 unit tests, including adversarial cases (default avatars, XSS in scraped text, 403 not retried, cache correctness).
+  4. 31 unit tests, including adversarial cases (default avatars, XSS in scraped text, 403 not retried, cache correctness).
   5. API parsers are tested against payloads shaped like the documented responses – **not against live APIs** (no keys in this repo's CI).
      Treat the live collectors as unverified until you run them with your keys.
 * **Caveat I want to be explicit about:** I iterated thresholds against my own generator, so the numbers below show the *method's behaviour*, not real-world accuracy.
@@ -176,8 +197,8 @@ paraphrasing + mutual-reshare ring; decoys = 5 verified newswire outlets, 40-use
 
 ## 8. Layout
 ```
-coordwatch/            package (collectors/, narratives.py, coordination.py, origin.py, pipeline.py, report.py, export.py, evaluate.py, cli.py)
-tests/                 21 unit tests (unittest; pytest also works)
+coordwatch/            package (web/ (server + constellation UI), collect.py, secrets_store.py, collectors/, narratives.py, coordination.py, origin.py, pipeline.py, report.py, export.py, evaluate.py, cli.py)
+tests/                 31 unit tests (unittest; pytest also works)
 scripts/stress.py      multi-seed accuracy + ablation table
 sample_data/           synthetic posts + ground truth JSON (importable via --source file)
 out/example/           pre-generated report, JSON and CSVs
