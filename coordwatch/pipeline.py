@@ -14,9 +14,9 @@ from .origin import trace_origins
 
 
 def analyse(all_posts: List[Post], topic: str, since: Optional[datetime], until: Optional[datetime],
-            platforms: Optional[List[str]] = None, cfg: Optional[Config] = None, collector_notes=None) -> dict:
+            platforms: Optional[List[str]] = None, cfg: Optional[Config] = None, collector_notes=None, topic_filter: bool = True) -> dict:
     cfg = cfg or Config()
-    posts = filter_posts(all_posts, topic, since, until, platforms)
+    posts = filter_posts(all_posts, topic, since, until, platforms, topic_filter)
     if not posts:
         raise SystemExit("No posts matched the topic / date range / platforms. Check the inputs.")
     narratives, assign, vecs = analyse_narratives(posts, topic, cfg)

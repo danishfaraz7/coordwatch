@@ -94,7 +94,8 @@ def main(argv=None):
     if args.discount_verified:
         cfg.discount_verified = True
     posts, notes, truth = _collect(args, since, until)
-    result = analyse(posts, args.topic, since, until, None if args.source != "live" else args.platforms, cfg, notes)
+    result = analyse(posts, args.topic, since, until, None if args.source != "live" else args.platforms, cfg, notes,
+                      topic_filter=args.source != "live")  # live APIs already searched the topic; comments rarely repeat it
     paths = export_all(result, args.out)
     html_path = os.path.join(args.out, "report.html")
     with open(html_path, "w", encoding="utf-8") as f:

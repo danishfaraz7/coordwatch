@@ -57,6 +57,14 @@ class FilterTests(unittest.TestCase):
         self.assertEqual(parse_dt(1790000000000), parse_dt(1790000000))
 
 
+class LiveFilterTests(unittest.TestCase):
+    def test_topic_filter_can_be_disabled_for_live_sources(self):
+        c = Post(id="1", platform="youtube", author_id="a", author_name="a", text="great phone honestly", created_at=S + timedelta(hours=1))
+        self.assertEqual(len(analyse([c], "iPhone 17", S, U, None, Config(), topic_filter=False)["posts"]), 1)
+        with self.assertRaises(SystemExit):
+            analyse([c], "iPhone 17", S, U, None, Config())
+
+
 class PipelineTests(unittest.TestCase):
     def test_output_has_required_parts(self):
         for k in ("posts", "narratives", "coordinated_groups", "origins", "volume", "meta"):

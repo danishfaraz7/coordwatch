@@ -25,7 +25,7 @@ def matches_topic(text: str, topic: str) -> bool:
 
 
 def filter_posts(posts: Iterable[Post], topic: str, since: Optional[datetime], until: Optional[datetime],
-                 platforms: Optional[List[str]] = None) -> List[Post]:
+                 platforms: Optional[List[str]] = None, topic_filter: bool = True) -> List[Post]:
     out, seen = [], set()
     for p in posts:
         if platforms and p.platform not in platforms:
@@ -34,7 +34,7 @@ def filter_posts(posts: Iterable[Post], topic: str, since: Optional[datetime], u
             continue
         if until and p.created_at > until:
             continue
-        if not matches_topic(p.text, topic):
+        if topic_filter and not matches_topic(p.text, topic):
             continue
         key = (p.platform, p.id)
         if key in seen:
