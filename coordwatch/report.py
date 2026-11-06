@@ -15,10 +15,13 @@ def color(pl: str) -> str:
     return PALETTE.get(pl, FALLBACK[hash(pl) % len(FALLBACK)])
 
 
-def stacked_bars(series: Dict[str, Dict[str, int]], w=860, h=190, label_fmt=lambda s: s[5:10]) -> str:
+def stacked_bars(series: Dict[str, Dict[str, int]], w=860, h=190, label_fmt=None) -> str:
     buckets = sorted({b for s in series.values() for b in s})
     if not buckets:
         return "<p class=muted>no data</p>"
+    if label_fmt is None:
+        hourly = len(buckets) > 1 and buckets[0][:10] == buckets[-1][:10] or any(b[11:13] != '00' for b in buckets)
+        label_fmt = (lambda s: s[5:10] + ' ' + s[11:13] + 'h') if hourly else (lambda s: s[5:10])
     plats = sorted(series)
     tot = [sum(series[p].get(b, 0) for p in plats) for b in buckets]
     mx = max(tot) or 1

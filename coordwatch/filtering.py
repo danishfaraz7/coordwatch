@@ -34,6 +34,8 @@ def filter_posts(posts: Iterable[Post], topic: str, since: Optional[datetime], u
             continue
         if until and p.created_at > until:
             continue
+        if not (p.text or '').strip():
+            continue
         if topic_filter and not matches_topic(p.text, topic):
             continue
         key = (p.platform, p.id)
