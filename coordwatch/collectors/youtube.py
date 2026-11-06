@@ -71,7 +71,10 @@ class YouTubeCollector(Collector):
         return out
 
     def collect(self, topic, since, until, limit=1000):
-        from datetime import timedelta
+        from datetime import datetime, timedelta, timezone
+        # the API rejects a publishedAfter/Before in the future (400 invalid argument) - and "today" in the user's
+        # timezone can still be tomorrow in UTC - so never look past "now"
+        until = min(until, datetime.now(timezone.utc) - timedelta(seconds=30))
         vids = []
         # search.list returns newest-first, so one query only ever reaches the last few hours.
         # Slice the range into day windows (max 14) and take the top videos of each.
@@ -80,6 +83,8 @@ class YouTubeCollector(Collector):
         for d in range(days):
             w0 = since + timedelta(days=d)
             w1 = min(until, w0 + timedelta(days=1))
+            if w1 <= w0:
+                continue
             p = {"part": "snippet", "q": topic, "type": "video", "maxResults": min(50, per_window), "order": "relevance",
                  "publishedAfter": _iso(w0), "publishedBefore": _iso(w1), "key": self.key}
             d_ = self.c.get_json(f"{API}/search", p)
