@@ -7,10 +7,15 @@
 <link rel="stylesheet" href="/app.css">
 </head>
 <body>
+<div id="boot" role="status" aria-label="Starting coordwatch">
+  <canvas id="bc"></canvas>
+  <div class="boot-center"><div class="boot-title" id="bt">coordwatch</div><div class="boot-sub" id="bs">coordinated-activity &amp; narrative intelligence</div></div>
+  <div class="boot-log" id="blog"></div><div class="boot-skip">click or press any key to skip</div>
+</div>
 <canvas id="cv" aria-label="Constellation of narratives and coordinated account groups"></canvas>
 
 <header id="top" class="glass">
-  <div class="brand"><span class="logo"></span><b>coordwatch</b><small>constellation</small></div>
+  <div class="brand" id="brand" title="Back to start"><span class="logo"></span><b>coordwatch</b><small>constellation</small></div>
   <input id="topic" placeholder="Topic: keyword, #hashtag, person, brand…  (use OR for alternatives)" aria-label="Topic" maxlength="200">
   <input id="since" type="date" aria-label="From"><span class="arrow">→</span><input id="until" type="date" aria-label="To">
   <div id="chips" role="group" aria-label="Platforms"></div>
@@ -22,7 +27,7 @@
   <button id="demo" class="btn">Demo data</button>
   <button id="exp" class="btn ico hidden" title="Export">⭳</button>
   <button id="posts-btn" class="btn ico hidden" title="Posts table">☰</button>
-  <button id="gear" class="btn ico" title="API keys &amp; settings">⚙</button>
+  <button id="gear" class="btn ico" title="Settings &amp; connections">⚙</button>
   <input type="file" id="fi" class="hidden" accept=".json,.jsonl,.ndjson,.csv">
 </header>
 <div id="exp-menu" class="glass hidden"></div>
@@ -53,15 +58,13 @@
 
 <div id="tip" class="glass hidden"></div>
 
-<section id="welcome">
-  <div class="w-card glass">
-    <div class="logo big"></div>
-    <h1>See who’s really pushing a narrative.</h1>
-    <p>Pick a topic and a time window. coordwatch finds the storylines, the accounts acting together, and where each one started — across platforms, in one view.</p>
-    <div class="w-actions"><button id="w-demo" class="btn primary">Explore the demo</button><button id="w-key" class="btn">Add API keys</button></div>
-    <small class="mut">Findings are investigative leads, not attribution. Coordination ≠ inauthenticity.</small>
-  </div>
+<section id="hero" class="hidden">
+  <div class="eyebrow">Coordinated-activity &amp; narrative intelligence</div>
+  <h1>See who&rsquo;s really <span>pushing</span> the narrative.</h1>
+  <p>Track a topic across platforms. Find the storylines, the accounts acting together, and where each one started.</p>
 </section>
+<div id="conns" class="hidden" aria-label="Connection status"></div>
+<button id="hero-demo" class="hidden">▶ Explore the demo</button>
 
 <div id="overlay" class="hidden"><div class="o-card glass" role="dialog" aria-label="Analysis progress">
   <div class="o-head"><div class="spin" id="o-spin"></div><h3 id="o-title">Collecting…</h3><span class="o-el" id="o-el"></span></div>
@@ -71,21 +74,21 @@
 </div></div>
 <div id="jobchip" class="glass hidden" role="button" tabindex="0" title="Click to show progress"><div class="spin"></div><span class="t" id="jc-t"></span><button class="btn danger" id="jc-abort">Abort</button></div>
 
-<div id="modal" class="hidden"><div class="m-card glass">
+<div id="modal" class="hidden"><div class="m-card glass st-card" role="dialog" aria-label="Settings">
   <button class="x" id="m-close" aria-label="Close">✕</button>
-  <h2>API keys &amp; storage</h2>
-  <p class="mut">Keys are <b>write-only</b>: they are saved on this machine and never sent back to the browser. Environment variables
-  (e.g. <b>Codespaces secrets</b>) take priority over saved values.</p>
-  <div id="keys"></div>
-  <p class="mut small" id="storage-note"></p>
-  <div class="m-actions"><button class="btn primary" id="m-save">Save</button><button class="btn" id="m-cancel">Cancel</button></div>
-  <details><summary>How do I get each key?</summary><ul class="small">
-    <li><b>YouTube</b>: Google Cloud Console → new project → enable <i>YouTube Data API v3</i> → Credentials → API key (free quota).</li>
-    <li><b>Telegram</b>: my.telegram.org → API development tools → api_id / api_hash. Then run <code>python -m coordwatch telegram-login</code> once in a terminal.</li>
-    <li><b>Gemini (optional AI chat)</b>: aistudio.google.com/apikey → Create API key (free tier). Off by default; opt-in per session with the AI checkbox.</li>
-    <li><b>X</b>: developer.x.com → Basic tier or higher (paid) → Bearer token.</li>
-    <li><b>TikTok / Instagram / Facebook / Snapchat</b>: no public search API — import an export file (JSON/CSV) with the chip.</li>
-  </ul></details>
+  <div class="st-head"><div><h2>Settings</h2><p class="mut">Connections, privacy and storage</p></div><button class="btn" id="m-valall">⟳ Validate all</button></div>
+  <h5 class="st-sec">Connections</h5>
+  <div id="svc-list"></div>
+  <h5 class="st-sec">Import-only platforms</h5>
+  <p class="mut small">TikTok, Instagram, Facebook and Snapchat have no public search API. Use their chips in the toolbar to import an export file (JSON/CSV), e.g. from an Apify actor or your own lawful collection.</p>
+  <h5 class="st-sec">Privacy &amp; storage</h5>
+  <ul class="small st-list">
+    <li>Keys are <b>write-only</b>: saved on this computer, never sent back to the browser, and never committed to the repository.</li>
+    <li id="storage-note"></li>
+    <li>Environment variables (e.g. <b>Codespaces secrets</b>) take priority over saved values.</li>
+    <li>AI answers are <b>off by default</b>. When enabled, only a summary of a run is sent to Gemini.</li>
+  </ul>
+  <div class="m-actions"><button class="btn primary" id="m-done">Done</button></div>
 </div></div>
 
 <section id="drawer" class="glass hidden">

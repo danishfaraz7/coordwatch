@@ -28,6 +28,10 @@ detail panel (origin, hops between platforms, evidence); the dock answers simple
 
 * **Platforms:** X, YouTube, Telegram are live (official APIs). TikTok / Instagram / Facebook / Snapchat: use the chip to **import an export file**.
   Several sources can be mixed in one run.
+* **Start-up & landing:** a short boot animation (dots blink like ordinary accounts, then a few lock into sync - what the tool detects - while real
+  connection checks run), then a landing console with live connection chips. Click any key to skip; honours *reduced motion*.
+* **Settings (⚙):** one card per service (YouTube, Telegram, X, Gemini) with a status pill and a **Validate** button (cheap metadata calls; keys never leave
+  the server except to their own API). Shows connected / key saved / invalid / limited (quota, billing, access) / offline.
 * **API keys, once:** ⚙ Settings saves them to `~/.coordwatch/credentials.json` (outside the repo, never returned to the browser).
   Environment variables win, so in **GitHub Codespaces** use *Settings → Codespaces → Secrets* and they are picked up automatically.
 * **Optional AI answers (Gemini free tier):** add a Gemini key in ⚙ Settings, then tick *AI answers* under the question box. Off by default; when on, only a
@@ -46,7 +50,7 @@ git clone <this repo> && cd coordwatch
 python3 -m coordwatch run --topic "Acme Bank" --since 2026-10-01 --until 2026-10-14 \
         --source demo --discount-verified --out out/demo
 open out/demo/report.html          # or xdg-open / start
-python3 -m unittest discover -s tests -v     # 43 tests
+python3 -m unittest discover -s tests -v     # 49 tests
 python3 scripts/stress.py                    # accuracy sweep (10 seeds x 5 scenarios)
 ```
 
@@ -161,7 +165,7 @@ No third-party analysis libraries: MinHash-LSH, TF-IDF, union-find, dHash are ~1
      Narratives were over-fragmented (37 clusters for 9 topics) → threshold sweep.
   3. **Stress test** (10 seeds × 5 scenarios) exposed two real defects: creation-time coincidence among *old* accounts created false groups
      (fixed with the "fresh account" condition), and paraphrase-ring recall of 0.5–0.67 (improved by same-narrative short-window synchrony).
-  4. 43 unit tests, including adversarial cases (default avatars, XSS in scraped text, 403 not retried, cache correctness).
+  4. 49 unit tests, including adversarial cases (default avatars, XSS in scraped text, 403 not retried, cache correctness).
   5. API parsers are tested against payloads shaped like the documented responses – **not against live APIs** (no keys in this repo's CI).
      Treat the live collectors as unverified until you run them with your keys.
 * **Caveat I want to be explicit about:** I iterated thresholds against my own generator, so the numbers below show the *method's behaviour*, not real-world accuracy.
@@ -201,7 +205,7 @@ paraphrasing + mutual-reshare ring; decoys = 5 verified newswire outlets, 40-use
 ## 8. Layout
 ```
 coordwatch/            package (web/ (server + constellation UI), collect.py, secrets_store.py, collectors/, narratives.py, coordination.py, origin.py, pipeline.py, report.py, export.py, evaluate.py, cli.py)
-tests/                 43 unit tests (unittest; pytest also works)
+tests/                 49 unit tests (unittest; pytest also works)
 scripts/stress.py      multi-seed accuracy + ablation table
 sample_data/           synthetic posts + ground truth JSON (importable via --source file)
 out/example/           pre-generated report, JSON and CSVs

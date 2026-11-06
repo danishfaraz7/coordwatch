@@ -7,7 +7,17 @@ const pcol = p => PC[p] || '#9ca3a3';
 const LABEL = {x:'X', youtube:'YouTube', telegram:'Telegram', tiktok:'TikTok', instagram:'Instagram', facebook:'Facebook', snapchat:'Snapchat'};
 const ORDER = ['x','youtube','telegram','tiktok','instagram','facebook','snapchat'];
 const SIGNAL = {text_dup:'Copy-pasted text', sync:'Posting in sync', amplify:'Reshare loops', avatar:'Reused avatars', created:'Created together', handle:'Same handle'};
-const KEYS = [['YOUTUBE_API_KEY','YouTube API key'],['TELEGRAM_API_ID','Telegram api_id'],['TELEGRAM_API_HASH','Telegram api_hash'],['X_BEARER_TOKEN','X bearer token'],['GEMINI_API_KEY','Gemini key (optional AI chat)']];
+const SERVICES = [
+  {id: 'youtube', short: 'YouTube', name: 'YouTube Data API', color: '#ff8a65', blurb: 'Videos & comments (live)', keys: [['YOUTUBE_API_KEY', 'API key']],
+   help: 'Google Cloud Console → create/select a project → enable <b>YouTube Data API v3</b> → Credentials → <b>Create API key</b>. Free daily quota.'},
+  {id: 'telegram', short: 'Telegram', name: 'Telegram', color: '#4de0b8', blurb: 'Public channels (live)', keys: [['TELEGRAM_API_ID', 'api_id'], ['TELEGRAM_API_HASH', 'api_hash']],
+   help: 'my.telegram.org → <b>API development tools</b> → create an app. Then run <code>python -m coordwatch telegram-login</code> once in a terminal (phone + code).'},
+  {id: 'x', short: 'X', name: 'X (Twitter) API', color: '#9aa8ff', blurb: 'Recent search (paid credits)', keys: [['X_BEARER_TOKEN', 'Bearer token']],
+   help: 'console.x.com → Apps → your app → Keys &amp; Tokens → <b>Bearer Token</b>. Searching needs paid credits; otherwise import X data from a file.'},
+  {id: 'gemini', short: 'Gemini AI', name: 'Gemini (AI answers)', color: '#e8b86a', blurb: 'Optional · free tier', keys: [['GEMINI_API_KEY', 'API key']],
+   help: 'aistudio.google.com/apikey → <b>Create API key</b>. Optional: only used when you tick “AI answers”, and only a summary of a run is sent.'}
+];
+const STATE_LABEL = {connected: 'connected', saved: 'key saved', unset: 'not set', invalid: 'invalid key', limited: 'limited', unverified: 'saved', unreachable: 'offline', checking: 'checking…'};
 const GOLD = '#e8b86a', PINK = '#ef7aa0', VIOL = '#9a8cff', HOT = '#ff5a4d', TEAL = '#4de0d0';
 
 const st = {status: null, sel: new Set(), uploads: {}, demo: false, jobId: null, res: null, scene: null, selected: null,
@@ -62,25 +72,64 @@ $('#fi').addEventListener('change', async e => {
     st.uploads[p] = up; renderChips();
   } catch (err) { alert('Import failed: ' + err.message); }
 });
-function openSettings(focusPlat) {
-  const c = st.status.credentials;
-  $('#keys').innerHTML = KEYS.map(([k, lab]) => `<div class="krow"><label for="k_${k}">${esc(lab)}</label>
-    <input id="k_${k}" type="password" autocomplete="off" placeholder="${c[k].set ? '•••••• saved — type to replace' : 'paste key'}" data-k="${k}">
-    <span class="st ${c[k].set ? 'ok' : ''}">${c[k].set ? '✓ ' + (c[k].source === 'env' ? 'env var' : 'saved') : 'not set'}</span></div>`).join('');
-  $('#storage-note').textContent = st.status.in_codespaces
-    ? 'Codespaces detected: for permanent storage add these as Codespaces secrets (GitHub → Settings → Codespaces → Secrets); they become environment variables automatically.'
-    : 'Saved to ~/.coordwatch/credentials.json on this computer (outside the repository, so it can never be committed).';
-  $('#modal').classList.remove('hidden');
-  const f = focusPlat === 'youtube' ? 'YOUTUBE_API_KEY' : focusPlat === 'x' ? 'X_BEARER_TOKEN' : focusPlat === 'telegram' ? 'TELEGRAM_API_ID' : null;
-  if (f) $('#k_' + f).focus();
+st.conn = {};
+function connState(id) {
+  const svc = SERVICES.find(x => x.id === id), c = st.status.credentials, set = svc.keys.every(([k]) => c[k].set);
+  if (!set) return {state: 'unset', message: id === 'gemini' ? 'Not set (optional).' : 'Not set.'};
+  return st.conn[id] || {state: 'saved', message: 'Key saved — not validated yet.'};
 }
-$('#gear').onclick = () => openSettings(); $('#w-key').onclick = () => openSettings();
-$('#m-close').onclick = $('#m-cancel').onclick = () => $('#modal').classList.add('hidden');
-$('#m-save').onclick = async () => {
-  const upd = {}; document.querySelectorAll('#keys input').forEach(i => { if (i.value.trim()) upd[i.dataset.k] = i.value.trim(); });
-  try { st.status = await api('/api/credentials', {method: 'POST', body: JSON.stringify(upd)}); renderChips(); $('#modal').classList.add('hidden'); }
-  catch (err) { alert(err.message); }
-};
+function renderConns() {
+  const box = $('#conns'); if (!st.status) return;
+  box.innerHTML = SERVICES.map(s => { const cs = connState(s.id); return `<button class="cn ${cs.state}" data-s="${s.id}" title="${esc(cs.message)}"><i></i>${esc(s.short)} · ${esc(STATE_LABEL[cs.state] || cs.state)}</button>`; }).join('');
+  box.querySelectorAll('.cn').forEach(b => b.onclick = () => openSettings(b.dataset.s));
+}
+async function validateService(id, quiet) {
+  st.conn[id] = {state: 'checking', message: 'Checking…'}; renderConns(); if (!$('#modal').classList.contains('hidden')) renderSettings();
+  try { st.conn[id] = await api('/api/validate', {method: 'POST', body: JSON.stringify({service: id})}); }
+  catch (e) { st.conn[id] = {state: 'unreachable', message: e.message}; }
+  renderConns(); if (!$('#modal').classList.contains('hidden')) renderSettings();
+  if (quiet && window.__bootLog) { const r = st.conn[id], sv = SERVICES.find(x => x.id === id); window.__bootLog(`${sv.short.toLowerCase()} ${r.state === 'connected' ? '✓ connected' : r.state === 'unverified' ? '✓ keys saved' : r.state === 'invalid' ? '✗ invalid key' : '! ' + (STATE_LABEL[r.state] || r.state)}`, r.state === 'connected' || r.state === 'unverified' ? 'ok' : r.state === 'invalid' ? 'hot' : 'warn'); }
+  return st.conn[id];
+}
+function autoValidate() {
+  const c = st.status.credentials;
+  SERVICES.filter(s => s.id !== 'x' && s.keys.every(([k]) => c[k].set)).forEach(s => validateService(s.id, true));   // X is manual: its check may touch paid quota
+}
+function renderSettings(focus) {
+  const c = st.status.credentials, active = document.activeElement && document.activeElement.dataset ? document.activeElement.dataset.k : null;
+  const keep = {}; document.querySelectorAll('#svc-list input').forEach(i => { if (i.value) keep[i.dataset.k] = i.value; });
+  $('#svc-list').innerHTML = SERVICES.map(s => {
+    const cs = connState(s.id);
+    const inputs = s.keys.map(([k, lab]) => `<input type="password" autocomplete="off" data-k="${k}" aria-label="${esc(s.name + ' ' + lab)}" placeholder="${c[k].set ? esc(lab) + ' — saved (' + (c[k].source === 'env' ? 'env var' : 'file') + '), type to replace' : esc(lab)}">`).join('');
+    return `<div class="svc" data-s="${s.id}"><div class="svc-top"><i class="dot" style="background:${s.color};box-shadow:0 0 8px ${s.color}"></i><b>${esc(s.name)}</b><span class="bl">${esc(s.blurb)}</span><span class="pill2 ${cs.state}">${esc(STATE_LABEL[cs.state] || cs.state)}</span></div>
+      <div class="svc-msg">${esc(cs.message)}</div>
+      <div class="svc-keys">${inputs}<button class="btn" data-act="save">Save &amp; validate</button><button class="btn" data-act="val">Validate</button></div>
+      <details><summary>How do I get this?</summary><p>${s.help}</p></details></div>`;
+  }).join('');
+  document.querySelectorAll('#svc-list input').forEach(i => { if (keep[i.dataset.k]) i.value = keep[i.dataset.k]; });
+  document.querySelectorAll('#svc-list .svc').forEach(card => {
+    const id = card.dataset.s;
+    card.querySelector('[data-act=val]').onclick = () => validateService(id);
+    card.querySelector('[data-act=save]').onclick = async () => {
+      const upd = {}; card.querySelectorAll('input').forEach(i => { if (i.value.trim()) upd[i.dataset.k] = i.value.trim(); });
+      if (!Object.keys(upd).length) return validateService(id);
+      try { st.status = await api('/api/credentials', {method: 'POST', body: JSON.stringify(upd)}); delete st.conn[id]; renderChips(); renderConns(); }
+      catch (err) { alert(err.message); return; }
+      card.querySelectorAll('input').forEach(i => i.value = ''); validateService(id);
+    };
+  });
+  if (focus) { const card = $(`#svc-list .svc[data-s="${focus}"]`); if (card) { card.scrollIntoView({block: 'center'}); const i = card.querySelector('input'); if (i) i.focus(); } }
+}
+function openSettings(focus) {
+  $('#storage-note').textContent = st.status.in_codespaces
+    ? 'Codespaces detected: for permanent storage add keys as Codespaces secrets (GitHub → Settings → Codespaces → Secrets); they become environment variables automatically.'
+    : 'Saved keys live in ~/.coordwatch/credentials.json on this computer (outside the repository).';
+  renderSettings(focus); $('#modal').classList.remove('hidden');
+}
+$('#gear').onclick = () => openSettings();
+$('#m-close').onclick = $('#m-done').onclick = () => $('#modal').classList.add('hidden');
+$('#modal').addEventListener('mousedown', e => { if (e.target === $('#modal')) $('#modal').classList.add('hidden'); });
+$('#m-valall').onclick = async () => { for (const s of SERVICES) if (connState(s.id).state !== 'unset') await validateService(s.id); };
 
 // ------------------------------------------------------------------ run + poll (job card, minimise chip, abort)
 function setDefaultDates() {
@@ -152,7 +201,7 @@ $('#overlay').addEventListener('mousedown', e => { if (e.target === $('#overlay'
 $('#jobchip').onclick = () => { if (st.job) { st.job.min = false; renderJob(); } };
 $('#jobchip').addEventListener('keydown', e => { if (e.key === 'Enter' && st.job) { st.job.min = false; renderJob(); } });
 $('#run').onclick = () => startRun(false);
-$('#demo').onclick = $('#w-demo').onclick = () => { $('#topic').value = 'Acme Bank'; $('#since').value = '2026-10-01'; $('#until').value = '2026-10-14'; $('#dv').checked = true; startRun(true); };
+$('#demo').onclick = $('#hero-demo').onclick = () => { $('#topic').value = 'Acme Bank'; $('#since').value = '2026-10-01'; $('#until').value = '2026-10-14'; $('#dv').checked = true; startRun(true); };
 $('#topic').addEventListener('keydown', e => { if (e.key === 'Enter') startRun(false); });
 
 // ------------------------------------------------------------------ scene
@@ -222,7 +271,7 @@ function fitCamera() {
 function loadResult() {
   const res = st.res, sc = st.scene = buildScene(res);
   st.selected = null; st.cursor = 1; hidePanel();
-  ['#welcome'].forEach(s => $(s).classList.add('hidden'));
+  setIdle(false);
   ['#tl', '#legend', '#dock', '#exp', '#posts-btn'].forEach(s => $(s).classList.remove('hidden'));
   $('#tlr').value = 1000; renderTicks(); updateBubble();
   const m = res.meta;
@@ -274,7 +323,7 @@ function frame(now) {
   ctx.save(); ctx.translate(W / 2 + cam.x * .3, H / 2 + cam.y * .3);
   for (const s of stars) { ctx.globalAlpha = .25 + .35 * Math.sin(T * .8 + s.p) ** 2; ctx.fillStyle = '#cfeee9'; ctx.beginPath(); ctx.arc(s.x * cam.k * .6, s.y * cam.k * .6, s.r, 0, 7); ctx.fill(); }
   ctx.restore(); ctx.globalAlpha = 1;
-  if (!sc) { requestAnimationFrame(frame); return; }
+  if (!sc) { if (document.body.classList.contains('idle')) ambient(T); requestAnimationFrame(frame); return; }
   if (st.playing) { st.cursor += dt / 14; if (st.cursor >= 1) { st.cursor = 1; st.playing = false; $('#play').textContent = '▶'; } $('#tlr').value = Math.round(st.cursor * 1000); updateBubble(); }
   const tc = sc.t0 + (sc.t1 - sc.t0) * st.cursor;
   ctx.save(); ctx.translate(W / 2 + cam.x, H / 2 + cam.y); ctx.scale(cam.k, cam.k);
@@ -529,11 +578,87 @@ $('#pf').addEventListener('input', e => { pfilter = e.target.value; renderPosts(
 $('#exp').onclick = () => $('#exp-menu').classList.toggle('hidden');
 document.addEventListener('click', e => { if (!e.target.closest('#exp') && !e.target.closest('#exp-menu')) $('#exp-menu').classList.add('hidden'); });
 
+// ------------------------------------------------------------------ landing (idle) scene
+function setIdle(on) {
+  document.body.classList.toggle('idle', on);
+  ['#hero', '#conns', '#hero-demo'].forEach(x => $(x).classList.toggle('hidden', !on));
+  if (on) renderConns();
+}
+$('#brand').onclick = () => {
+  if ((st.job && st.job.running) || !st.res) return;
+  st.res = null; st.scene = null; st.selected = null;
+  ['#tl', '#legend', '#dock', '#exp', '#posts-btn', '#panel', '#notes', '#drawer', '#tip'].forEach(x => $(x).classList.add('hidden')); setIdle(true);
+};
+let amb = null;
+function ambient(T) {
+  if (!amb) { const r = mulberry(11); amb = Array.from({length: 64}, (_, i) => ({a: r() * 6.28, r: 140 + r() * 460, s: (r() - .5) * .03, z: 1.5 + r() * 1.9, camp: i < 12, p: r() * 6.28, sp: .6 + r() * 1.6, k: r() * 6.28, kr: 18 + r() * 62})); }
+  const cx = W / 2, cy = H * .47, ph = (T % 8) / 8, sync = Math.pow(Math.sin(Math.PI * Math.min(1, ph * 3.4)), 2) * (ph < .3 ? 1 : 0);   // the "campaign" fires in unison every 8s
+  const bx = cx + Math.min(W * .34, 430), by = cy - 30, pos = amb.map(n => n.camp ? [bx + Math.cos(n.k + T * .12) * n.kr, by + Math.sin(n.k + T * .12) * n.kr * .8] : [cx + Math.cos(n.a + T * n.s) * n.r * 1.4, cy + Math.sin(n.a + T * n.s) * n.r * .6]);
+  ctx.globalCompositeOperation = 'lighter';
+  const camp = amb.map((n, i) => n.camp ? i : -1).filter(i => i >= 0);
+  for (let a = 0; a < camp.length; a++) for (let b = a + 1; b < camp.length; b++) {
+    const p = pos[camp[a]], q = pos[camp[b]], d = Math.hypot(p[0] - q[0], p[1] - q[1]); if (d > 95) continue;
+    ctx.strokeStyle = `rgba(255,122,106,${.05 + .55 * sync})`; ctx.lineWidth = .8; ctx.beginPath(); ctx.moveTo(p[0], p[1]); ctx.lineTo(q[0], q[1]); ctx.stroke();
+  }
+  ctx.lineWidth = .6;
+  for (let a = 0; a < amb.length; a++) if (!amb[a].camp) for (let b = a + 1; b < amb.length; b++) { if (amb[b].camp) continue; const p = pos[a], q = pos[b], d = Math.hypot(p[0] - q[0], p[1] - q[1]); if (d < 130) { ctx.strokeStyle = `rgba(120,210,200,${.1 * (1 - d / 130)})`; ctx.beginPath(); ctx.moveTo(p[0], p[1]); ctx.lineTo(q[0], q[1]); ctx.stroke(); } }
+  amb.forEach((n, i) => {
+    const [x, y] = pos[i], tw = Math.pow(Math.sin(T * n.sp + n.p), 2);
+    if (n.camp) { const a = .3 + .7 * sync; glow(x, y, 3 + 4 * sync, '#ff8a6a', .5 * a); ctx.fillStyle = `rgba(255,${170 - 60 * sync | 0},120,${a})`; }
+    else ctx.fillStyle = `rgba(190,245,238,${.22 + .55 * tw})`;
+    ctx.beginPath(); ctx.arc(x, y, n.camp ? 2 + sync : n.z, 0, 7); ctx.fill();
+  });
+  if (sync > .02) { ctx.strokeStyle = `rgba(255,140,110,${.45 * sync})`; ctx.lineWidth = 1.2; ctx.beginPath(); ctx.arc(bx, by, 30 + 260 * ph * 3, 0, 7); ctx.stroke(); }
+  ctx.globalCompositeOperation = 'source-over';
+}
+
+// ------------------------------------------------------------------ boot splash: dots blink like ordinary accounts, a few lock into sync = "coordination detected"
+function runBoot() {
+  return new Promise(resolve => {
+    const el = $('#boot'), cvb = $('#bc'), x = cvb.getContext('2d'), log = $('#blog');
+    if (matchMedia('(prefers-reduced-motion: reduce)').matches) { el.remove(); return resolve(); }
+    let w, h; const dpr = Math.min(devicePixelRatio || 1, 2), fit = () => { w = innerWidth; h = innerHeight; cvb.width = w * dpr; cvb.height = h * dpr; };
+    fit(); addEventListener('resize', fit);
+    const r = mulberry(5), N = 150, CL = 15, pts = Array.from({length: N}, (_, i) => ({x: r() * w, y: r() * h, p: r() * 6.28, s: .6 + r() * 1.8, c: i < CL, ang: i / CL * 6.283}));
+    const cx = () => w / 2, cy = () => h * .40, ring = () => Math.min(w, h) * .16, T0 = performance.now(), ease = t => t * t * (3 - 2 * t), lerp = (a, b, t) => a + (b - a) * t;
+    const lines = [[.15, 'initialising collectors…', 'dim'], [.9, 'scanning narratives…', ''], [1.5, 'linking accounts…', ''], [2.15, 'coordination detected', 'hot']];
+    let li = 0, ended = false, shown = false;
+    window.__bootLog = (t, c = '') => { const d = document.createElement('div'); d.className = c; d.textContent = t; log.appendChild(d); while (log.children.length > 7) log.firstChild.remove(); };
+    const end = () => { if (ended) return; ended = true; removeEventListener('resize', fit); el.classList.add('out'); setTimeout(() => el.remove(), 950); resolve(); };
+    el.addEventListener('click', end); addEventListener('keydown', end, {once: true});
+    const frame = now => {
+      if (ended) return; const t = (now - T0) / 1000;
+      x.setTransform(dpr, 0, 0, dpr, 0, 0); x.clearRect(0, 0, w, h);
+      while (li < lines.length && t >= lines[li][0]) { window.__bootLog(lines[li][1], lines[li][2]); li++; }
+      const fade = Math.min(1, t / .8), e2 = ease(Math.max(0, Math.min(1, (t - 1.0) / 1.1))), e3 = ease(Math.max(0, Math.min(1, (t - 2.25) / .75))), sync = Math.pow(Math.sin(t * 5.2), 2);
+      x.globalCompositeOperation = 'lighter';
+      const P = pts.map(pt => {
+        let px = pt.x + Math.sin(t * .5 + pt.p) * 7, py = pt.y + Math.cos(t * .4 + pt.p) * 7, tw = Math.pow(Math.sin(t * pt.s + pt.p), 2), a, col;
+        if (pt.c) { const rr = ring() * (1 - e3), tx = cx() + Math.cos(pt.ang + t * .35) * rr, ty = cy() + Math.sin(pt.ang + t * .35) * rr * .9; px = lerp(px, tx, e2); py = lerp(py, ty, e2); a = lerp(.15 + .45 * tw, .35 + .65 * sync, e2); col = e2 > .4 ? [255, 150 + 70 * (1 - sync) | 0, 110] : [190, 245, 238]; }
+        else { a = (.12 + .4 * tw) * (1 - .75 * e2) * (1 - e3); col = [190, 245, 238]; }
+        return {px, py, a: a * fade, col, c: pt.c};
+      });
+      if (t > 1.4) { const prog = Math.min(1, (t - 1.4) / .8), C = P.filter(q => q.c); x.lineWidth = .9;
+        for (let i = 0; i < C.length; i++) for (const j of [1, 4]) { const a = C[i], b = C[(i + j) % C.length]; x.strokeStyle = `rgba(255,130,100,${.5 * prog * (.4 + .6 * sync) * (1 - e3)})`; x.beginPath(); x.moveTo(a.px, a.py); x.lineTo(a.px + (b.px - a.px) * prog, a.py + (b.py - a.py) * prog); x.stroke(); } }
+      for (const q of P) { const rad = q.c ? 2.2 + 1.6 * q.a : 1.4 + q.a * 1; const g = x.createRadialGradient(q.px, q.py, 0, q.px, q.py, rad * 4.5); g.addColorStop(0, `rgba(${q.col},${q.a})`); g.addColorStop(1, `rgba(${q.col},0)`); x.fillStyle = g; x.beginPath(); x.arc(q.px, q.py, rad * 4.5, 0, 7); x.fill(); }
+      if (e3 > 0) { const g = x.createRadialGradient(cx(), cy(), 0, cx(), cy(), 40 + 130 * e3); g.addColorStop(0, `rgba(255,236,190,${.95 * e3})`); g.addColorStop(.35, `rgba(232,184,106,${.5 * e3})`); g.addColorStop(1, 'rgba(232,184,106,0)'); x.fillStyle = g; x.beginPath(); x.arc(cx(), cy(), 40 + 130 * e3, 0, 7); x.fill();
+        x.strokeStyle = `rgba(255,217,138,${.5 * (1 - e3) + .12})`; x.lineWidth = 1.4; x.beginPath(); x.arc(cx(), cy(), 30 + 220 * e3, 0, 7); x.stroke(); }
+      x.globalCompositeOperation = 'source-over';
+      if (t > 2.3 && !shown) { shown = true; $('#bt').classList.add('show'); $('#bs').classList.add('show'); }
+      if (t > 4.1) return end(); requestAnimationFrame(frame);
+    };
+    requestAnimationFrame(frame);
+  });
+}
+
 // ------------------------------------------------------------------ init
 (async () => {
   setDefaultDates();
-  try { st.status = await api('/api/status'); } catch (e) { document.body.insertAdjacentHTML('beforeend', `<div class="glass" style="position:fixed;top:40%;left:30%;padding:20px">Cannot reach the coordwatch server: ${esc(e.message)}</div>`); return; }
-  renderChips();
+  const booting = runBoot();
+  try { st.status = await api('/api/status'); }
+  catch (e) { $('#boot') && $('#boot').remove(); document.body.insertAdjacentHTML('beforeend', `<div class="glass" style="position:fixed;top:40%;left:30%;padding:20px;z-index:200">Cannot reach the coordwatch server: ${esc(e.message)}</div>`); return; }
+  renderChips(); autoValidate();
+  await booting; setIdle(true);
 })();
 window.__cw = st;   // handy for debugging in the browser console
 })();
