@@ -61,6 +61,9 @@ def main(argv=None):
     w.add_argument("--allow-host", action="append", default=[], help="extra Host header to accept")
     tp = sub.add_parser("tg-probe", help="check public Telegram channels (no login): visible? when did they last post?")
     tp.add_argument("channels", nargs="+", help="@name or t.me/name, one or more")
+    ts = sub.add_parser("tg-search", help="debug Telegram global search (needs telegram-login): prints what Telegram returns")
+    ts.add_argument("query", help="e.g. 'india vs new zealand' or '#indvsnz'")
+    ts.add_argument("--days", type=int, default=3)
     sub.add_parser("telegram-login", help="one-time interactive Telegram login (phone + code)")
     args = ap.parse_args(argv)
     logging.basicConfig(level=logging.INFO if getattr(args, "verbose", False) else logging.WARNING, format="%(levelname)s %(message)s")
@@ -77,6 +80,17 @@ def main(argv=None):
                       f"{r['messages_on_first_page']} msgs on page | {r['latest_text']!r}")
             else:
                 print(f"UNUSABLE @{r['channel']}: {r['error']}")
+        return 0
+    if args.cmd == "tg-search":
+        from datetime import datetime, timedelta, timezone
+        from . import secrets_store as S
+        from .collectors.telegram import TelegramCollector
+        c = TelegramCollector([], api_id=S.get("TELEGRAM_API_ID"), api_hash=S.get("TELEGRAM_API_HASH"), session=S.telegram_session_path())
+        c.log, c.cancelled = print, (lambda: False)
+        now = datetime.now(timezone.utc)
+        got = c.collect(args.query, now - timedelta(days=args.days), now, 200)
+        for p in got[:10]:
+            print(f"  {p.created_at:%Y-%m-%d %H:%M} {p.author_name}: {p.text[:100]!r} {p.url}")
         return 0
     if args.cmd == "telegram-login":
         from . import secrets_store as S

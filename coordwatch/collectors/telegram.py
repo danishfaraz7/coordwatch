@@ -103,19 +103,26 @@ class TelegramCollector(Collector):
 
     async def _global(self, client, topic, since: datetime, until: datetime, limit: int, posts: List[Post], errors):
         """Search every public channel/group at once.  Pages with Telegram's (rate, peer, id) cursor; the server match is
-        fuzzy, so every hit is re-checked locally against the topic and the date window."""
+        fuzzy, so every hit is re-checked locally against the topic and the date window.  Each query is tried as written
+        and without its leading '#' (hashtag syntax is not always honoured by the server), and the date window is applied
+        locally (results arrive newest first) so a server-side date quirk cannot hide everything."""
         from telethon.tl import functions, types
         from ..filtering import matches_topic, topic_terms
-        seen, channels = set(), set()
+        seen, channels, raw_total = set(), set(), 0
+        queries = []
         for term in topic_terms(topic):
+            for q in (term, term.lstrip("#")):
+                if q and q not in queries:
+                    queries.append(q)
+        for q in queries:
             self._check()
-            self.log(f"telegram: global search for '{term}' across public channels…")
+            self.log(f"telegram: global search for '{q}' across public channels…")
             rate, off_id, off_peer, got, pages = 0, 0, types.InputPeerEmpty(), 0, 0
             while got < limit and pages < 40:
                 self._check()
                 try:
                     res = await client(functions.messages.SearchGlobalRequest(
-                        q=term, filter=types.InputMessagesFilterEmpty(), min_date=since, max_date=until,
+                        q=q, filter=types.InputMessagesFilterEmpty(), min_date=None, max_date=None,
                         offset_rate=rate, offset_peer=off_peer, offset_id=off_id, limit=100))
                 except errors.FloodWaitError as e:
                     log.warning("telegram FloodWait %ss on global search - sleeping", e.seconds)
@@ -124,10 +131,14 @@ class TelegramCollector(Collector):
                     continue
                 pages += 1
                 msgs = [m for m in res.messages if isinstance(m, types.Message)]
+                raw_total += len(msgs)
                 if not msgs:
+                    self.log(f"telegram: '{q}': Telegram returned no messages on page {pages}")
                     break
+                dates = [m.date for m in msgs]
                 chats = {c.id: c for c in getattr(res, "chats", [])}
                 users = {u.id: u for u in getattr(res, "users", [])}
+                kept = 0
                 for m in msgs:
                     peer = m.peer_id
                     cid = getattr(peer, "channel_id", None) or getattr(peer, "chat_id", None)
@@ -147,9 +158,12 @@ class TelegramCollector(Collector):
                     posts.append(message_to_post(m, getattr(chat, "username", None) or "", str(cid), getattr(chat, "title", "") or str(cid)))
                     channels.add(cid)
                     got += 1
-                self.log(f"telegram: '{term}': {got} matching messages from {len(channels)} channel(s) so far (page {pages})")
+                    kept += 1
+                self.log(f"telegram: '{q}' page {pages}: {len(msgs)} returned (newest {max(dates):%Y-%m-%d}, oldest {min(dates):%Y-%m-%d}), "
+                         f"{kept} kept for the window/topic; {got} total from {len(channels)} channel(s)")
                 nxt = getattr(res, "next_rate", None)
-                if nxt is None:                                   # a non-"slice" answer means there is no further page
+                oldest = min(dates) if min(dates).tzinfo else min(dates).replace(tzinfo=timezone.utc)
+                if nxt is None or oldest < since:                 # no further page, or we have paged back past the window
                     break
                 last = msgs[-1]
                 try:
@@ -158,4 +172,8 @@ class TelegramCollector(Collector):
                     break
                 rate, off_id = nxt, last.id
                 await asyncio.sleep(1.0)                          # be gentle: searchGlobal is rate limited
-        self.log(f"telegram: global search done - {len(posts)} messages from {len(channels)} channel(s)")
+        if raw_total == 0:
+            self.log("telegram: Telegram returned no messages at all for any query. Likely causes: the account is new/throwaway and "
+                     "Telegram limits global search for it, or this feature needs the account to have joined or used Telegram for a while. "
+                     "Name channels (Telegram channels box) as a workaround.")
+        self.log(f"telegram: global search done - {len(posts)} messages from {len(channels)} channel(s) ({raw_total} raw results seen)")

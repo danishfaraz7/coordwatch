@@ -30,7 +30,7 @@ class FakeClient:
 
     async def __call__(self, req):
         self.calls.append(req)
-        return self.pages.pop(0)
+        return self.pages.pop(0) if self.pages else NS(messages=[], chats=[], users=[], next_rate=None)
 
     async def get_input_entity(self, peer):
         return types.InputPeerChannel(channel_id=7, access_hash=1)
@@ -45,6 +45,16 @@ class GlobalSearchTests(unittest.TestCase):
         self.assertEqual([p.id for p in posts], ["7/1", "7/3"])          # off-topic message and the duplicate are dropped
         self.assertEqual(posts[0].url, "https://t.me/crickchat/1")
         self.assertEqual(posts[0].platform, "telegram")
+
+    def test_falls_back_to_query_without_hash_and_reports_empty(self):
+        c = TelegramCollector([], api_id=1, api_hash="x")
+        logs = []
+        c.log, c.cancelled = logs.append, (lambda: False)
+        fc = FakeClient()
+        fc.pages = []                                                    # Telegram returns nothing for every query
+        asyncio.run(c._global(fc, "#indvsnz", S, U, 500, [], errors))
+        self.assertEqual(len(fc.calls), 2)                               # '#indvsnz' then 'indvsnz'
+        self.assertTrue(any("no messages at all" in l for l in logs))
 
     def test_channels_are_optional(self):
         TelegramCollector([], api_id=1, api_hash="x")                     # used to raise: now means "search everything"
