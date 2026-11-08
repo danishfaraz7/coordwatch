@@ -13,7 +13,9 @@ from urllib.parse import quote_plus
 
 from ..filtering import topic_terms
 from ..models import Post
-from .base import Collector, HttpClient, avatar_hash_from_url, log
+import os
+
+from .base import Collector, HttpClient, PlatformBlocked, avatar_hash_from_url, log
 
 
 def _ts(e: dict) -> Optional[datetime]:
@@ -67,6 +69,8 @@ class YtDlpYouTube(Collector):
         import yt_dlp  # lazy: only needed for live YouTube without a key
         base = {"quiet": True, "no_warnings": True, "skip_download": True, "ignoreerrors": True, "retries": 3,
                 "extractor_retries": 3, "sleep_interval_requests": 1, "socket_timeout": 20}
+        if os.environ.get("YTDLP_COOKIES_FILE"):                # optional: cookies of a throwaway Google account
+            base["cookiefile"] = os.environ["YTDLP_COOKIES_FILE"]
         ids: List[str] = []
         terms = topic_terms(topic)[:3]
         # newest-first search: current yt-dlp has no `ytsearchdate` prefix, so use the search-results URL with YouTube's
@@ -92,12 +96,20 @@ class YtDlpYouTube(Collector):
             if self.max_comments else base
         posts: List[Post] = []
         avatar_urls: dict = {}
+        failures = 0                                            # consecutive videos YouTube refused to serve
         with yt_dlp.YoutubeDL(opts) as ydl:
             for n, vid in enumerate(ids[: self.max_videos * len(terms)], 1):
                 self._check()
                 info = ydl.extract_info(f"https://www.youtube.com/watch?v={vid}", download=False)
                 if not info:
+                    failures += 1
+                    if failures >= 3 and not posts:
+                        raise PlatformBlocked(
+                            "YouTube refused video requests from this IP (bot check / sign-in wall - typical on cloud and datacentre "
+                            "addresses). Not retrying or evading. Use a free YOUTUBE_API_KEY, run from a home connection, or set "
+                            "YTDLP_COOKIES_FILE to a cookie export of a throwaway Google account.")
                     continue
+                failures = 0
                 v = map_video(info)
                 if v and since <= v.created_at <= until:
                     posts.append(v)

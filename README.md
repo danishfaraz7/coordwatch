@@ -52,7 +52,7 @@ git clone <this repo> && cd coordwatch
 python3 -m coordwatch run --topic "Acme Bank" --since 2026-10-01 --until 2026-10-14 \
         --source demo --discount-verified --out out/demo
 open out/demo/report.html          # or xdg-open / start
-python3 -m unittest discover -s tests -v     # 76 tests
+python3 -m unittest discover -s tests -v     # 77 tests
 python3 scripts/stress.py                    # accuracy sweep (10 seeds x 5 scenarios)
 ```
 
@@ -66,7 +66,7 @@ report's notes say which route produced the data (and why earlier ones were skip
 
 | Platform | Route 1 (if configured) | Free route used otherwise | Free-route limits |
 |---|---|---|---|
-| YouTube | Data API v3 (`YOUTUBE_API_KEY`, free quota) | **yt-dlp** search + top comments, no key | no channel creation date; newest-first search via results URL |
+| YouTube | Data API v3 (`YOUTUBE_API_KEY`, free quota) | **yt-dlp** search + top comments, no key | no channel creation date; **cloud/datacentre IPs (e.g. Codespaces) are often refused by YouTube's bot check** - the run then stops with a clear message; use a free API key, a home connection, or `YTDLP_COOKIES_FILE` |
 | Telegram | Telethon (`TELEGRAM_API_ID/HASH` + one-time login) | **t.me/s web preview**, no login | channels you list (or `--discover` finds) only; no reactions/groups |
 | X | paid API (`X_BEARER_TOKEN`) | **browser session** (Playwright) with a *throwaway* login: `X_COOKIES_FILE` / `--x-cookies` | experimental, breaks X's ToS, account can be limited/suspended |
 
@@ -176,7 +176,7 @@ No third-party analysis libraries: MinHash-LSH, TF-IDF, union-find, dHash are ~1
      Narratives were over-fragmented (37 clusters for 9 topics) → threshold sweep.
   3. **Stress test** (10 seeds × 5 scenarios) exposed two real defects: creation-time coincidence among *old* accounts created false groups
      (fixed with the "fresh account" condition), and paraphrase-ring recall of 0.5–0.67 (improved by same-narrative short-window synchrony).
-  4. 76 unit tests, including adversarial cases (default avatars, XSS in scraped text, 403 not retried, cache correctness).
+  4. 77 unit tests, including adversarial cases (default avatars, XSS in scraped text, 403 not retried, cache correctness).
   5. API parsers are tested against payloads shaped like the documented responses – **not against live APIs** (no keys in this repo's CI).
      Treat the live collectors as unverified until you run them with your keys. The free routes (yt-dlp, t.me/s, X browser, DuckDuckGo) are likewise tested only on recorded-shape fixtures and a fake search backend - smoke-test each once on a real machine before the demo.
 * **Caveat I want to be explicit about:** I iterated thresholds against my own generator, so the numbers below show the *method's behaviour*, not real-world accuracy.
@@ -216,7 +216,7 @@ paraphrasing + mutual-reshare ring; decoys = 5 verified newswire outlets, 40-use
 ## 8. Layout
 ```
 coordwatch/            package (web/ (server + constellation UI), collect.py, secrets_store.py, collectors/ (incl. youtube_ytdlp, telegram_web, x_browser), discovery.py, narratives.py, coordination.py, origin.py, pipeline.py, report.py, export.py, evaluate.py, cli.py)
-tests/                 76 unit tests (unittest; pytest also works)
+tests/                 77 unit tests (unittest; pytest also works)
 scripts/stress.py      multi-seed accuracy + ablation table
 sample_data/           synthetic posts + ground truth JSON (importable via --source file)
 out/example/           pre-generated report, JSON and CSVs

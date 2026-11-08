@@ -5,6 +5,7 @@ import tempfile
 import threading
 import time
 import unittest
+from unittest import mock
 import urllib.error
 import urllib.request
 from http.server import ThreadingHTTPServer
@@ -121,9 +122,13 @@ class WebTests(Base):
         self.assertEqual(self.call("GET", f"/api/jobs/{jid}/download/../../etc/passwd")[0], 404)
 
     def test_live_platform_without_keys_degrades_gracefully(self):
-        jid = json.loads(self.call("POST", "/api/run", {"topic": "anything", "since": "2026-10-01", "until": "2026-10-02",
-                                                         "platforms": ["youtube", "x"]})[1])["id"]
-        j = self._wait(jid)
+        def unconfigured():
+            raise RuntimeError("no credentials")
+        # hermetic: every route reports "not configured", so no network is touched (the free routes would otherwise go online)
+        with mock.patch("coordwatch.collect._chain", return_value=[("api", unconfigured), ("free", unconfigured)]):
+            jid = json.loads(self.call("POST", "/api/run", {"topic": "anything", "since": "2026-10-01", "until": "2026-10-02",
+                                                             "platforms": ["youtube", "x"]})[1])["id"]
+            j = self._wait(jid)
         self.assertEqual(j["status"], "error")
         self.assertIn("skipped", j["error"])          # tells the user *why* (missing keys), not a stack trace
 
