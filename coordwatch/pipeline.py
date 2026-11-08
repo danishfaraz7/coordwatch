@@ -10,6 +10,7 @@ from .coordination import detect
 from .filtering import filter_posts
 from .models import Post
 from .narratives import analyse_narratives, bucket_size, bucket_start
+from .crossplatform import correlate
 from .origin import trace_origins
 
 
@@ -61,5 +62,6 @@ def analyse(all_posts: List[Post], topic: str, since: Optional[datetime], until:
         },
         "volume": {"total": dict(sorted(vol.items())),
                    "by_platform": {k: dict(sorted(v.items())) for k, v in vol_pl.items()}},
-        "narratives": narratives, "coordinated_groups": groups, "origins": origins, "posts": post_rows,
+        "narratives": narratives, "coordinated_groups": groups, "origins": origins,
+        "cross_platform": correlate(posts, assign, narratives, coord["dup_clusters"], size), "posts": post_rows,
     }

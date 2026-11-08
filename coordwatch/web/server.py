@@ -39,6 +39,7 @@ STATIC_FILES = {"/": ("index.html", "text/html; charset=utf-8"), "/app.js": ("ap
                 "/app.css": ("app.css", "text/css; charset=utf-8")}
 DOWNLOADS = {"results.json": "application/json", "posts.csv": "text/csv", "narratives.csv": "text/csv",
              "volume_by_platform.csv": "text/csv", "coordinated_groups.csv": "text/csv", "origins.csv": "text/csv",
+             "cross_platform.csv": "text/csv", "cross_platform_summary.txt": "text/plain; charset=utf-8",
              "report.html": "text/html; charset=utf-8", "run_log.txt": "text/plain; charset=utf-8"}
 MAX_UPLOAD = 60 * 1024 * 1024
 CSP = ("default-src 'self'; img-src 'self' data: https:; style-src 'self' 'unsafe-inline'; script-src 'self'; "
