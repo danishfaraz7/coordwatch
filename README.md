@@ -1,51 +1,207 @@
 # coordwatch — coordinated-activity & misinformation-narrative detection (SOCMINT)
 
-Give it a **topic** (keyword / hashtag / person / brand / event), a **date range** and **2–3 platforms**.
-It returns:
+coordwatch answers one question for a topic you choose: **who is talking about it, what are they saying, and are some of those accounts acting together?**
 
-| Required output | Where |
-|---|---|
-| Posts (text, photos, videos, date, engagement, link) | `posts.csv`, `results.json → posts`, HTML table |
-| Main narratives, grouped, volume over time + per platform | `narratives.csv`, `volume_by_platform.csv`, HTML charts |
-| Groups of accounts that act together, **with the reason for each** | `coordinated_groups.csv`, HTML "Groups of accounts acting together" |
-| Where each narrative started: first accounts/posts + cross-platform spread | `origins.csv`, HTML "Where each narrative started" |
-| JSON / CSV export + simple dashboard | `out/<run>/results.json`, `*.csv`, `report.html` (self-contained, works offline) |
+You give it a **topic** (keyword, hashtag, person, brand or event), a **date range** and **2–3 platforms**. It collects public posts, groups them into narratives,
+finds accounts that appear to act in concert (with the evidence for each group), traces where each narrative started and how it jumped between platforms, and
+exports everything as JSON/CSV plus an interactive dashboard and a self-contained HTML report.
 
-Core analysis is **pure Python standard library** (no numpy/sklearn) so it installs and runs anywhere in a live demo.
+It is built to run **at zero cost**: every platform has a free route, and paid or official routes are used first only if you have configured them.
+Findings are leads for a human analyst, not attribution. Coordination is not the same as inauthenticity (fandoms, newsrooms and plain virality look similar).
+
+## Contents
+1. [What it can do](#1-what-it-can-do)
+2. [Quick start](#2-quick-start)
+3. [Connecting the platforms](#3-connecting-the-platforms)
+4. [Optional: AI answers](#4-optional-ai-answers)
+5. [Running a search](#5-running-a-search)
+6. [Reading the results](#6-reading-the-results)
+7. [Run logs and debugging](#7-run-logs-and-debugging)
+8. [Troubleshooting](#8-troubleshooting)
+9. [Command line](#9-command-line-works-offline-1-second) · 10. Architecture · 11. Methodology · 12. Rate limits · 13. AI use · 14. Accuracy · 15. Limitations · 16. Layout
 
 ---------------------------------------------------------------------------------------------------
 
-## 0. Web app (one place for every platform)
+## 1. What it can do
 
+| Required output | What you get | Where |
+|---|---|---|
+| **Posts** about the topic in the date range | text, photos/videos, date, engagement (likes/shares/replies/views) and a link to each post | `posts.csv`, `results.json`, posts table in the report/app |
+| **Narratives** | what is being said, grouped; volume over time, in total and per platform | `narratives.csv`, `volume_by_platform.csv`, charts |
+| **Coordinated groups** | accounts that appear to act together, with the reason for each group: same or near-identical text, posts within minutes of each other, accounts created around the same time, reused profile photos, accounts amplifying each other | `coordinated_groups.csv`, "Accounts acting together" |
+| **Origin and spread** | for each narrative, the first accounts and posts, the first appearance on each platform and the delay between platforms, and a verdict on whether it was seeded by a coordinated group | `origins.csv`, "Where each narrative started" |
+| **Cross-platform correlation** | narratives that live on several platforms and which one led, hourly/daily volume correlation with lead/lag, Telegram posts that link to the collected YouTube videos, near-identical text across platforms, shared URLs/hashtags, and a plain-English summary | `cross_platform.csv`, `cross_platform_summary.txt`, report tile, app overview panel |
+| **Exports and dashboard** | JSON and CSV files, a single offline HTML report, and an interactive web app ("constellation": the topic is the core, narratives orbit it, coordinated groups are linked orbs, a time scrubber replays the spread) | run folder / **Export** menu |
+| **Web discovery** (optional) | a free DuckDuckGo sweep that finds Telegram channels and web mentions, and the earliest dated mention | report "Web discovery" tile |
+| **Run logs** | a secret-free log of every run (what you searched, which route produced the data, errors) that you can export for a date range | Settings → Run logs |
+
+The core analysis uses only the Python standard library, so it installs and runs anywhere.
+
+Platforms: **YouTube, Telegram and X** are live. TikTok, Instagram, Facebook and Snapchat have no public search API, so for those you **import an export file**
+(JSON/CSV/JSONL from your own lawful collection, for example an Apify actor) with the platform chip in the app or `--source file`.
+
+---------------------------------------------------------------------------------------------------
+
+## 2. Quick start
+
+### Option A: GitHub Codespaces (no local install)
+1. Open the repository on GitHub → **Code → Codespaces → Create codespace on main**. The `.devcontainer/` setup installs the dependencies (including the Playwright browser).
+2. In the Codespaces terminal:
+   ```bash
+   cd /workspaces/coordwatch
+   python -m coordwatch web --host 0.0.0.0 --port 8000
+   ```
+3. Open the **Ports** tab, find port 8000 and open its forwarded address (keep it **private**). The app only accepts `localhost` and `*.app.github.dev` hosts; behind another proxy add `--allow-host <name>`.
+4. To update later: `cd /workspaces/coordwatch && git pull`, stop the app (Ctrl+C), start it again and hard-refresh the browser.
+
+### Option B: your own machine
 ```bash
-pip install -r requirements.txt           # optional extras for live collection (all free)
-python -m coordwatch web                  # -> http://localhost:8000
+git clone https://github.com/danishfaraz7/coordwatch && cd coordwatch
+python3 -m venv .venv && source .venv/bin/activate        # Python 3.9+
+pip install -r requirements.txt
+python -m playwright install chromium                     # only needed for the X browser route
+python -m coordwatch web                                  # -> http://localhost:8000
 ```
-Pick a topic + dates + platforms, press **Analyse**. The result is an interactive **constellation**: the topic is the glowing core,
-narratives orbit it (gold beams, thickness = volume, red = pushed by coordinated accounts), coordinated groups are purple orbs linked to the
-narratives they pushed, and small dots are individual accounts coloured by platform. A time scrubber replays how it spread; click anything for the
-detail panel (origin, hops between platforms, evidence); the dock answers simple questions from the data (local rules, **no AI model**).
 
-* **Platforms:** X, YouTube, Telegram are live, each with a **free route** (see *Free routes* below); official/paid routes are used first when configured. TikTok / Instagram / Facebook / Snapchat: use the chip to **import an export file**.
-  Several sources can be mixed in one run.
-* **Start-up & landing:** a short boot animation (dots blink like ordinary accounts, then a few lock into sync - what the tool detects - while real
-  connection checks run), then a landing console with live connection chips. Click any key to skip; honours *reduced motion*.
-* **Settings (⚙):** one card per service (YouTube, Telegram, X, Gemini) with a status pill and a **Validate** button (cheap metadata calls; keys never leave
-  the server except to their own API). Shows connected / key saved / invalid / limited (quota, billing, access) / offline.
-* **API keys, once:** ⚙ Settings saves them to `~/.coordwatch/credentials.json` (outside the repo, never returned to the browser).
-  Environment variables win, so in **GitHub Codespaces** use *Settings → Codespaces → Secrets* and they are picked up automatically.
-* **Optional AI answers (choose your provider):** ⚙ Settings → *AI answers*. Gemini (free tier), Groq, OpenRouter (free Qwen models), Qwen/DashScope, Mistral,
-  Cerebras, xAI Grok, **Ollama (local - nothing leaves your machine)**, or any OpenAI-compatible endpoint. Off by default; opt-in with the *AI answers* box.
-  Only a *summary* of the run (stats, group reasons, ~8 short quotes, names of the most active public accounts) is sent - never all posts. Posts are treated as
-  untrusted data in the prompt, the model has no tools, replies are shown as escaped text tagged *AI-generated*, and keys never go over plain http to a remote host.
-  Without it, answers come from local rules. Free tiers and model names change often: use *Validate* to see what your key can reach.
-* **Telegram** needs one extra step: `python -m coordwatch telegram-login` (phone + code, once).
-* **Codespaces:** *Code → Codespaces → Create*; `.devcontainer/` installs the extras and starts the app on forwarded port 8000 (private).
-  (Written from the Codespaces docs, not yet tried in a real Codespace.) Behind a different proxy use `--allow-host <name>`.
-* **Safety:** binds to 127.0.0.1 by default; Host-header allow-list, CSRF header + same-origin check on every POST, strict CSP, uploads are extension-checked
-  and only parsed as data. Do not expose it to the public internet - there is no login.
+### Try it without any account
+Click **Demo** in the app (or `python -m coordwatch run --topic "Acme Bank" --since 2026-10-01 --until 2026-10-14 --source demo --out out/demo`).
+The demo uses a synthetic dataset with planted ground truth, so you can see every output before connecting anything.
 
-## 1. Command line (works offline, 1 second)
+Run the tests (optional): `pip install pytest && python -m pytest -q` from the repository folder (94 tests).
+
+### Where keys are stored
+Settings (the gear icon) saves keys to `~/.coordwatch/credentials.json`, outside the repository, and never sends them back to the browser. Environment variables win over saved values,
+so in Codespaces you can instead add them as **Codespaces secrets** (GitHub → Settings → Codespaces → Secrets) and they are picked up automatically. The Telegram login session
+(`~/.coordwatch/telegram.session`) is as sensitive as a password: never commit or share it. In Codespaces, `~/.coordwatch` lives as long as that codespace does.
+
+---------------------------------------------------------------------------------------------------
+
+## 3. Connecting the platforms
+
+Each platform tries its routes in order and uses the first that works. The run log and report notes say which route produced the data. Use **Settings → Validate** on any card to check a key with a cheap metadata call.
+
+### YouTube
+| Route | Needs | Notes |
+|---|---|---|
+| 1. YouTube Data API v3 (**recommended**) | free API key | official, reliable; works from Codespaces |
+| 2. yt-dlp (fallback) | nothing | YouTube often refuses datacentre IPs (Codespaces) with a bot check; the run then stops with a clear message |
+
+**Get the free API key (about 5 minutes):**
+1. Go to <https://console.cloud.google.com/> and sign in with a Google account.
+2. Create a project (top bar → project picker → **New project**).
+3. **APIs & Services → Library** → search **YouTube Data API v3** → **Enable**.
+4. **APIs & Services → Credentials → Create credentials → API key**. Optionally restrict it to *YouTube Data API v3*.
+5. In coordwatch: **⚙ Settings → YouTube**, paste the key, **Save & validate**. (Or set `YOUTUBE_API_KEY`.)
+
+The free quota is 10,000 units per day. A video search costs 100 units, and coordwatch searches about one batch per day in your range, so a 3-day search is cheap, while very long ranges use more. Comments are top-level only, up to 200 per video, for the top videos.
+
+### Telegram
+| Route | Needs | What it does |
+|---|---|---|
+| 1. Telegram API via Telethon (**recommended**) | free `api_id`/`api_hash` + a one-time login | with **no channels entered**: Telegram's public post/hashtag search, then a channel-directory lookup, then global search; with channels entered: searches only those |
+| 2. Web preview (`t.me/s/...`) | nothing | reads only channels you name (or that web discovery finds); newest few dozen messages per channel; no reactions or groups |
+
+Telegram has no true search across all of Telegram for ordinary accounts, so coverage depends on the route: the public post/hashtag search is the widest, the directory lookup only finds channels whose
+name or @username matches your topic words, and the web preview only sees what you point it at.
+
+**Set up the Telegram API route:**
+1. Go to <https://my.telegram.org>, log in with a phone number, open **API development tools** and create an application (any title and short name). Note the **api_id** and **api_hash**.
+2. Use a **throwaway number/account**, not your main one. Automated searching is a grey area of Telegram's terms, and the account can be limited.
+3. In coordwatch: **⚙ Settings → Telegram**, paste both values, **Save**.
+4. In a terminal, once: `python -m coordwatch telegram-login` (enter the phone number and the code Telegram sends you).
+5. Restart the app. The run log's credentials line should show `TELEGRAM_API_ID: set`, `TELEGRAM_API_HASH: set`, `Telegram login: done`.
+
+**Check what Telegram returns before a full run:** `python -m coordwatch tg-search "#yourtag" --days 3` prints what each search route finds.
+**Vet named channels:** `python -m coordwatch tg-probe @chan1 @chan2` reports each as ACTIVE, STALE or UNUSABLE (a channel that has not posted in your window yields nothing).
+
+Expect noise on hashtag searches: trading and promo bots often append trending hashtags to templated posts. They show up as genuine coordinated clusters, but they can crowd out human posts.
+Add phrase terms to the topic (see [Topic syntax](#topic-syntax)) so the search also matches the words, not only the hashtag.
+
+### X (Twitter)
+| Route | Needs | Notes |
+|---|---|---|
+| 1. X API v2 | paid `X_BEARER_TOKEN` | official; recent search covers the last 7 days, full archive needs Pro/Enterprise |
+| 2. Browser session (free, **experimental**) | cookie export of a **throwaway** X login (`X_COOKIES_FILE` or `--x-cookies`) | uses Playwright; breaks X's terms, and the account can be limited or suspended; stops on HTTP 429, a login redirect or an idle timeline and reports why |
+
+X is the most restricted platform. If you do not have a bearer token or a throwaway account, simply leave X out and use YouTube + Telegram.
+
+### TikTok, Instagram, Facebook, Snapchat (import only)
+There is no public research API for keyword search. Collect with your own lawful tooling and import the file (app: platform chip → import; CLI: `--source file --input file.json --file-platform tiktok`).
+A row only needs `text`, a date and an author; engagement counts are optional.
+
+### Optional: web discovery
+`--discover` (CLI) or the automatic discovery in the app runs a free DuckDuckGo sweep (`site:t.me`, `site:youtube.com`, `site:x.com`, news). It finds Telegram channels when you gave none and no Telegram login exists,
+lists web mentions and shows the earliest dated mention. Web mentions are leads only and never count as coordination evidence.
+
+---------------------------------------------------------------------------------------------------
+
+## 4. Optional: AI answers
+
+The dock in the app answers questions about a finished run using local rules, with **no AI model**. You can additionally enable AI answers (off by default): **⚙ Settings → AI answers**, choose a provider
+(Gemini free tier, Groq, OpenRouter, Qwen/DashScope, Mistral, Cerebras, xAI Grok, Ollama for fully local use, or any OpenAI-compatible endpoint), paste the key, tick the *AI answers* box.
+
+**Free example (OpenRouter + Qwen):**
+1. Create an account at <https://openrouter.ai>, then **Keys → Create key**. Set a small credit limit on the key so it cannot spend.
+2. In Settings → AI answers choose **OpenRouter**, paste the key, and set a model whose slug ends in `:free` (free model names change; **Validate** shows what your key can reach).
+3. Free-tier limits are low (about 20 requests per minute and a small daily allowance until you add credits), which is plenty for occasional questions.
+
+Only a *summary* of a run (statistics, group reasons, a few short quotes, names of the most active public accounts) is sent, never all posts. Posts are treated as untrusted data in the prompt, the model has no tools,
+replies are shown as escaped text tagged *AI-generated*, and keys are never sent over plain http to a remote host.
+
+---------------------------------------------------------------------------------------------------
+
+## 5. Running a search
+
+1. Enter the **topic**, the **date range** (UTC, both days inclusive) and tick the **platforms**.
+2. For Telegram, leave the channels box blank to use the search routes above, or enter public channels (`@chan1, @chan2`) to read only those.
+3. Choose the depth (quick / standard / deep) if offered, then press **Analyse**. Progress shows per platform; **Minimize** keeps it running and **Abort** stops it. The app follows one run at a time.
+4. When it finishes, explore the constellation, open the report, or use **Export** to download any file.
+
+### Topic syntax
+Terms are alternatives: a post matches if it contains **any** term. Separate terms with a comma, a semicolon, `|` or the word `OR`.
+* `Acme Bank` — a phrase (also matches `#AcmeBank`).
+* `MrBeast, #MrBeast` or `MrBeast OR #MrBeast` — either term. (A plain word already matches its hashtag, so the second term is redundant.)
+* `#indvsnz, #indiavsnewzealand, india vs new zealand` — hashtags plus a phrase, which helps Telegram search find human posts.
+* Terms of 4 characters or fewer (`NFP`, `BTC`, `AI`) match whole words only, so `AI` does not match `said`.
+* High-volume topics fill the per-platform cap quickly: keep the date range short (a day or two) for very popular topics.
+
+---------------------------------------------------------------------------------------------------
+
+## 6. Reading the results
+
+* **Constellation (app):** gold beams are narratives (thickness = volume, red = pushed by coordinated accounts), purple orbs are coordinated groups, dots are accounts coloured by platform. Click anything for origin, hops between platforms and evidence. The time scrubber replays the spread.
+* **Report (`report.html`):** one offline file with a streamgraph of volume per platform, a clickable narrative bubble map, per-group link graphs with signal-strength bars and evidence, a spread map per narrative (for example `telegram → x +38m → youtube +26h`), the cross-platform summary, and the posts table.
+* **Exports** (all in the run folder, or the Export menu): `results.json`, `posts.csv`, `narratives.csv`, `volume_by_platform.csv`, `coordinated_groups.csv`, `origins.csv`, `cross_platform.csv`, `cross_platform_summary.txt`, `report.html`, `run_log.txt`.
+* **Confidence:** each group is rated high / medium / low from the strength and number of its signals. Treat even "high" as a lead to verify.
+
+---------------------------------------------------------------------------------------------------
+
+## 7. Run logs and debugging
+
+Every run, successful, failed or aborted, writes `run_log.txt`. It records the topic, dates, platforms, depth, channels, which credentials are *set* (never their values), the route that produced each platform's data,
+errors, counts and a timestamped timeline. In the app: **Copy run log** on the progress card, **Export → run_log.txt** after a run, or **⚙ Settings → Run logs** to export or copy the logs of every run in a from/to date range as one file.
+Share these when something looks wrong. They contain no secrets, but they do contain your search topic.
+
+## 8. Troubleshooting
+
+| Symptom | Cause and fix |
+|---|---|
+| "No posts matched the topic / date range / platforms" | nothing in the window matched. Widen the dates, simplify the topic, or check the run log for platforms that were skipped |
+| YouTube: "confirm you're not a bot" / run stops quickly | YouTube refuses datacentre IPs (Codespaces) on the no-key route. Add the free `YOUTUBE_API_KEY` (section 3) |
+| YouTube "quota exceeded" | the free 10,000 units/day is used up. Wait for the daily reset (Pacific midnight) or shorten the range |
+| Telegram collected 0 posts, "no channels given" | the web preview needs channels. Add the Telegram API login (section 3), or name active channels and vet them with `tg-probe` |
+| Telegram "STALE"/dormant channel | the channel has not posted in your window. Pick active channels |
+| Telegram searches return crypto/promo bot spam | trending hashtags are being abused. Add phrase terms to the topic; the bots will also appear as a coordinated group |
+| Telegram rate limited / "waiting Ns" | Telegram throttles searches; the tool waits automatically. Avoid back-to-back large runs |
+| `Telegram login: not done` in the run log | run `python -m coordwatch telegram-login` in a terminal, then restart the app |
+| `pytest: command not found` | `pip install pytest`, and run it from the repository folder (`cd /workspaces/coordwatch`) |
+| `fatal: not a git repository` | you are in the wrong folder. `cd /workspaces/coordwatch` first |
+| App not reachable in Codespaces | start it with `--host 0.0.0.0 --port 8000` and open the forwarded address from the **Ports** tab |
+| Changes not showing after `git pull` | restart the app and hard-refresh the browser tab |
+
+---------------------------------------------------------------------------------------------------
+
+## 9. Command line (works offline, 1 second)
 
 ```bash
 git clone <this repo> && cd coordwatch
@@ -67,7 +223,7 @@ report's notes say which route produced the data (and why earlier ones were skip
 | Platform | Route 1 (if configured) | Free route used otherwise | Free-route limits |
 |---|---|---|---|
 | YouTube | Data API v3 (`YOUTUBE_API_KEY`, free quota) | **yt-dlp** search + top comments, no key | no channel creation date; **cloud/datacentre IPs (e.g. Codespaces) are often refused by YouTube's bot check** - the run then stops with a clear message; use a free API key, a home connection, or `YTDLP_COOKIES_FILE` |
-| Telegram | Telethon (`TELEGRAM_API_ID/HASH` + one-time login) | **t.me/s web preview**, no login | channels you list only (if you list none, the app runs web discovery to find some automatically); no reactions/groups |
+| Telegram | Telethon (`TELEGRAM_API_ID/HASH` + one-time login): public post/hashtag search, channel directory, or your named channels | **t.me/s web preview**, no login | channels you list only (if you list none, web discovery finds some); no reactions/groups |
 | X | paid API (`X_BEARER_TOKEN`) | **browser session** (Playwright) with a *throwaway* login: `X_COOKIES_FILE` / `--x-cookies` | experimental, breaks X's ToS, account can be limited/suspended |
 
 ```bash
@@ -95,16 +251,13 @@ CSV/JSON/JSONL). A row only needs `text`, a date, an author and (optionally) eng
 
 ---------------------------------------------------------------------------------------------------
 
-### Run log (for debugging and sharing)
-Every run - successful, failed or aborted - writes `run_log.txt` (web: **Copy run log** on the progress card, or Export → run_log.txt; CLI: in `--out`). It records topic, dates, platforms, depth, channels, which credentials are *set* (never their values), the route that produced each platform's data, errors, counts and the timestamped timeline. To share several runs at once, open **Settings → Run logs**, pick a from/to date and Export (downloads one text file) or Copy.
-
 ### The dashboard (`report.html`)
 Single offline file (no CDN, all scraped text HTML-escaped): dark bento layout with a **streamgraph** of volume per platform,
 a clickable **narrative bubble map** (bubble colour = share of posts from coordinated accounts; click filters the posts table),
 per-group **link graphs with signal-strength bars and evidence**, and a **spread map** per narrative showing the first appearance on
 each platform and the hop delays (e.g. `telegram → x +38m → youtube +26h`).
 
-## 2. Architecture
+## 10. Architecture
 
 ```
 collectors/            (one per platform, all return list[Post])     models.Post  <- common schema
@@ -116,12 +269,13 @@ filtering.py           topic (phrases, OR, hashtag-squash) / date / platform / d
 narratives.py          TF-IDF -> leader clustering (+2 re-assignment passes, centroid merge) -> labelled narratives
 coordination.py        pairwise account evidence -> decision rule -> connected components -> explained groups
 origin.py              earliest posts/accounts, per-platform first appearance + lag, copy-paste lineage, seeding verdict
+crossplatform.py       shared narratives, volume correlation + lead/lag, YouTube<->Telegram links, cross-platform copies, summary
         │
 pipeline.py → export.py (JSON, 5 CSVs) + report.py (single-file HTML, inline SVG, no CDN)
 evaluate.py + scripts/stress.py   accuracy against planted ground truth
 ```
 
-## 3. Methodology & design decisions
+## 11. Methodology & design decisions
 
 ### Narratives
 * Normalise (NFKC, lowercase, strip URLs/@mentions/emoji, keep unicode letters so Arabic/Cyrillic work), drop stop-words, TF-IDF.
@@ -160,7 +314,7 @@ Python 3.13 stdlib (`re`, `zlib`, `datetime`, `csv`, `json`, `unittest`); **opti
 APIs/routes: X API v2 (paid) or X web-search JSON via Playwright (free, experimental), YouTube Data API v3 or yt-dlp, Telegram MTProto via Telethon or the t.me/s web preview, DuckDuckGo (`ddgs`) for discovery, file import for the rest.
 No third-party analysis libraries: MinHash-LSH, TF-IDF, union-find, dHash are ~150 lines in `textutil.py` / `collectors/base.py`.
 
-## 4. Rate limits, blocking & platform restrictions
+## 12. Rate limits, blocking & platform restrictions
 * `HttpClient`: minimum interval between calls, exponential back-off with jitter on 429/5xx, honours `Retry-After` and X's `x-rate-limit-reset`,
   gives up after N tries with a clear message and **keeps the partial results** of other platforms (the report then carries a "BLOCKED/INCOMPLETE" warning).
 * Responses are cached on disk (`.cache/`), so re-running a demo costs zero quota; YouTube `search.list` (100 units) is capped by `max_videos`.
@@ -169,7 +323,7 @@ No third-party analysis libraries: MinHash-LSH, TF-IDF, union-find, dHash are ~1
   The one deliberate exception is the **opt-in, off-by-default X browser route**: it uses a throwaway account's own session (against X's ToS) because X has no free API. It still never evades anything - it stops on HTTP 429, a login redirect or an idle timeline and reports why. Every other route uses official APIs, public pages or user-supplied exports; the access a platform gives is reported as a limitation, not engineered around.
 * Unit-tested with a fake session (`tests/test_coordwatch.py::RateLimitTests`).
 
-## 5. How I used AI, and how I checked it
+## 13. How I used AI, and how I checked it
 * **Used:** Claude (via Claude Code) wrote the first version of most modules, the synthetic-data generator, tests, and this README under my direction;
   I specified the signals, decision rule and the "no evasion" constraint.
 * **Checked – not trusted:**
@@ -185,7 +339,7 @@ No third-party analysis libraries: MinHash-LSH, TF-IDF, union-find, dHash are ~1
      Treat the live collectors as unverified until you run them with your keys. The free routes (yt-dlp, t.me/s, X browser, DuckDuckGo) are likewise tested only on recorded-shape fixtures and a fake search backend - smoke-test each once on a real machine before the demo.
 * **Caveat I want to be explicit about:** I iterated thresholds against my own generator, so the numbers below show the *method's behaviour*, not real-world accuracy.
 
-## 6. Accuracy (synthetic ground truth; `python scripts/stress.py`)
+## 14. Accuracy (synthetic ground truth; `python scripts/stress.py`)
 
 Dataset: ~730 posts / 271 accounts; Campaign A = 28-account copy-paste botnet (4 accounts duplicated across platforms), Campaign B = 6-account
 paraphrasing + mutual-reshare ring; decoys = 5 verified newswire outlets, 40-user viral meme, 2 mutually retweeting fans, default avatars.
@@ -207,7 +361,7 @@ paraphrasing + mutual-reshare ring; decoys = 5 verified newswire outlets, 40-use
 * A bot who only reshares (never posts original text) gets only `amplify`; it needs ≥ 3 reshares to be caught.
 * Not tested and *would* defeat it: paraphrased **and** low-and-slow campaigns, LLM-rewritten text, human-run "coordinated" groups, and cross-platform identity linking beyond identical usernames.
 
-## 7. Limitations & assumptions
+## 15. Limitations & assumptions
 * **Not attribution.** Coordination ≠ inauthenticity: fandoms, newsrooms, PR teams, activist campaigns and plain virality produce the same signals. Output = leads for a human analyst.
 * Earliest post in *my collected data* ≠ true origin: deleted/suspended accounts, API recency windows (X recent search = 7 days), search ranking limits, and Telegram only seeing channels you list all bias "first".
 * Telegram exposes no account-creation date or avatar via the API → those signals unavailable. X avatar hashing needs Pillow + an extra download per account.
@@ -217,7 +371,7 @@ paraphrasing + mutual-reshare ring; decoys = 5 verified newswire outlets, 40-use
 * O(n²)-ish in the busiest time windows and in avatar comparison; fine to ~50k posts, beyond that shard by day.
 * Privacy: only public content; data stays local; account IDs are shown as collected – handle exports under your data-protection rules.
 
-## 8. Layout
+## 16. Layout
 ```
 coordwatch/            package (web/ (server + constellation UI), collect.py, secrets_store.py, collectors/ (incl. youtube_ytdlp, telegram_web, x_browser), discovery.py, narratives.py, coordination.py, origin.py, pipeline.py, report.py, export.py, evaluate.py, cli.py)
 tests/                 94 unit tests (unittest; pytest also works)
@@ -225,11 +379,3 @@ scripts/stress.py      multi-seed accuracy + ablation table
 sample_data/           synthetic posts + ground truth JSON (importable via --source file)
 out/example/           pre-generated report, JSON and CSVs
 ```
-
-## Cross-platform correlation
-
-When two or more platforms return posts, the result carries a `cross_platform` block (also shown in the HTML report, the web "Topic overview" panel, `cross_platform.csv` and `cross_platform_summary.txt`): narratives present on several platforms and which one surfaced first, hourly/daily volume correlation with best lead/lag per platform pair, Telegram posts that link to the collected YouTube videos, near-identical text spanning platforms, shared URLs/hashtags, and identical display names. It ends in a plain-English summary. These are correlations in public data, not proof of coordination.
-
-## Telegram: global search vs named channels
-
-With a Telegram login (`TELEGRAM_API_ID` / `TELEGRAM_API_HASH` in Settings, then `python -m coordwatch telegram-login` once) and **no channels entered**, Telegram is searched globally across public channels and groups (`messages.searchGlobal`); hits are re-checked locally against the topic and date window. If you **do** enter channels, only those are searched. Without a login, the free web preview is used instead and needs channels (entered, or found by web discovery). Use a throwaway number for the login: automated searching is a grey area of Telegram's terms.
