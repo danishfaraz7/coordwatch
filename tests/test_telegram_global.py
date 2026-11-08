@@ -41,7 +41,7 @@ class GlobalSearchTests(unittest.TestCase):
         c = TelegramCollector([], api_id=1, api_hash="x")
         c.log, c.cancelled = (lambda *_: None), (lambda: False)
         posts = []
-        asyncio.run(c._global(FakeClient(), "#indvsnz", S, U, 500, posts, errors))
+        asyncio.run(c._search_global(FakeClient(), "#indvsnz", S, U, 500, posts, errors, set()))
         self.assertEqual([p.id for p in posts], ["7/1", "7/3"])          # off-topic message and the duplicate are dropped
         self.assertEqual(posts[0].url, "https://t.me/crickchat/1")
         self.assertEqual(posts[0].platform, "telegram")
@@ -52,9 +52,40 @@ class GlobalSearchTests(unittest.TestCase):
         c.log, c.cancelled = logs.append, (lambda: False)
         fc = FakeClient()
         fc.pages = []                                                    # Telegram returns nothing for every query
-        asyncio.run(c._global(fc, "#indvsnz", S, U, 500, [], errors))
+        asyncio.run(c._search_global(fc, "#indvsnz", S, U, 500, [], errors, set()))
         self.assertEqual(len(fc.calls), 2)                               # '#indvsnz' then 'indvsnz'
-        self.assertTrue(any("no messages at all" in l for l in logs))
+        self.assertTrue(any("returned no messages" in l for l in logs))
+
+    def test_orchestrator_uses_post_search_then_directory(self):
+        chan = types.Channel(id=9, title="IndVsNZ Live", photo=types.ChatPhotoEmpty(), date=S, username="indvsnzlive")
+
+        class Fake:
+            calls = []
+
+            async def __call__(self, req):
+                n = type(req).__name__
+                self.calls.append(n)
+                if n == "SearchPostsRequest":
+                    return NS(messages=[], chats=[], users=[], next_rate=None)
+                if n == "SearchRequest":
+                    return NS(chats=[chan], users=[])
+                return NS(messages=[], chats=[], users=[], next_rate=None)
+
+            async def iter_messages(self, ent, search=None, offset_date=None, limit=None):
+                for m in (msg(5, 9, "#indvsnz toss update", 4), msg(6, 9, "old", -400)):
+                    yield m
+
+            async def get_input_entity(self, peer):
+                return types.InputPeerChannel(channel_id=9, access_hash=1)
+
+        c = TelegramCollector([], api_id=1, api_hash="x")
+        logs = []
+        c.log, c.cancelled = logs.append, (lambda: False)
+        posts = []
+        asyncio.run(c._global(Fake(), "#indvsnz", S, U, 500, posts, errors))
+        self.assertEqual([p.id for p in posts], ["9/5"])
+        self.assertEqual(posts[0].url, "https://t.me/indvsnzlive/5")
+        self.assertTrue(any("channel directory" in l for l in logs))
 
     def test_channels_are_optional(self):
         TelegramCollector([], api_id=1, api_hash="x")                     # used to raise: now means "search everything"
