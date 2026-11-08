@@ -9,6 +9,8 @@ exports everything as JSON/CSV plus an interactive dashboard and a self-containe
 It is built to run **at zero cost**: every platform has a free route, and paid or official routes are used first only if you have configured them.
 Findings are leads for a human analyst, not attribution. Coordination is not the same as inauthenticity (fandoms, newsrooms and plain virality look similar).
 
+**New to the terminal? Follow the click-by-click guide: [GETTING_STARTED.md](GETTING_STARTED.md).**
+
 ## Contents
 1. [What it can do](#1-what-it-can-do)
 2. [Quick start](#2-quick-start)
