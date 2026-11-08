@@ -42,6 +42,8 @@ def main(argv=None):
     r.add_argument("--input", nargs="*", default=[], help="JSON/JSONL/CSV file(s) for --source file")
     r.add_argument("--file-platform", help="platform name for rows lacking a 'platform' field (tiktok, instagram...)")
     r.add_argument("--telegram-channels", help="comma separated public channels, e.g. @chan1,@chan2")
+    r.add_argument("--discover", action="store_true", help="free web-search sweep (DuckDuckGo): finds Telegram channels + web mentions; needs `pip install ddgs`")
+    r.add_argument("--x-cookies", help="cookie-export JSON of a throwaway X login (free, experimental X route); same as X_COOKIES_FILE")
     r.add_argument("--x-archive", action="store_true", help="use X full-archive search (needs Pro/Enterprise)")
     r.add_argument("--depth", choices=["quick", "standard", "deep"], default="standard", help="how much to fetch per platform")
     r.add_argument("--limit", type=int, default=1000, help="max posts per platform")
@@ -89,10 +91,23 @@ def main(argv=None):
         cfg = Config(**{**cfg.to_dict(), **json.load(open(args.config))})
     if args.discount_verified:
         cfg.discount_verified = True
+    if args.x_cookies:
+        os.environ["X_COOKIES_FILE"] = args.x_cookies
+    discovery = None
+    if args.discover:
+        from .discovery import discover
+        discovery = discover(args.topic, since, until, args.out)
+        found = [c["channel"] for c in discovery["telegram_channels"][:8]]
+        if "telegram" in args.platforms and not args.telegram_channels and found:
+            args.telegram_channels = ",".join(found)
+            print("discovery: using Telegram channels " + args.telegram_channels)
+        print(f"discovery: {discovery['n_results']} web results, {len(found)} Telegram channel(s)")
     posts, notes, truth = _collect(args, since, until)
     # topic matching already happened inside collect_posts (server-side for live APIs, locally for demo/file)
     result = analyse(posts, args.topic, since, until, None if args.source != "live" else args.platforms, cfg, notes,
                      topic_filter=False)
+    if discovery:
+        result["discovery"] = discovery
     paths = export_all(result, args.out)
     html_path = os.path.join(args.out, "report.html")
     with open(html_path, "w", encoding="utf-8") as f:
