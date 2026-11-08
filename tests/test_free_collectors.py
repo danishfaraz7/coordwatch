@@ -59,6 +59,28 @@ class YtDlp(unittest.TestCase):
         self.assertIsNone(yd.map_video({"id": "nodate"}))
 
 
+class YtDlpBotCheck(unittest.TestCase):
+    def test_fails_fast_when_youtube_serves_nothing(self):
+        calls = {"n": 0}
+
+        class FakeYDL:
+            def __init__(self, opts): self.opts = opts
+            def __enter__(self): return self
+            def __exit__(self, *a): return False
+            def extract_info(self, url, download=False):
+                if "results" in url or url.startswith("ytsearch"):
+                    return {"entries": [{"id": f"vid{i:08d}"} for i in range(20)]}
+                calls["n"] += 1
+                return None                                  # yt-dlp (ignoreerrors) returns None on a bot check
+
+        fake = mock.MagicMock(YoutubeDL=FakeYDL)
+        with mock.patch.dict(sys.modules, {"yt_dlp": fake}):
+            with self.assertRaises(PlatformBlocked) as cm:
+                yd.YtDlpYouTube(max_videos=20).collect("acme", S, E)
+        self.assertEqual(calls["n"], 3)                      # gave up after 3 refusals, not 20
+        self.assertIn("YOUTUBE_API_KEY", str(cm.exception))
+
+
 class TelegramWeb(unittest.TestCase):
     def test_parse_page(self):
         posts = tw.parse_page(TG_HTML, "newsdesk")
