@@ -52,7 +52,7 @@ git clone <this repo> && cd coordwatch
 python3 -m coordwatch run --topic "Acme Bank" --since 2026-10-01 --until 2026-10-14 \
         --source demo --discount-verified --out out/demo
 open out/demo/report.html          # or xdg-open / start
-python3 -m unittest discover -s tests -v     # 78 tests
+python3 -m unittest discover -s tests -v     # 79 tests
 python3 scripts/stress.py                    # accuracy sweep (10 seeds x 5 scenarios)
 ```
 
@@ -93,6 +93,9 @@ python3 -m coordwatch run --source file --input tiktok.json x.csv --file-platfor
 CSV/JSON/JSONL). A row only needs `text`, a date, an author and (optionally) engagement counts.
 
 ---------------------------------------------------------------------------------------------------
+
+### Run log (for debugging and sharing)
+Every run - successful, failed or aborted - writes `run_log.txt` (web: **Copy run log** on the progress card, or Export → run_log.txt; CLI: in `--out`). It records topic, dates, platforms, depth, channels, which credentials are *set* (never their values), the route that produced each platform's data, errors, counts and the timestamped timeline.
 
 ### The dashboard (`report.html`)
 Single offline file (no CDN, all scraped text HTML-escaped): dark bento layout with a **streamgraph** of volume per platform,
@@ -176,7 +179,7 @@ No third-party analysis libraries: MinHash-LSH, TF-IDF, union-find, dHash are ~1
      Narratives were over-fragmented (37 clusters for 9 topics) → threshold sweep.
   3. **Stress test** (10 seeds × 5 scenarios) exposed two real defects: creation-time coincidence among *old* accounts created false groups
      (fixed with the "fresh account" condition), and paraphrase-ring recall of 0.5–0.67 (improved by same-narrative short-window synchrony).
-  4. 78 unit tests, including adversarial cases (default avatars, XSS in scraped text, 403 not retried, cache correctness).
+  4. 79 unit tests, including adversarial cases (default avatars, XSS in scraped text, 403 not retried, cache correctness).
   5. API parsers are tested against payloads shaped like the documented responses – **not against live APIs** (no keys in this repo's CI).
      Treat the live collectors as unverified until you run them with your keys. The free routes (yt-dlp, t.me/s, X browser, DuckDuckGo) are likewise tested only on recorded-shape fixtures and a fake search backend - smoke-test each once on a real machine before the demo.
 * **Caveat I want to be explicit about:** I iterated thresholds against my own generator, so the numbers below show the *method's behaviour*, not real-world accuracy.
@@ -216,7 +219,7 @@ paraphrasing + mutual-reshare ring; decoys = 5 verified newswire outlets, 40-use
 ## 8. Layout
 ```
 coordwatch/            package (web/ (server + constellation UI), collect.py, secrets_store.py, collectors/ (incl. youtube_ytdlp, telegram_web, x_browser), discovery.py, narratives.py, coordination.py, origin.py, pipeline.py, report.py, export.py, evaluate.py, cli.py)
-tests/                 78 unit tests (unittest; pytest also works)
+tests/                 79 unit tests (unittest; pytest also works)
 scripts/stress.py      multi-seed accuracy + ablation table
 sample_data/           synthetic posts + ground truth JSON (importable via --source file)
 out/example/           pre-generated report, JSON and CSVs

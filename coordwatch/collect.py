@@ -19,9 +19,10 @@ ALL_PLATFORMS = LIVE + FILE_ONLY
 def collect_posts(topic: str, since: datetime, until: datetime, platforms: List[str], *, use_demo: bool = False,
                   files: Optional[List[Tuple[str, Optional[str]]]] = None, telegram_channels: str = "",
                   x_archive: bool = False, limit: int = 1000, seed: int = 42, depth: str = "standard",
-                  cancelled: Callable[[], bool] = lambda: False, log: Callable[[str], None] = lambda m: None) -> Tuple[List[Post], List[str]]:
+                  cancelled: Callable[[], bool] = lambda: False, log: Callable[[str], None] = lambda m: None,
+                  notes_out: Optional[List[str]] = None) -> Tuple[List[Post], List[str]]:
     posts: List[Post] = []
-    notes: List[str] = []
+    notes: List[str] = notes_out if notes_out is not None else []      # caller may pass a list it keeps even if we raise
     if use_demo:
         from .collectors import demo
         got = demo.generate(seed)[0]
@@ -134,6 +135,7 @@ def _discover_channels(topic, since, until, log, notes, max_channels: int = 8) -
         log("telegram: no channels given - searching the web for public channels that mention the topic…")
         d = discover(topic, since, until, tempfile.mkdtemp(prefix="coordwatch-disc-"))
     except Exception as e:                                      # never fatal
+        log(f"telegram: channel discovery failed ({type(e).__name__}: {e})")
         notes.append(f"telegram: channel discovery failed ({type(e).__name__}: {e})")
         return ""
     chans = [c["channel"] for c in d["telegram_channels"][:max_channels]]
@@ -142,6 +144,9 @@ def _discover_channels(topic, since, until, log, notes, max_channels: int = 8) -
         log("telegram: discovered " + ", ".join(chans))
     else:
         bad = sum(1 for q in d["queries"] if not q.get("ok"))
-        notes.append(f"telegram: discovery found no public channels for this topic ({bad}/{len(d['queries'])} searches failed). "
-                     "Enter channel names (e.g. @channel) in the Telegram box, or use a topic that appears on t.me.")
+        errs = [q.get("error", "") for q in d["queries"] if not q.get("ok")]
+        msg = (f"telegram: web discovery found no public channels ({bad}/{len(d['queries'])} searches failed"
+               + (f"; first error: {errs[0][:140]}" if errs else "") + ")")
+        log(msg)
+        notes.append(msg + ". Enter channel names (e.g. @channel) in the Telegram box, or use a topic that appears on t.me.")
     return ",".join(chans)
