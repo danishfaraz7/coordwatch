@@ -20,6 +20,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import List, Optional, Tuple
 
+from .filtering import matches_topic
 from .models import parse_dt
 
 log = logging.getLogger("coordwatch.discovery")
@@ -157,10 +158,15 @@ def discover(topic: str, start: datetime, end: datetime, out_dir: str, backend=N
 
 
 def _finish(topic, results, qlog, start, end, cache: Path) -> dict:
-    chan = Counter(c for r in results if (c := telegram_channel(r["url"])))
+    # Only trust a channel if the search result that pointed at it actually mentions the topic (title/snippet/url).  Without
+    # this, a short or ambiguous topic (e.g. "NFP") collects any t.me link the engine returns - police, casinos, ...
+    rel = [r for r in results if matches_topic(f"{r['title']} {r['snippet']} {r['url']}", topic)]
+    chan = Counter(c for r in rel if (c := telegram_channel(r["url"])))
+    unrelated = sorted({c for r in results if r not in rel and (c := telegram_channel(r["url"])) and c not in chan})
     dated = sorted((r for r in results if r["date"] and start <= parse_dt(r["date"]) <= end), key=lambda r: r["date"])
     out = {"topic": topic, "queries": qlog, "n_results": len(results), "results": results,
            "telegram_channels": [{"channel": c, "hits": n} for c, n in chan.most_common()],
+           "telegram_channels_unrelated": unrelated,          # linked by the engine but never mention the topic: NOT used
            "youtube_video_ids": sorted({y for r in results if (y := youtube_id(r["url"]))}),
            "dated_mentions": dated, "earliest_dated_mention": dated[0] if dated else None,
            "by_platform": dict(Counter(r["platform"] for r in results))}

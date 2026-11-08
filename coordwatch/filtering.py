@@ -19,7 +19,10 @@ def matches_topic(text: str, topic: str) -> bool:
     low = (text or "").lower()
     squashed = re.sub(r"\s+", "", low)
     for t in topic_terms(topic):
-        if t in low or t.replace(" ", "") in squashed:  # "acme bank" also matches "#AcmeBank"
+        if len(t) <= 4 and t.isalnum():                  # short acronyms (NFP, AI, BTC) must be whole words: "ai" is not in "said"
+            if re.search(rf"(?<![a-z0-9]){re.escape(t)}(?![a-z0-9])", low):
+                return True
+        elif t in low or t.replace(" ", "") in squashed:  # "acme bank" also matches "#AcmeBank"
             return True
     return False
 

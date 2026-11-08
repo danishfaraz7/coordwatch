@@ -149,7 +149,7 @@ class XBrowserParser(unittest.TestCase):
 class FakeBackend:
     def text(self, q, tl, n):
         if "site:t.me" in q:
-            return [{"href": "https://t.me/s/leakchan/55", "title": "t", "body": "b"}, {"href": "https://t.me/joinchat/abc", "title": "x"}]
+            return [{"href": "https://t.me/s/leakchan/55", "title": "Acme Bank news", "body": "b"}, {"href": "https://t.me/randomcasino/9", "title": "Casino", "body": "bonus"}, {"href": "https://t.me/joinchat/abc", "title": "x"}]
         if "site:youtube.com" in q:
             return [{"href": "https://www.youtube.com/watch?v=abcDEF12345", "title": "vid"}]
         raise RuntimeError("blocked")
@@ -169,6 +169,7 @@ class Discovery(unittest.TestCase):
         with tempfile.TemporaryDirectory() as d, mock.patch("coordwatch.discovery.time.sleep"):
             r = discovery.discover("Acme Bank", S, E, d, backend=FakeBackend(), pause=(0, 0))
             self.assertEqual([c["channel"] for c in r["telegram_channels"]], ["leakchan"])
+            self.assertEqual(r["telegram_channels_unrelated"], ["randomcasino"])     # linked by the engine, never mentions the topic
             self.assertEqual(r["youtube_video_ids"], ["abcDEF12345"])
             self.assertEqual(r["earliest_dated_mention"]["url"], "https://news.example/a")
             self.assertTrue(any(not q["ok"] for q in r["queries"]))      # blocked ones are logged, not fatal
@@ -262,3 +263,14 @@ class Chain(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class ShortTopics(unittest.TestCase):
+    def test_short_acronyms_match_whole_words_only(self):
+        from coordwatch.filtering import matches_topic
+        self.assertTrue(matches_topic("NFP tomorrow, expect volatility", "NFP"))
+        self.assertTrue(matches_topic("positioning for #NFP", "NFP"))
+        self.assertFalse(matches_topic("UNFPA report on population", "NFP"))
+        self.assertFalse(matches_topic("he said it twice", "AI"))
+        self.assertTrue(matches_topic("acme bank is falling", "Acme Bank"))
+        self.assertTrue(matches_topic("#AcmeBankCollapse trending", "Acme Bank"))   # long topics keep the loose match
