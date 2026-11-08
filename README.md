@@ -18,7 +18,7 @@ Core analysis is **pure Python standard library** (no numpy/sklearn) so it insta
 ## 0. Web app (one place for every platform)
 
 ```bash
-pip install requests Pillow telethon      # optional extras for live collection
+pip install -r requirements.txt           # optional extras for live collection (all free)
 python -m coordwatch web                  # -> http://localhost:8000
 ```
 Pick a topic + dates + platforms, press **Analyse**. The result is an interactive **constellation**: the topic is the glowing core,
@@ -26,7 +26,7 @@ narratives orbit it (gold beams, thickness = volume, red = pushed by coordinated
 narratives they pushed, and small dots are individual accounts coloured by platform. A time scrubber replays how it spread; click anything for the
 detail panel (origin, hops between platforms, evidence); the dock answers simple questions from the data (local rules, **no AI model**).
 
-* **Platforms:** X, YouTube, Telegram are live (official APIs). TikTok / Instagram / Facebook / Snapchat: use the chip to **import an export file**.
+* **Platforms:** X, YouTube, Telegram are live, each with a **free route** (see *Free routes* below); official/paid routes are used first when configured. TikTok / Instagram / Facebook / Snapchat: use the chip to **import an export file**.
   Several sources can be mixed in one run.
 * **Start-up & landing:** a short boot animation (dots blink like ordinary accounts, then a few lock into sync - what the tool detects - while real
   connection checks run), then a landing console with live connection chips. Click any key to skip; honours *reduced motion*.
@@ -59,18 +59,27 @@ python3 scripts/stress.py                    # accuracy sweep (10 seeds x 5 scen
 `--source demo` uses a **synthetic** dataset (all accounts/posts fabricated, links use the reserved `.invalid` TLD)
 with a *planted* ground truth, so the output also prints precision/recall. A pre-generated example is in `out/example/`.
 
-### Running on real data
+### Running on real data - zero cost
+
+Every live platform has a free route; if the first route is not configured or is blocked, the next one is tried automatically and the
+report's notes say which route produced the data (and why earlier ones were skipped).
+
+| Platform | Route 1 (if configured) | Free route used otherwise | Free-route limits |
+|---|---|---|---|
+| YouTube | Data API v3 (`YOUTUBE_API_KEY`, free quota) | **yt-dlp** search + top comments, no key | no channel creation date; newest-first search via results URL |
+| Telegram | Telethon (`TELEGRAM_API_ID/HASH` + one-time login) | **t.me/s web preview**, no login | channels you list (or `--discover` finds) only; no reactions/groups |
+| X | paid API (`X_BEARER_TOKEN`) | **browser session** (Playwright) with a *throwaway* login: `X_COOKIES_FILE` / `--x-cookies` | experimental, breaks X's ToS, account can be limited/suspended |
 
 ```bash
-pip install requests Pillow telethon
-export X_BEARER_TOKEN=...              # developer.x.com (paid tier)
-export YOUTUBE_API_KEY=...             # Google Cloud console, YouTube Data API v3
-export TELEGRAM_API_ID=... TELEGRAM_API_HASH=...   # my.telegram.org  (first run asks for a login code)
+pip install -r requirements.txt && playwright install chromium     # playwright only for the X browser route
 
 python3 -m coordwatch run --source live --topic "#AcmeBankCollapse OR Acme Bank" \
-        --since 2026-10-01 --until 2026-10-14 --platforms x telegram youtube \
-        --telegram-channels @somepublicchannel,@another --out out/live
+        --since 2026-10-01 --until 2026-10-14 --platforms telegram youtube x \
+        --discover --x-cookies ~/x_cookies.json --out out/live
 ```
+`--discover` runs a free DuckDuckGo sweep (`site:t.me`, `site:youtube.com`, `site:x.com`, news): it finds Telegram channels to read when you gave none,
+lists web mentions, and shows the earliest dated mention in the report (*Web discovery*). Web mentions are leads only and never count as coordination evidence.
+Optional official credentials (set via the web app or env vars) simply take priority: `YOUTUBE_API_KEY`, `TELEGRAM_API_ID`/`TELEGRAM_API_HASH`, `X_BEARER_TOKEN`.
 
 TikTok / Instagram / Facebook / Snapchat have **no usable public research API** for arbitrary keyword search. For those,
 collect with your own lawful tooling (e.g. an Apify actor, Bright Data, a vendor export) and import the file:
@@ -144,7 +153,7 @@ and a seeding verdict ("x % of the first 10 % of posts came from coordinated gro
 
 ### Tools / libraries / APIs
 Python 3.13 stdlib (`re`, `zlib`, `datetime`, `csv`, `json`, `unittest`); **optional**: `requests`, Pillow (dHash of avatars), Telethon.
-APIs: X API v2 search, YouTube Data API v3 (search/videos/commentThreads/channels), Telegram MTProto via Telethon, file import for the rest.
+APIs/routes: X API v2 (paid) or X web-search JSON via Playwright (free, experimental), YouTube Data API v3 or yt-dlp, Telegram MTProto via Telethon or the t.me/s web preview, DuckDuckGo (`ddgs`) for discovery, file import for the rest.
 No third-party analysis libraries: MinHash-LSH, TF-IDF, union-find, dHash are ~150 lines in `textutil.py` / `collectors/base.py`.
 
 ## 4. Rate limits, blocking & platform restrictions
@@ -153,7 +162,7 @@ No third-party analysis libraries: MinHash-LSH, TF-IDF, union-find, dHash are ~1
 * Responses are cached on disk (`.cache/`), so re-running a demo costs zero quota; YouTube `search.list` (100 units) is capped by `max_videos`.
 * Telegram: `FloodWaitError` → sleep the requested seconds; private channels → `PlatformBlocked`.
 * **401/403 are never retried and I do not attempt to bypass blocks** – no proxies rotation, fingerprint spoofing, login-wall scraping or fake accounts.
-  Official APIs or user-supplied exports only; the access tier a platform gives is reported as a limitation, not engineered around.
+  The one deliberate exception is the **opt-in, off-by-default X browser route**: it uses a throwaway account's own session (against X's ToS) because X has no free API. It still never evades anything - it stops on HTTP 429, a login redirect or an idle timeline and reports why. Every other route uses official APIs, public pages or user-supplied exports; the access a platform gives is reported as a limitation, not engineered around.
 * Unit-tested with a fake session (`tests/test_coordwatch.py::RateLimitTests`).
 
 ## 5. How I used AI, and how I checked it
@@ -169,7 +178,7 @@ No third-party analysis libraries: MinHash-LSH, TF-IDF, union-find, dHash are ~1
      (fixed with the "fresh account" condition), and paraphrase-ring recall of 0.5–0.67 (improved by same-narrative short-window synchrony).
   4. 66 unit tests, including adversarial cases (default avatars, XSS in scraped text, 403 not retried, cache correctness).
   5. API parsers are tested against payloads shaped like the documented responses – **not against live APIs** (no keys in this repo's CI).
-     Treat the live collectors as unverified until you run them with your keys.
+     Treat the live collectors as unverified until you run them with your keys. The free routes (yt-dlp, t.me/s, X browser, DuckDuckGo) are likewise tested only on recorded-shape fixtures and a fake search backend - smoke-test each once on a real machine before the demo.
 * **Caveat I want to be explicit about:** I iterated thresholds against my own generator, so the numbers below show the *method's behaviour*, not real-world accuracy.
 
 ## 6. Accuracy (synthetic ground truth; `python scripts/stress.py`)
@@ -206,8 +215,8 @@ paraphrasing + mutual-reshare ring; decoys = 5 verified newswire outlets, 40-use
 
 ## 8. Layout
 ```
-coordwatch/            package (web/ (server + constellation UI), collect.py, secrets_store.py, collectors/, narratives.py, coordination.py, origin.py, pipeline.py, report.py, export.py, evaluate.py, cli.py)
-tests/                 66 unit tests (unittest; pytest also works)
+coordwatch/            package (web/ (server + constellation UI), collect.py, secrets_store.py, collectors/ (incl. youtube_ytdlp, telegram_web, x_browser), discovery.py, narratives.py, coordination.py, origin.py, pipeline.py, report.py, export.py, evaluate.py, cli.py)
+tests/                 76 unit tests (unittest; pytest also works)
 scripts/stress.py      multi-seed accuracy + ablation table
 sample_data/           synthetic posts + ground truth JSON (importable via --source file)
 out/example/           pre-generated report, JSON and CSVs

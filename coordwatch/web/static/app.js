@@ -8,12 +8,12 @@ const LABEL = {x:'X', youtube:'YouTube', telegram:'Telegram', tiktok:'TikTok', i
 const ORDER = ['x','youtube','telegram','tiktok','instagram','facebook','snapchat'];
 const SIGNAL = {text_dup:'Copy-pasted text', sync:'Posting in sync', amplify:'Reshare loops', avatar:'Reused avatars', created:'Created together', handle:'Same handle'};
 const SERVICES = [
-  {id: 'youtube', short: 'YouTube', name: 'YouTube Data API', color: '#ff8a65', blurb: 'Videos & comments (live)', keys: [['YOUTUBE_API_KEY', 'API key']],
-   help: 'Google Cloud Console → create/select a project → enable <b>YouTube Data API v3</b> → Credentials → <b>Create API key</b>. Free daily quota.'},
-  {id: 'telegram', short: 'Telegram', name: 'Telegram', color: '#4de0b8', blurb: 'Public channels (live)', keys: [['TELEGRAM_API_ID', 'api_id'], ['TELEGRAM_API_HASH', 'api_hash']],
-   help: 'my.telegram.org → <b>API development tools</b> → create an app. Then run <code>python -m coordwatch telegram-login</code> once in a terminal (phone + code).'},
+  {id: 'youtube', short: 'YouTube', name: 'YouTube Data API', color: '#ff8a65', blurb: 'Videos & comments (key optional — falls back to yt-dlp)', keys: [['YOUTUBE_API_KEY', 'API key']],
+   help: 'Google Cloud Console → create/select a project → enable <b>YouTube Data API v3</b> → Credentials → <b>Create API key</b>. Free daily quota. <b>Optional:</b> without a key the free yt-dlp route is used.'},
+  {id: 'telegram', short: 'Telegram', name: 'Telegram', color: '#4de0b8', blurb: 'Public channels (login optional — falls back to web preview)', keys: [['TELEGRAM_API_ID', 'api_id'], ['TELEGRAM_API_HASH', 'api_hash']],
+   help: 'my.telegram.org → <b>API development tools</b> → create an app. Then run <code>python -m coordwatch telegram-login</code> once in a terminal (phone + code). <b>Optional:</b> without it the public web preview is used (enter channel names).'},
   {id: 'x', short: 'X', name: 'X (Twitter) API', color: '#9aa8ff', blurb: 'Recent search (paid credits)', keys: [['X_BEARER_TOKEN', 'Bearer token']],
-   help: 'console.x.com → Apps → your app → Keys &amp; Tokens → <b>Bearer Token</b>. Searching needs paid credits; otherwise import X data from a file.'},
+   help: 'console.x.com → Apps → your app → Keys &amp; Tokens → <b>Bearer Token</b>. The API search needs paid credits. <b>Free route (experimental):</b> set <code>X_COOKIES_FILE</code> to a cookie export of a throwaway X login (see README); violates X ToS, use at your own risk.'},
   {id: 'ai', short: 'AI', name: 'AI answers (optional)', color: '#e8b86a', blurb: 'Gemini · Groq · Qwen · Grok · Ollama…', keys: [], custom: true,
    help: 'Off by default. Pick a provider, paste its key (Ollama needs none), then press <b>Save &amp; validate</b>. Free tiers change — check each provider’s current limits and data-use terms.'}
 ];
@@ -49,7 +49,7 @@ function renderChips() {
     el.className = 'chip' + (on ? ' on' : '') + (info.mode === 'live' && !info.ready ? ' need' : '');
     const tag = info.mode === 'live' ? (info.ready ? 'live' : 'add key') : (up ? `✓ ${up.posts}` : 'import');
     el.innerHTML = `<i style="background:${pcol(p)};color:${pcol(p)}"></i>${LABEL[p]}<small>${esc(tag)}</small>`;
-    el.title = info.mode === 'live' ? (info.ready ? 'Live collection via official API' : 'Needs credentials — click to add')
+    el.title = info.mode === 'live' ? (info.ready ? 'Live collection via ' + (info.route || 'official API') : 'No free route configured — click to see how')
       : 'No public search API: import an export file (JSON/CSV). Click again to remove.';
     el.onclick = () => chipClick(p);
     box.appendChild(el);

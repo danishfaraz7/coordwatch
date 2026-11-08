@@ -407,6 +407,24 @@ def render(result: dict, max_posts: int = 400) -> str:
         h.append("</div></div>")
     h.append("</div>")
 
+    # --- web discovery (optional stage)
+    disc = result.get("discovery")
+    if disc:
+        ok = sum(1 for q in disc["queries"] if q.get("ok"))
+        h.append(f"<div class='tile s12'><h2>Web discovery</h2><p class=sub>Free search-engine sweep ({ok}/{len(disc['queries'])} queries answered). "
+                 "Web mentions are leads only: no account or engagement data, never used as coordination evidence.</p>")
+        first = disc.get("earliest_dated_mention")
+        if first:
+            h.append(f"<div class=muted style='font-size:12px'>Earliest dated web mention: {e(first['date'][:10])} · {e(first['platform'])} · "
+                     f"<a href='{e(first['url'])}' rel='noreferrer noopener'>{short(first['title'] or first['url'], 90)}</a></div>")
+        if disc["telegram_channels"]:
+            h.append("<div class=muted style='font-size:12px'>Telegram channels found: " + ", ".join(f"{e(c['channel'])} ({c['hits']})" for c in disc["telegram_channels"][:12]) + "</div>")
+        h.append("<div class=muted style='font-size:12px'>Mentions by platform: " + ", ".join(f"{e(k)} {v}" for k, v in sorted(disc["by_platform"].items(), key=lambda kv: -kv[1])) + "</div>")
+        for q in disc["queries"]:
+            if not q.get("ok"):
+                h.append(f"<div class=warn>search failed: {e(q['query'])} - {e(q.get('error', ''))}</div>")
+        h.append("</div>")
+
     # --- posts
     h.append(f"<div class='tile s12' id=posts-tile><h2>Posts</h2><p class=sub>Showing <b id=shown>{min(len(posts), max_posts)}</b> of {len(posts)} · full set in <code>posts.csv</code> / <code>results.json</code></p>"
              "<div class=tools><input id=f placeholder='filter posts…' aria-label='filter posts'><span class='badge b-warn' id=clr style='display:none;cursor:pointer'>✕ clear <span id=cur></span></span></div>"
