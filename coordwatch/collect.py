@@ -88,6 +88,8 @@ def _run_chain(pl, topic, since, until, limit, telegram_channels, x_archive, dep
     """Try each route in order; the first that completes wins (an empty but successful result is a valid answer).  Everything that goes wrong is written to the
     run notes, so the report shows exactly which route produced the data and why earlier ones were skipped."""
     tried = []
+    if pl == "telegram" and not telegram_channels.strip():
+        telegram_channels = _discover_channels(topic, since, until, log, notes)
     for label, factory in _chain(pl, telegram_channels, x_archive, depth):
         try:
             c = factory()
@@ -121,3 +123,25 @@ def _run_chain(pl, topic, since, until, limit, telegram_channels, x_archive, dep
     notes.append(f"{pl}: skipped - no route worked. " + " | ".join(tried))
     log(f"{pl}: skipped - " + " | ".join(tried))
     return [], None
+
+
+def _discover_channels(topic, since, until, log, notes, max_channels: int = 8) -> str:
+    """Telegram has no global search, so when the user named no channels, ask the free DuckDuckGo sweep which public
+    channels mention the topic.  Best effort: if discovery finds nothing, Telegram is skipped with an explanatory note."""
+    import tempfile
+    from .discovery import discover
+    try:
+        log("telegram: no channels given - searching the web for public channels that mention the topic…")
+        d = discover(topic, since, until, tempfile.mkdtemp(prefix="coordwatch-disc-"))
+    except Exception as e:                                      # never fatal
+        notes.append(f"telegram: channel discovery failed ({type(e).__name__}: {e})")
+        return ""
+    chans = [c["channel"] for c in d["telegram_channels"][:max_channels]]
+    if chans:
+        notes.append("telegram: channels found by web discovery (not chosen by you): " + ", ".join("@" + c for c in chans))
+        log("telegram: discovered " + ", ".join(chans))
+    else:
+        bad = sum(1 for q in d["queries"] if not q.get("ok"))
+        notes.append(f"telegram: discovery found no public channels for this topic ({bad}/{len(d['queries'])} searches failed). "
+                     "Enter channel names (e.g. @channel) in the Telegram box, or use a topic that appears on t.me.")
+    return ",".join(chans)
