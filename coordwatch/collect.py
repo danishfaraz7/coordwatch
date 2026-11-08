@@ -48,6 +48,10 @@ def collect_posts(topic: str, since: datetime, until: datetime, platforms: List[
 DEPTH = {"quick": (12, 100), "standard": (30, 200), "deep": (60, 400)}   # (videos, comments per video)
 
 
+def _tg_api_ready() -> bool:
+    return bool(S.get("TELEGRAM_API_ID") and S.get("TELEGRAM_API_HASH") and S.telegram_logged_in())
+
+
 def _chain(pl: str, telegram_channels: str, x_archive: bool, depth: str):
     """Ordered [(label, factory)] for a platform: official/paid route first, free fallback after.
     A factory raises RuntimeError when its credentials are missing, which simply moves on to the next route."""
@@ -74,7 +78,7 @@ def _chain(pl: str, telegram_channels: str, x_archive: bool, depth: str):
 
     def tele():
         from .collectors.telegram import TelegramCollector
-        if not (S.get("TELEGRAM_API_ID") and S.get("TELEGRAM_API_HASH") and S.telegram_logged_in()):
+        if not _tg_api_ready():
             raise RuntimeError("Telegram API login not set up")
         return TelegramCollector(chans, api_id=S.get("TELEGRAM_API_ID"), api_hash=S.get("TELEGRAM_API_HASH"),
                                  session=S.telegram_session_path())
@@ -89,9 +93,12 @@ def _run_chain(pl, topic, since, until, limit, telegram_channels, x_archive, dep
     """Try each route in order; the first that completes wins (an empty but successful result is a valid answer).  Everything that goes wrong is written to the
     run notes, so the report shows exactly which route produced the data and why earlier ones were skipped."""
     tried = []
-    if pl == "telegram" and not telegram_channels.strip():
-        telegram_channels = _discover_channels(topic, since, until, log, notes)
+    # No channels + a Telegram login = global search, nothing to discover.  Without a login the web preview needs channels,
+    # so web discovery runs (lazily, only if that route is actually reached).
     for label, factory in _chain(pl, telegram_channels, x_archive, depth):
+        if pl == "telegram" and label.startswith("Telegram web") and not telegram_channels.strip():
+            telegram_channels = _discover_channels(topic, since, until, log, notes)
+            factory = dict(_chain(pl, telegram_channels, x_archive, depth))[label]
         try:
             c = factory()
         except RuntimeError as e:                                   # not configured -> next route
