@@ -178,6 +178,19 @@ class Chain(unittest.TestCase):
         self.assertTrue(any("API: BLOCKED" in n for n in notes) and any("nokey: not configured" in n for n in notes))
         self.assertIn("youtube: collected 1 posts via free.", notes)
 
+    def test_telegram_without_channels_triggers_discovery(self):
+        seen = {}
+
+        def fake_chain(pl, chans, x_archive, depth):
+            seen["chans"] = chans
+            return [("web", self.Ok)]
+        fake_disc = {"telegram_channels": [{"channel": "leakchan", "hits": 2}, {"channel": "other_one", "hits": 1}], "queries": []}
+        notes = []
+        with mock.patch.object(collect, "_chain", fake_chain), mock.patch("coordwatch.discovery.discover", return_value=fake_disc):
+            collect._run_chain("telegram", "t", S, E, 10, "", False, "standard", lambda: False, lambda m: None, notes)
+        self.assertEqual(seen["chans"], "leakchan,other_one")
+        self.assertTrue(any("found by web discovery" in n for n in notes))
+
     def test_all_routes_failing_is_reported_not_raised(self):
         got, used, notes = self._run([("a", lambda: self.Boom(ValueError("bad"))), ("b", lambda: self.Boom(RuntimeError("down")))])
         self.assertEqual((got, used), ([], None))
