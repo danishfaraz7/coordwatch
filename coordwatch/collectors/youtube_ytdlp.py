@@ -14,8 +14,26 @@ from urllib.parse import quote_plus
 from ..filtering import topic_terms
 from ..models import Post
 import os
+import re
 
 from .base import Collector, HttpClient, PlatformBlocked, avatar_hash_from_url, log
+
+
+_VIDEO_ID = re.compile(r"^[\w-]{11}$")                    # channel ids (UC...) and playlist ids (PL...) are longer
+_BOT = ("confirm you", "not a bot", "sign in to")
+
+
+class _Capture:
+    """yt-dlp logger that stays quiet but remembers the last error, so a refusal (bot check) can be told apart from an
+    ordinary 'video unavailable' (deleted/private/region-locked), which must not trip the fail-fast."""
+    last = ""
+
+    def debug(self, m): pass
+    def info(self, m): pass
+    def warning(self, m): pass
+
+    def error(self, m):
+        self.last = str(m)
 
 
 def _ts(e: dict) -> Optional[datetime]:
@@ -67,7 +85,8 @@ class YtDlpYouTube(Collector):
 
     def collect(self, topic: str, since: datetime, until: datetime, limit: int = 1000) -> List[Post]:
         import yt_dlp  # lazy: only needed for live YouTube without a key
-        base = {"quiet": True, "no_warnings": True, "skip_download": True, "ignoreerrors": True, "retries": 3,
+        cap = _Capture()
+        base = {"quiet": True, "no_warnings": True, "logger": cap, "skip_download": True, "ignoreerrors": True, "retries": 3,
                 "extractor_retries": 3, "sleep_interval_requests": 1, "socket_timeout": 20}
         if os.environ.get("YTDLP_COOKIES_FILE"):                # optional: cookies of a throwaway Google account
             base["cookiefile"] = os.environ["YTDLP_COOKIES_FILE"]
@@ -84,7 +103,7 @@ class YtDlpYouTube(Collector):
                     except Exception as e:
                         log.debug("yt-dlp search %s: %s", q, e)
                         res = {}
-                    new = [e["id"] for e in res.get("entries", []) if e and e.get("id") and e["id"] not in ids]
+                    new = [e["id"] for e in res.get("entries", []) if e and _VIDEO_ID.match(e.get("id") or "") and e["id"] not in ids]
                     if new:
                         ids += new
                         break
@@ -102,7 +121,9 @@ class YtDlpYouTube(Collector):
                 self._check()
                 info = ydl.extract_info(f"https://www.youtube.com/watch?v={vid}", download=False)
                 if not info:
-                    failures += 1
+                    if any(k in cap.last.lower() for k in _BOT):    # a refusal, not just an unavailable video
+                        failures += 1
+                    cap.last = ""
                     if failures >= 3 and not posts:
                         raise PlatformBlocked(
                             "YouTube refused video requests from this IP (bot check / sign-in wall - typical on cloud and datacentre "

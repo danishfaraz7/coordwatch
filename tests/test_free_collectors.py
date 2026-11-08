@@ -64,14 +64,15 @@ class YtDlpBotCheck(unittest.TestCase):
         calls = {"n": 0}
 
         class FakeYDL:
-            def __init__(self, opts): self.opts = opts
+            def __init__(self, opts): self.opts = opts; self.log = opts.get("logger")
             def __enter__(self): return self
             def __exit__(self, *a): return False
             def extract_info(self, url, download=False):
                 if "results" in url or url.startswith("ytsearch"):
                     return {"entries": [{"id": f"vid{i:08d}"} for i in range(20)]}
                 calls["n"] += 1
-                return None                                  # yt-dlp (ignoreerrors) returns None on a bot check
+                self.log.error("ERROR: [youtube] x: Sign in to confirm you’re not a bot.")   # what yt-dlp reports on a bot check
+                return None                                  # ... and ignoreerrors turns it into None
 
         fake = mock.MagicMock(YoutubeDL=FakeYDL)
         with mock.patch.dict(sys.modules, {"yt_dlp": fake}):
@@ -79,6 +80,34 @@ class YtDlpBotCheck(unittest.TestCase):
                 yd.YtDlpYouTube(max_videos=20).collect("acme", S, E)
         self.assertEqual(calls["n"], 3)                      # gave up after 3 refusals, not 20
         self.assertIn("YOUTUBE_API_KEY", str(cm.exception))
+
+
+class YtDlpIdsAndUnavailable(unittest.TestCase):
+    def test_search_results_keep_only_videos_and_ignore_unavailable(self):
+        fetched = []
+
+        class FakeYDL:
+            def __init__(self, opts): self.log = opts.get("logger")
+            def __enter__(self): return self
+            def __exit__(self, *a): return False
+            def extract_info(self, url, download=False):
+                if "results" in url or url.startswith("ytsearch"):
+                    return {"entries": [{"id": "UC7wXCd3dEzabcdefghijklm"},            # channel
+                                        {"id": "PLdT3YuTUHMabcdefghijklmnopqrstuv"},   # playlist
+                                        {"id": "abcDEF12345"}, {"id": "gone1234567"}, {"id": "ok_video_01"}, {"id": "ok_video_02"}]}
+                vid = url.split("v=")[-1]
+                fetched.append(vid)
+                if vid == "gone1234567":
+                    self.log.error("ERROR: [youtube] gone1234567: This video is unavailable")
+                    return None
+                return {"id": vid, "title": "t", "timestamp": 1790000000, "channel_id": "UC1", "view_count": 1}
+
+        fake = mock.MagicMock(YoutubeDL=FakeYDL)
+        with mock.patch.dict(sys.modules, {"yt_dlp": fake}):
+            posts = yd.YtDlpYouTube(max_videos=10, max_comments=0, hash_avatars=False).collect(
+                "acme", datetime(2026, 1, 1, tzinfo=timezone.utc), datetime(2030, 1, 1, tzinfo=timezone.utc))
+        self.assertEqual(sorted(fetched), ["abcDEF12345", "gone1234567", "ok_video_01", "ok_video_02"])   # no UC.../PL... ids
+        self.assertEqual(len(posts), 3)                                                                     # unavailable one skipped, no abort
 
 
 class TelegramWeb(unittest.TestCase):
