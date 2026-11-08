@@ -10,8 +10,8 @@ from .models import Post
 
 
 def topic_terms(topic: str) -> List[str]:
-    """'Acme Bank OR #AcmeBankCollapse' -> ['acme bank', '#acmebankcollapse'].  Quotes are ignored."""
-    parts = re.split(r"\s+OR\s+|\|", topic.replace('"', ""), flags=re.I)
+    """'Acme Bank OR #AcmeBankCollapse' (or comma / | separated) -> ['acme bank', '#acmebankcollapse'].  Quotes are ignored."""
+    parts = re.split(r"\s+OR\s+|[|,;]", topic.replace('"', ""), flags=re.I)
     return [p.strip().lower() for p in parts if p.strip()]
 
 

@@ -39,3 +39,11 @@ class CrossPlatformTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class TopicSeparatorTests(unittest.TestCase):
+    def test_comma_separated_terms(self):
+        from coordwatch.filtering import topic_terms, matches_topic
+        self.assertEqual(topic_terms("MrBeast, #MrBeast"), ["mrbeast", "#mrbeast"])
+        self.assertTrue(matches_topic("new #MrBeast video", "MrBeast, #MrBeast"))
+        self.assertFalse(matches_topic("unrelated", "MrBeast, #MrBeast"))
