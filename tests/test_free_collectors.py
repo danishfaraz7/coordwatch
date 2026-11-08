@@ -175,6 +175,40 @@ class Discovery(unittest.TestCase):
             self.assertTrue(os.path.exists(os.path.join(d, "discovery.json")))
 
 
+class EmptyIsNotAnError(unittest.TestCase):
+    def test_empty_results_are_not_retried_and_fall_back_to_unfiltered(self):
+        calls = []
+
+        class Empty(Exception):
+            pass
+
+        def fn(q, tl, n):
+            calls.append(tl)
+            raise Empty("No results found.")                      # what ddgs raises for an empty result set
+        rows, err = discovery._search(fn, "q", "w", 20, sleep=lambda s: None)
+        self.assertEqual((rows, err), ([], None))
+        self.assertEqual(calls, ["w", None])                      # one filtered try, one unfiltered, no back-off loop
+
+    def test_real_errors_retry_twice_then_report(self):
+        calls = []
+
+        def fn(q, tl, n):
+            calls.append(1)
+            raise RuntimeError("202 Ratelimit")
+        rows, err = discovery._search(fn, "q", None, 20, sleep=lambda s: None)
+        self.assertEqual(len(calls), 3)
+        self.assertIn("Ratelimit", err)
+
+    def test_discovery_respects_time_budget(self):
+        class Slow:
+            def text(self, q, tl, n):
+                return []
+            news = text
+        with tempfile.TemporaryDirectory() as d, mock.patch("coordwatch.discovery.time.sleep"):
+            r = discovery.discover("x", S, E, d, backend=Slow(), pause=(0, 0), budget_s=-1)
+            self.assertTrue(all("budget" in q.get("error", "") for q in r["queries"]))
+
+
 class Chain(unittest.TestCase):
     class Boom(Collector):
         platform = "youtube"

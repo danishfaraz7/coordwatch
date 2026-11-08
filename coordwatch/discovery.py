@@ -80,14 +80,32 @@ def build_queries(topic: str) -> List[Tuple[str, str]]:
     return [(f"site:{d}", f"site:{d} {quoted}") for d in SITES] + [("news", quoted)]
 
 
-def _backoff(fn, retries=3, base=5.0):
-    for i in range(retries + 1):
-        try:
-            return fn()
-        except Exception:
-            if i == retries:
-                raise
-            time.sleep(min(base * 2 ** i + random.random(), 60))
+def _is_empty(e: Exception) -> bool:
+    """ddgs raises DDGSException('No results found.') for an empty result set - that is an answer, not a failure."""
+    return "no results" in str(e).lower()
+
+
+def _search(fn, q: str, tl: Optional[str], n: int, sleep=None) -> Tuple[list, Optional[str]]:
+    """-> (rows, error).  Empty is not an error and is never retried.  The engine-side date filter is coarse and often
+    empties niche queries, so an empty result is retried ONCE without it (exact date filtering happens afterwards).
+    Real errors (rate limit, timeout) get two short back-off retries."""
+    last_err = None
+    for use_tl in ([tl, None] if tl else [None]):
+        for attempt in range(3):
+            try:
+                rows = fn(q, use_tl, n)
+                if rows:
+                    return rows, None
+                break                                            # empty: try the next (unfiltered) variant
+            except Exception as e:
+                if _is_empty(e):
+                    break
+                last_err = f"{type(e).__name__}: {str(e)[:160]}"
+                if attempt < 2:
+                    (sleep or time.sleep)(3 * (attempt + 1) + random.random())
+                else:
+                    return [], last_err
+    return [], last_err
 
 
 def _normalise(r: dict, kind: str, query: str) -> Optional[dict]:
@@ -105,7 +123,7 @@ def _normalise(r: dict, kind: str, query: str) -> Optional[dict]:
 
 
 def discover(topic: str, start: datetime, end: datetime, out_dir: str, backend=None, max_results: int = 20,
-             pause: Tuple[float, float] = (2.5, 5.0)) -> dict:
+             pause: Tuple[float, float] = (2.5, 5.0), budget_s: float = 90.0) -> dict:
     Path(out_dir).mkdir(parents=True, exist_ok=True)
     cache = Path(out_dir) / "discovery.json"
     tl, qlog, results, seen = timelimit_for(start), [], [], set()
@@ -114,21 +132,25 @@ def discover(topic: str, start: datetime, end: datetime, out_dir: str, backend=N
     except Exception as e:
         return _finish(topic, [], [{"query": "(init)", "ok": False, "error": f"{type(e).__name__}: {e} - pip install ddgs"}], start, end, cache)
     queries = build_queries(topic)
+    t_start = time.time()
     for i, (kind, q) in enumerate(queries):
+        if time.time() - t_start > budget_s:                     # discovery is a convenience, never a reason to stall a run
+            qlog.append({"query": q, "ok": False, "error": f"skipped: discovery time budget ({budget_s:.0f}s) used up", "seconds": 0})
+            continue
         t0 = time.time()
-        try:
-            fn = backend.news if kind == "news" else backend.text
-            rows = _backoff(lambda: fn(q, tl, max_results))
-            new = 0
-            for r in rows or []:
-                n = _normalise(r, kind, q)
-                if n and n["url"] not in seen:
-                    seen.add(n["url"])
-                    results.append(n)
-                    new += 1
-            qlog.append({"query": q, "ok": True, "n_results": len(rows or []), "n_new": new, "seconds": round(time.time() - t0, 1)})
-        except Exception as e:                                       # one blocked query must not stop discovery
-            qlog.append({"query": q, "ok": False, "error": f"{type(e).__name__}: {str(e)[:160]}", "seconds": round(time.time() - t0, 1)})
+        fn = backend.news if kind == "news" else backend.text
+        rows, err = _search(fn, q, tl, max_results)
+        new = 0
+        for r in rows:
+            n = _normalise(r, kind, q)
+            if n and n["url"] not in seen:
+                seen.add(n["url"])
+                results.append(n)
+                new += 1
+        entry = {"query": q, "ok": err is None, "n_results": len(rows), "n_new": new, "seconds": round(time.time() - t0, 1)}
+        if err:
+            entry["error"] = err
+        qlog.append(entry)
         if i < len(queries) - 1:
             time.sleep(random.uniform(*pause))
     return _finish(topic, results, qlog, start, end, cache)

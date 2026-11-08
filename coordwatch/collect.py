@@ -143,9 +143,10 @@ def _discover_channels(topic, since, until, log, notes, max_channels: int = 8) -
         notes.append("telegram: channels found by web discovery (not chosen by you): " + ", ".join("@" + c for c in chans))
         log("telegram: discovered " + ", ".join(chans))
     else:
-        bad = sum(1 for q in d["queries"] if not q.get("ok"))
-        errs = [q.get("error", "") for q in d["queries"] if not q.get("ok")]
-        msg = (f"telegram: web discovery found no public channels ({bad}/{len(d['queries'])} searches failed"
+        qs = d["queries"]
+        errs = [q["error"] for q in qs if not q.get("ok")]
+        empty = sum(1 for q in qs if q.get("ok") and not q.get("n_results"))
+        msg = (f"telegram: web discovery found no public channels ({len(qs)} searches: {empty} returned nothing, {len(errs)} errored"
                + (f"; first error: {errs[0][:140]}" if errs else "") + ")")
         log(msg)
         notes.append(msg + ". Enter channel names (e.g. @channel) in the Telegram box, or use a topic that appears on t.me.")
