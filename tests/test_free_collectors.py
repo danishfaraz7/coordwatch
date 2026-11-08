@@ -274,3 +274,15 @@ class ShortTopics(unittest.TestCase):
         self.assertFalse(matches_topic("he said it twice", "AI"))
         self.assertTrue(matches_topic("acme bank is falling", "Acme Bank"))
         self.assertTrue(matches_topic("#AcmeBankCollapse trending", "Acme Bank"))   # long topics keep the loose match
+
+
+class Probe(unittest.TestCase):
+    def test_probe_reports_active_stale_and_unusable(self):
+        stale = TG_HTML.replace("2026-10-05", "2021-02-04")
+        pages = {"live": TG_HTML, "old": stale, "empty": "<html></html>"}
+        with mock.patch.object(tw.TelegramWeb, "_page", lambda self, ch, before: pages[ch]):
+            r = {x["channel"]: x for x in tw.probe(["@live", "old", "https://t.me/s/empty"])}
+        self.assertTrue(r["live"]["ok"] and r["old"]["ok"])
+        self.assertGreater(r["old"]["days_since_last_post"], 365 * 4)
+        self.assertEqual(r["live"]["messages_on_first_page"], 2)
+        self.assertFalse(r["empty"]["ok"])
