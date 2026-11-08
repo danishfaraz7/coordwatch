@@ -247,13 +247,21 @@ class Chain(unittest.TestCase):
 
         def fake_chain(pl, chans, x_archive, depth):
             seen["chans"] = chans
-            return [("web", self.Ok)]
+            return [("Telegram API (Telethon)", lambda: (_ for _ in ()).throw(RuntimeError("no login"))),
+                    ("Telegram web preview (no login)", self.Ok)]
         fake_disc = {"telegram_channels": [{"channel": "leakchan", "hits": 2}, {"channel": "other_one", "hits": 1}], "queries": []}
         notes = []
         with mock.patch.object(collect, "_chain", fake_chain), mock.patch("coordwatch.discovery.discover", return_value=fake_disc):
             collect._run_chain("telegram", "t", S, E, 10, "", False, "standard", lambda: False, lambda m: None, notes)
         self.assertEqual(seen["chans"], "leakchan,other_one")
         self.assertTrue(any("found by web discovery" in n for n in notes))
+
+    def test_telegram_api_route_needs_no_discovery(self):
+        def fake_chain(pl, chans, x_archive, depth):
+            return [("Telegram API (Telethon)", self.Ok), ("Telegram web preview (no login)", self.Ok)]
+        with mock.patch.object(collect, "_chain", fake_chain), mock.patch("coordwatch.discovery.discover", side_effect=AssertionError("must not run")):
+            got, used = collect._run_chain("telegram", "t", S, E, 10, "", False, "standard", lambda: False, lambda m: None, [])
+        self.assertEqual(used, "Telegram API (Telethon)")
 
     def test_all_routes_failing_is_reported_not_raised(self):
         got, used, notes = self._run([("a", lambda: self.Boom(ValueError("bad"))), ("b", lambda: self.Boom(RuntimeError("down")))])

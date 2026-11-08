@@ -1,7 +1,8 @@
 """Telegram collector via Telethon (MTProto user API; public channels/groups only).
 Needs TELEGRAM_API_ID / TELEGRAM_API_HASH (my.telegram.org) and a one-time login for the session file.
-Telegram has no global historical search for normal accounts, so you give it a list of public channels
-or groups to monitor (--telegram-channels @a,@b) and it uses server-side `search=` inside each.
+With no channels given it uses Telegram's own global search (messages.searchGlobal) over public channels and groups, so
+you do not have to know where the topic is discussed. If you do name channels (--telegram-channels @a,@b) it searches
+only inside those, using the server-side `search=`.
 Telethon handles most flood limits internally; we additionally catch FloodWaitError and sleep."""
 from __future__ import annotations
 
@@ -46,8 +47,9 @@ def message_to_post(m, chat_username: str, chat_id: str, chat_title: str) -> Pos
 
 class TelegramCollector(Collector):
     platform = "telegram"
-    notes = ["Telegram: public channels/groups you list only (no global search). Account creation dates and profile "
-             "photo hashes are not exposed by the API, so those two coordination signals are unavailable here."]
+    notes = ["Telegram API: global search over public channels and groups (Telegram's own index and ranking, so it can miss "
+             "messages), or only the channels you listed. Account creation dates and profile photo hashes are not exposed by the "
+             "API, so those two coordination signals are unavailable here."]
 
     def __init__(self, channels: List[str], api_id: int = None, api_hash: str = None, session: str = "coordwatch"):
         self.channels = [c.lstrip("@") for c in channels]
@@ -55,8 +57,6 @@ class TelegramCollector(Collector):
         self.api_hash = api_hash or os.environ.get("TELEGRAM_API_HASH")
         if not (self.api_id and self.api_hash):
             raise RuntimeError("Set TELEGRAM_API_ID and TELEGRAM_API_HASH (https://my.telegram.org).")
-        if not self.channels:
-            raise RuntimeError("Telegram needs --telegram-channels @chan1,@chan2")
         self.session = session
 
     def collect(self, topic, since, until, limit=1000):
@@ -70,6 +70,9 @@ class TelegramCollector(Collector):
         from ..filtering import topic_terms
         posts: List[Post] = []
         async with TelegramClient(self.session, self.api_id, self.api_hash) as client:
+            if not self.channels:
+                await self._global(client, topic, since, until, limit, posts, errors)
+                return posts
             for ch in self.channels:
                 try:
                     ent = await client.get_entity(ch)
@@ -97,3 +100,62 @@ class TelegramCollector(Collector):
                         except (errors.ChannelPrivateError, errors.ChatAdminRequiredError) as e:
                             raise PlatformBlocked(f"{ch}: not a public channel / access denied ({e})")
         return posts
+
+    async def _global(self, client, topic, since: datetime, until: datetime, limit: int, posts: List[Post], errors):
+        """Search every public channel/group at once.  Pages with Telegram's (rate, peer, id) cursor; the server match is
+        fuzzy, so every hit is re-checked locally against the topic and the date window."""
+        from telethon.tl import functions, types
+        from ..filtering import matches_topic, topic_terms
+        seen, channels = set(), set()
+        for term in topic_terms(topic):
+            self._check()
+            self.log(f"telegram: global search for '{term}' across public channels…")
+            rate, off_id, off_peer, got, pages = 0, 0, types.InputPeerEmpty(), 0, 0
+            while got < limit and pages < 40:
+                self._check()
+                try:
+                    res = await client(functions.messages.SearchGlobalRequest(
+                        q=term, filter=types.InputMessagesFilterEmpty(), min_date=since, max_date=until,
+                        offset_rate=rate, offset_peer=off_peer, offset_id=off_id, limit=100))
+                except errors.FloodWaitError as e:
+                    log.warning("telegram FloodWait %ss on global search - sleeping", e.seconds)
+                    self.log(f"telegram: rate limited by Telegram - waiting {e.seconds}s…")
+                    await asyncio.sleep(e.seconds + 1)
+                    continue
+                pages += 1
+                msgs = [m for m in res.messages if isinstance(m, types.Message)]
+                if not msgs:
+                    break
+                chats = {c.id: c for c in getattr(res, "chats", [])}
+                users = {u.id: u for u in getattr(res, "users", [])}
+                for m in msgs:
+                    peer = m.peer_id
+                    cid = getattr(peer, "channel_id", None) or getattr(peer, "chat_id", None)
+                    if cid is None or (cid, m.id) in seen:
+                        continue
+                    d = m.date if m.date.tzinfo else m.date.replace(tzinfo=timezone.utc)
+                    if d < since or d > until or not matches_topic(m.message or "", topic):
+                        continue
+                    seen.add((cid, m.id))
+                    chat = chats.get(cid)
+                    uid = getattr(getattr(m, "from_id", None), "user_id", None)
+                    if uid in users:
+                        try:
+                            m._sender = users[uid]
+                        except Exception:
+                            pass
+                    posts.append(message_to_post(m, getattr(chat, "username", None) or "", str(cid), getattr(chat, "title", "") or str(cid)))
+                    channels.add(cid)
+                    got += 1
+                self.log(f"telegram: '{term}': {got} matching messages from {len(channels)} channel(s) so far (page {pages})")
+                nxt = getattr(res, "next_rate", None)
+                if nxt is None:                                   # a non-"slice" answer means there is no further page
+                    break
+                last = msgs[-1]
+                try:
+                    off_peer = await client.get_input_entity(last.peer_id)
+                except Exception:
+                    break
+                rate, off_id = nxt, last.id
+                await asyncio.sleep(1.0)                          # be gentle: searchGlobal is rate limited
+        self.log(f"telegram: global search done - {len(posts)} messages from {len(channels)} channel(s)")
