@@ -205,7 +205,7 @@ function renderJob() {
   hb.textContent = !j.running ? (j.error || '') : idle > 20 ? `No new step for ${fmtEl(idle)} — still working. Big requests or API rate limits can take a while; you can minimise this and keep using the app, or abort.` : `Last update ${Math.round(idle)}s ago`;
   const pre = $('#o-log'), atBottom = pre.scrollTop + pre.clientHeight >= pre.scrollHeight - 30;
   pre.textContent = j.log.join('\n') + (finished && j.error && j.status === 'error' ? '\n\n✖ ' + j.error : ''); if (atBottom) pre.scrollTop = pre.scrollHeight;
-  $('#o-min').classList.toggle('hidden', finished); $('#o-abort').classList.toggle('hidden', finished); $('#o-abort').disabled = !!cancelling; $('#o-close').classList.toggle('hidden', !finished);
+  $('#o-min').classList.toggle('hidden', finished); $('#o-abort').classList.toggle('hidden', finished); $('#o-abort').disabled = !!cancelling; $('#o-close').classList.toggle('hidden', !finished); $('#o-copy').classList.toggle('hidden', !finished || !j.id);
   chip.classList.toggle('hidden', !(j.min && j.running)); chip.classList.toggle('bad', false);
   $('#jc-t').textContent = `${j.topic} · ${fmtEl(el)} · ${cancelling ? 'aborting…' : last}`;
 }
@@ -217,6 +217,16 @@ async function abortJob() {
 }
 $('#o-min').onclick = () => { if (st.job) { st.job.min = true; renderJob(); } };
 $('#o-abort').onclick = $('#jc-abort').onclick = e => { e.stopPropagation(); abortJob(); };
+async function copyRunLog(btn) {
+  const j = st.job; if (!j || !j.id) return;
+  try {
+    const txt = await (await fetch(`/api/jobs/${j.id}/download/run_log.txt`)).text();
+    try { await navigator.clipboard.writeText(txt); }
+    catch (e) { const ta = document.createElement('textarea'); ta.value = txt; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); ta.remove(); }
+    btn.textContent = 'Copied ✓'; setTimeout(() => btn.textContent = 'Copy run log', 2000);
+  } catch (e) { btn.textContent = 'Copy failed - use Close, then Export > run_log.txt'; }
+}
+$('#o-copy').onclick = e => copyRunLog(e.currentTarget);
 $('#o-close').onclick = () => { st.job = null; renderJob(); };
 $('#overlay').addEventListener('mousedown', e => { if (e.target === $('#overlay') && st.job) { if (st.job.running) { st.job.min = true; } else st.job = null; renderJob(); } });   // click outside = minimise, never abort
 $('#jobchip').onclick = () => { if (st.job) { st.job.min = false; renderJob(); } };
@@ -299,7 +309,7 @@ function loadResult() {
   $('#kpis').innerHTML = [['Posts', m.n_posts.toLocaleString(), ''], ['Accounts', m.n_accounts.toLocaleString(), ''], ['Narratives', m.n_narratives, ''],
     ['Coordinated accts', m.coordinated_accounts, `<em>${m.n_groups} group(s)</em>`], ['Coordinated posts', Math.round(m.coordinated_post_share * 100) + '%', '']]
     .map(([a, b, c]) => `<div><small>${a}</small><b>${b}${c}</b></div>`).join('');
-  $('#exp-menu').innerHTML = ['report.html', 'results.json', 'posts.csv', 'narratives.csv', 'coordinated_groups.csv', 'origins.csv', 'volume_by_platform.csv']
+  $('#exp-menu').innerHTML = ['report.html', 'results.json', 'posts.csv', 'narratives.csv', 'coordinated_groups.csv', 'origins.csv', 'volume_by_platform.csv', 'run_log.txt']
     .map(f => `<a href="/api/jobs/${st.jobId}/download/${f}" ${f === 'report.html' ? 'target="_blank" rel="noopener"' : ''}>${f === 'report.html' ? '↗ Static report (HTML)' : '⭳ ' + f}</a>`).join('');
   fitCamera(); renderNotes(); fillPosts();
   $('#notes').classList.add('hidden');

@@ -15,7 +15,7 @@ import threading
 import time
 import traceback
 import uuid
-from datetime import timezone
+from datetime import datetime, timezone
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from typing import Dict, List, Optional
@@ -23,6 +23,7 @@ from urllib.parse import parse_qs, urlparse
 
 from .. import __version__
 from .. import ai
+from .. import runlog
 from .. import validate as V
 from .. import secrets_store as S
 from ..collectors.base import Cancelled
@@ -38,7 +39,7 @@ STATIC_FILES = {"/": ("index.html", "text/html; charset=utf-8"), "/app.js": ("ap
                 "/app.css": ("app.css", "text/css; charset=utf-8")}
 DOWNLOADS = {"results.json": "application/json", "posts.csv": "text/csv", "narratives.csv": "text/csv",
              "volume_by_platform.csv": "text/csv", "coordinated_groups.csv": "text/csv", "origins.csv": "text/csv",
-             "report.html": "text/html; charset=utf-8"}
+             "report.html": "text/html; charset=utf-8", "run_log.txt": "text/plain; charset=utf-8"}
 MAX_UPLOAD = 60 * 1024 * 1024
 CSP = ("default-src 'self'; img-src 'self' data: https:; style-src 'self' 'unsafe-inline'; script-src 'self'; "
        "connect-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'")
@@ -51,6 +52,9 @@ class Job:
         self.result: Optional[dict] = None
         self.dir = S.home() / "runs" / self.id
         self.t0 = time.time()
+        self.started = datetime.now(timezone.utc)
+        self.notes: list = []
+        self.log_written = False      # the run log is written after the status flips; clients must not see 'finished' before it exists
         self.cancel = threading.Event()
 
     def log(self, msg: str):
@@ -62,14 +66,34 @@ UPLOADS: Dict[str, dict] = {}
 LOCK = threading.Lock()
 
 
+def _write_run_log(job: Job):
+    """Always leave a pasteable run log next to the outputs - on success, failure and abort alike."""
+    try:
+        job.dir.mkdir(parents=True, exist_ok=True)
+        (job.dir / "run_log.txt").write_text(
+            runlog.build(job.params, job.status, job.error, job.logs, job.result, job.started, datetime.now(timezone.utc), job.notes),
+            encoding="utf-8")
+    except Exception:
+        traceback.print_exc()
+    finally:
+        job.log_written = True
+
+
 def run_job(job: Job):
     p = job.params
     job.status = "running"
     try:
+        _run_job(job, p)
+    finally:
+        _write_run_log(job)
+
+
+def _run_job(job: Job, p: dict):
+    try:
         files = [(UPLOADS[u]["path"], UPLOADS[u]["platform"]) for u in p["upload_ids"] if u in UPLOADS]
         posts, notes = collect_posts(p["topic"], p["since"], p["until"], p["platforms"], use_demo=p["demo"], files=files,
                                      telegram_channels=p["telegram_channels"], limit=p["limit"], depth=p["depth"],
-                                     cancelled=job.cancel.is_set, log=job.log)
+                                     cancelled=job.cancel.is_set, log=job.log, notes_out=job.notes)
         if job.cancel.is_set():
             raise Cancelled()
         job.log(f"{len(posts)} posts collected - analysing…")
@@ -198,7 +222,8 @@ class Handler(BaseHTTPRequestHandler):
             j = JOBS.get(m.group(1))
             if not j:
                 return self._json(404, {"error": "unknown job"})
-            return self._json(200, {"id": j.id, "status": j.status, "log": j.logs, "error": j.error, "elapsed": round(time.time() - j.t0, 1),
+            shown = j.status if (j.log_written or j.status in ("queued", "running")) else "running"
+            return self._json(200, {"id": j.id, "status": shown, "log": j.logs, "error": j.error, "elapsed": round(time.time() - j.t0, 1),
                                     "summary": j.result["meta"] if j.result else None})
         m = re.fullmatch(r"/api/jobs/([a-f0-9]+)/result", path)
         if m:

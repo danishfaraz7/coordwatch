@@ -102,13 +102,30 @@ def main(argv=None):
             args.telegram_channels = ",".join(found)
             print("discovery: using Telegram channels " + args.telegram_channels)
         print(f"discovery: {discovery['n_results']} web results, {len(found)} Telegram channel(s)")
+    _t0 = datetime.now(timezone.utc)
     posts, notes, truth = _collect(args, since, until)
     # topic matching already happened inside collect_posts (server-side for live APIs, locally for demo/file)
-    result = analyse(posts, args.topic, since, until, None if args.source != "live" else args.platforms, cfg, notes,
-                     topic_filter=False)
+    _params = {"topic": args.topic, "since": since, "until": until, "platforms": args.platforms if args.source == "live" else [],
+               "depth": args.depth, "limit": args.limit, "telegram_channels": args.telegram_channels or "", "demo": args.source == "demo"}
+    try:
+        result = analyse(posts, args.topic, since, until, None if args.source != "live" else args.platforms, cfg, notes,
+                         topic_filter=False)
+    except SystemExit as e:                                   # nothing matched: still leave a log to share
+        from . import runlog
+        os.makedirs(args.out, exist_ok=True)
+        with open(os.path.join(args.out, "run_log.txt"), "w", encoding="utf-8") as f:
+            f.write(runlog.build(_params, "error", str(e), [], None, _t0, None, notes))
+        print(f"run log: {os.path.join(args.out, 'run_log.txt')}", file=sys.stderr)
+        raise
     if discovery:
         result["discovery"] = discovery
     paths = export_all(result, args.out)
+    from . import runlog
+    _p = _params
+    _lp = os.path.join(args.out, "run_log.txt")
+    with open(_lp, "w", encoding="utf-8") as f:
+        f.write(runlog.build(_p, "done", None, [], result, _t0, None, notes))
+    paths.append(_lp)
     html_path = os.path.join(args.out, "report.html")
     with open(html_path, "w", encoding="utf-8") as f:
         f.write(render(result))

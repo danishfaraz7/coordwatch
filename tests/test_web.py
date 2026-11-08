@@ -132,6 +132,22 @@ class WebTests(Base):
         self.assertEqual(j["status"], "error")
         self.assertIn("skipped", j["error"])          # tells the user *why* (missing keys), not a stack trace
 
+    def test_failed_run_leaves_a_pasteable_log_without_secrets(self):
+        def unconfigured():
+            raise RuntimeError("no credentials")
+        with mock.patch("coordwatch.collect._chain", return_value=[("api", unconfigured), ("free", unconfigured)]), \
+                mock.patch.dict(os.environ, {"YOUTUBE_API_KEY": "SECRET-KEY-VALUE-123"}):
+            jid = json.loads(self.call("POST", "/api/run", {"topic": "topg traders", "since": "2026-11-04", "until": "2026-11-08",
+                                                             "platforms": ["youtube", "telegram"], "telegram_channels": "@abc"})[1])["id"]
+            self._wait(jid)
+            code, body, _ = self.call("GET", f"/api/jobs/{jid}/download/run_log.txt")
+        txt = body.decode()
+        self.assertEqual(code, 200)
+        for needle in ("status      : ERROR", "topg traders", "2026-11-04", "youtube, telegram", "@abc", "not configured", "TIMELINE"):
+            self.assertIn(needle, txt)
+        self.assertNotIn("SECRET-KEY-VALUE-123", txt)          # credentials appear only as set / not set
+        self.assertIn("YOUTUBE_API_KEY: set", txt)
+
     def test_abort_stops_a_running_job(self):
         from coordwatch.collectors.base import Cancelled
         started = threading.Event()
