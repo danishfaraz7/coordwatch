@@ -135,3 +135,5 @@ tr.pr{cursor:pointer}tr.pr.open td{background:#ffffff0a}tr.px td{background:#000
 .dr-head input[type=checkbox]{flex:none;min-width:0;width:auto}.dr-head .chk{white-space:nowrap}
 
 .svc-keys select,.svc-keys input[type=text]{flex:1 1 220px;min-width:180px}.svc-keys input:disabled{opacity:.45}
+
+.lg-row{display:flex;flex-wrap:wrap;gap:10px;align-items:center}.lg-row input[type=date]{background:#ffffff0d;border:1px solid var(--line);border-radius:10px;padding:5px 8px;color:inherit;color-scheme:dark}

@@ -73,10 +73,33 @@ def _write_run_log(job: Job):
         (job.dir / "run_log.txt").write_text(
             runlog.build(job.params, job.status, job.error, job.logs, job.result, job.started, datetime.now(timezone.utc), job.notes),
             encoding="utf-8")
+        started = job.started or datetime.now(timezone.utc)
+        (job.dir / "run_meta.json").write_text(json.dumps({
+            "id": job.id, "started": started.astimezone(timezone.utc).isoformat(), "topic": job.params.get("topic"),
+            "platforms": job.params.get("platforms"), "status": job.status}), encoding="utf-8")
     except Exception:
         traceback.print_exc()
     finally:
         job.log_written = True
+
+
+def collect_logs(start: datetime, end: datetime) -> tuple:
+    """Concatenate the secret-free run logs of every run that started inside [start, end]. Returns (text, count)."""
+    runs = S.home() / "runs"
+    found = []
+    for d in (runs.iterdir() if runs.is_dir() else []):
+        log = d / "run_log.txt"
+        if not log.is_file():
+            continue
+        try:
+            when = parse_dt(json.loads((d / "run_meta.json").read_text(encoding="utf-8"))["started"])
+        except Exception:
+            when = datetime.fromtimestamp(log.stat().st_mtime, timezone.utc)   # runs from before run_meta existed
+        if when and start <= when <= end:
+            found.append((when, log))
+    found.sort(key=lambda x: x[0])
+    sep = "\n\n" + "=" * 78 + "\n\n"
+    return sep.join(p.read_text(encoding="utf-8", errors="replace") for _, p in found), len(found)
 
 
 def run_job(job: Job):
@@ -217,6 +240,20 @@ class Handler(BaseHTTPRequestHandler):
             return self._send(200, (STATIC / fn).read_bytes(), ct)
         if path == "/api/status":
             return self._json(200, platform_status())
+        if path == "/api/logs":
+            q = parse_qs(urlparse(self.path).query)
+            try:
+                a, b = parse_dt(q["from"][0]), parse_dt(q["to"][0])
+                if not a or not b or a > b:
+                    raise ValueError
+            except Exception:
+                return self._json(400, {"error": "choose a valid from/to range"})
+            text, n = collect_logs(a, b)
+            if q.get("download"):
+                if not n:
+                    return self._json(404, {"error": "no runs in that range"})
+                return self._send(200, text.encode("utf-8"), "text/plain; charset=utf-8", {"Content-Disposition": 'attachment; filename="coordwatch_logs.txt"'})
+            return self._json(200, {"count": n, "text": text if q.get("text") else None})
         m = re.fullmatch(r"/api/jobs/([a-f0-9]+)", path)
         if m:
             j = JOBS.get(m.group(1))

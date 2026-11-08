@@ -148,6 +148,29 @@ class WebTests(Base):
         self.assertNotIn("SECRET-KEY-VALUE-123", txt)          # credentials appear only as set / not set
         self.assertIn("YOUTUBE_API_KEY: set", txt)
 
+    def test_logs_export_filters_by_date_range(self):
+        from datetime import datetime, timedelta, timezone
+        from urllib.parse import quote
+        from coordwatch import secrets_store as S
+        runs = S.home() / "runs"
+        now = datetime.now(timezone.utc)
+        for name, when, topic in (("aaaa01", now - timedelta(days=20), "OLD-RUN"), ("aaaa02", now - timedelta(days=1), "RECENT-RUN")):
+            d = runs / name
+            d.mkdir(parents=True, exist_ok=True)
+            (d / "run_log.txt").write_text(f"topic: {topic}\n", encoding="utf-8")
+            (d / "run_meta.json").write_text(json.dumps({"id": name, "started": when.isoformat()}), encoding="utf-8")
+        q = lambda a, b: f"from={quote((now - timedelta(days=a)).isoformat())}&to={quote((now - timedelta(days=b)).isoformat())}"
+        code, body, _ = self.call("GET", "/api/logs?text=1&" + q(3, 0))
+        j = json.loads(body)
+        self.assertEqual(code, 200)
+        self.assertIn("RECENT-RUN", j["text"])
+        self.assertNotIn("OLD-RUN", j["text"])
+        code, body, h = self.call("GET", "/api/logs?download=1&" + q(30, 0))
+        self.assertIn("attachment", h.get("Content-Disposition", ""))
+        self.assertTrue(body.decode().index("OLD-RUN") < body.decode().index("RECENT-RUN"))      # oldest first
+        self.assertEqual(self.call("GET", "/api/logs?download=1&" + q(40, 30))[0], 404)         # nothing in range
+        self.assertEqual(self.call("GET", "/api/logs?from=x&to=y")[0], 400)
+
     def test_abort_stops_a_running_job(self):
         from coordwatch.collectors.base import Cancelled
         started = threading.Event()

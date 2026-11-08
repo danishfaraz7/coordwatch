@@ -81,6 +81,10 @@
   <div id="svc-list"></div>
   <h5 class="st-sec">Import-only platforms</h5>
   <p class="mut small">TikTok, Instagram, Facebook and Snapchat have no public search API. Use their chips in the toolbar to import an export file (JSON/CSV), e.g. from an Apify actor or your own lawful collection.</p>
+  <h5 class="st-sec">Run logs</h5>
+  <p class="mut small">Export the secret-free logs (topic, dates, platforms, route used, errors) of runs started in a date range, so you can share them.</p>
+  <div class="lg-row"><label class="small">From <input type="date" id="lg-from"></label><label class="small">To <input type="date" id="lg-to"></label>
+    <button class="btn primary" id="lg-dl">Export</button><button class="btn" id="lg-copy">Copy</button><span id="lg-n" class="mut small"></span></div>
   <h5 class="st-sec">Privacy &amp; storage</h5>
   <ul class="small st-list">
     <li>Keys are <b>write-only</b>: saved on this computer, never sent back to the browser, and never committed to the repository.</li>
