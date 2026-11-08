@@ -393,6 +393,25 @@ def render(result: dict, max_posts: int = 400) -> str:
                  f"<div>{group_graph(g)}<div class=legend>" + "".join(f"<span><i style='background:{color(k)}'></i>{e(k)}</span>" for k in g["platforms"]) +
                  "<span class=muted>lines = evidence links</span></div></div></div></div>")
 
+    # --- cross-platform correlation
+    cp = result.get("cross_platform")
+    if cp and cp.get("summary"):
+        h.append("<div class='tile s12'><h2>Cross-platform summary</h2><p class=sub>How the platforms relate: shared narratives, volume correlation, links and copied text.</p><ul>")
+        h.extend(f"<li>{e(x)}</li>" for x in cp["summary"])
+        h.append("</ul>")
+        if cp["narrative_overlap"]:
+            h.append("<div class=tbl><table><thead><tr><th>Narrative</th><th>Posts by platform</th><th>First on</th><th>Then</th><th>Lag (h)</th></tr></thead><tbody>")
+            for o in cp["narrative_overlap"][:8]:
+                h.append(f"<tr><td>#{o['narrative_id']} {e(o['label'])}</td><td>{e(', '.join(f'{k} {v}' for k, v in o['by_platform'].items()))}</td>"
+                         f"<td>{e(o['first_platform'])}</td><td>{e(', '.join(o['then']))}</td><td>{o['lag_hours_to_next']}</td></tr>")
+            h.append("</tbody></table></div>")
+        if cp["youtube_links_in_telegram"]:
+            h.append("<p class=sub style='margin-top:10px'>Telegram posts linking to collected YouTube videos</p><ul>")
+            for l in cp["youtube_links_in_telegram"][:8]:
+                h.append(f"<li><a href='{e(l['telegram_post'])}' rel='noreferrer noopener'>{e(l['telegram_account'])}</a> → <a href='{e(l['video_url'])}' rel='noreferrer noopener'>video</a> ({l['telegram_after_video_hours']} h after upload)</li>")
+            h.append("</ul>")
+        h.append("</div>")
+
     # --- origins / spread
     h.append("<div class='tile s12'><h2>Where each narrative started &amp; how it spread</h2><p class=sub>Glowing dots are the first appearance per platform; dashed arcs show the hop and its delay. Small bars show hourly volume after origin.</p>")
     top_orig = sorted(origins, key=lambda o: (o["seeding_group"] is None, -o["early_wave_coordinated_share"]))[:6]

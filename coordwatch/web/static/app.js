@@ -336,7 +336,7 @@ function loadResult() {
   $('#kpis').innerHTML = [['Posts', m.n_posts.toLocaleString(), ''], ['Accounts', m.n_accounts.toLocaleString(), ''], ['Narratives', m.n_narratives, ''],
     ['Coordinated accts', m.coordinated_accounts, `<em>${m.n_groups} group(s)</em>`], ['Coordinated posts', Math.round(m.coordinated_post_share * 100) + '%', '']]
     .map(([a, b, c]) => `<div><small>${a}</small><b>${b}${c}</b></div>`).join('');
-  $('#exp-menu').innerHTML = ['report.html', 'results.json', 'posts.csv', 'narratives.csv', 'coordinated_groups.csv', 'origins.csv', 'volume_by_platform.csv', 'run_log.txt']
+  $('#exp-menu').innerHTML = ['report.html', 'results.json', 'posts.csv', 'narratives.csv', 'coordinated_groups.csv', 'origins.csv', 'cross_platform.csv', 'cross_platform_summary.txt', 'volume_by_platform.csv', 'run_log.txt']
     .map(f => `<a href="/api/jobs/${st.jobId}/download/${f}" ${f === 'report.html' ? 'target="_blank" rel="noopener"' : ''}>${f === 'report.html' ? '↗ Static report (HTML)' : '⭳ ' + f}</a>`).join('');
   fitCamera(); renderNotes(); fillPosts();
   $('#notes').classList.add('hidden');
@@ -508,6 +508,11 @@ function platBars(map, total) { return `<div class="bars">${Object.entries(map).
   <div class="chipl">${Object.entries(map).map(([p, v]) => `<span style="color:${pcol(p)}">${esc(LABEL[p] || p)} ${v}</span>`).join('')}</div>`; }
 function postLink(p) { const t = esc(short(p.text, 150)); return p.url && /^https?:/.test(p.url) ? `<a href="${esc(p.url)}" target="_blank" rel="noopener noreferrer">${t}</a>` : t; }
 
+function crossHtml(c) {
+  if (!c || !c.summary) return '';
+  const rows = (c.narrative_overlap || []).slice(0, 5).map(o => `<li>#${o.narrative_id} ${esc(o.label)}: ${Object.entries(o.by_platform).map(([p, v]) => `${esc(LABEL[p] || p)} ${v}`).join(', ')} · first on ${esc(LABEL[o.first_platform] || o.first_platform)}</li>`).join('');
+  return `<div class="sec"><h5>Cross-platform summary</h5>${c.summary.map(x => `<p class="small">${esc(x)}</p>`).join('')}${rows ? `<ul class="small st-list">${rows}</ul>` : ''}</div>`;
+}
 function showPanel(n) {
   const el = $('#panel'), res = st.res; let h = '<button class="x" aria-label="Close" id="p-x">✕</button>';
   if (n.kind === 'core') {
@@ -517,6 +522,7 @@ function showPanel(n) {
       <div class="stat"><b>${m.n_narratives}</b><small>narratives</small></div><div class="stat"><b>${Math.round(m.coordinated_post_share * 100)}%</b><small>posts from coordinated accounts</small></div></div>
       <div class="sec"><h5>Platforms</h5>${platBars(countBy(st.scene.posts, 'platform'), m.n_posts)}</div>
       <div class="sec"><h5>Volume over time</h5>${volChart(res.volume.by_platform)}</div>
+      ${crossHtml(res.cross_platform)}
       ${(m.collector_notes || []).map(x => `<div class="note"><b>Data note</b>${esc(x)}</div>`).join('')}`;
   } else if (n.kind === 'nar') {
     const d = n.d, o = res.origins.find(x => x.narrative_id === d.id), hot = n.share >= .5;

@@ -63,4 +63,17 @@ def export_all(result: dict, out_dir: str) -> list:
     _w(p, rows, ["narrative_id", "label", "first_post_at", "first_account", "first_platform", "first_url",
                  "platform_order", "early_wave_coordinated_share", "seeding_group", "verdict"])
     paths.append(p)
+
+    cp = result.get("cross_platform")
+    if cp:
+        p = os.path.join(out_dir, "cross_platform.csv")
+        rows = [{"narrative_id": o["narrative_id"], "label": o["label"], "posts": o["posts"], "by_platform": json.dumps(o["by_platform"]),
+                 "first_platform": o["first_platform"], "then": " > ".join(o["then"]), "lag_hours_to_next": o["lag_hours_to_next"]}
+                for o in cp["narrative_overlap"]]
+        _w(p, rows, ["narrative_id", "label", "posts", "by_platform", "first_platform", "then", "lag_hours_to_next"])
+        paths.append(p)
+        p = os.path.join(out_dir, "cross_platform_summary.txt")
+        with open(p, "w", encoding="utf-8") as f:
+            f.write("\n".join("- " + x for x in cp["summary"]) + "\n")
+        paths.append(p)
     return paths
