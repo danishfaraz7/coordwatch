@@ -1,5 +1,9 @@
 # Core analysis + demo/file mode + report: NO third-party packages (stdlib only, Python 3.9+).
-# Optional, only for live collection:
-requests>=2.31        # X + YouTube collectors, avatar download
+# Optional, only for live collection (everything below is free):
+requests>=2.31        # X API + YouTube API collectors, Telegram web preview, avatar download
 Pillow>=10.0          # profile-photo perceptual hashing
-telethon>=1.36        # Telegram collector
+telethon>=1.36        # Telegram collector (official API route)
+beautifulsoup4>=4.12  # Telegram t.me/s web-preview parser (no login needed)
+yt-dlp>=2025.1.1      # YouTube without an API key
+playwright>=1.45      # X browser-session route (then: playwright install chromium)
+ddgs>=9.0             # --discover (DuckDuckGo search, no key)
