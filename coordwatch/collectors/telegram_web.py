@@ -86,6 +86,7 @@ class TelegramWeb(Collector):
 
     def collect(self, topic: str, since: datetime, until: datetime, limit: int = 1000) -> List[Post]:
         posts: List[Post] = []
+        total_scanned, oldest_seen = 0, None
         for ch in self.channels:
             before, scanned = None, 0
             for _ in range(self.max_pages):
@@ -101,8 +102,10 @@ class TelegramWeb(Collector):
                 if not page:                            # private / non-existent / preview disabled
                     break
                 scanned += len(page)
+                total_scanned += len(page)
                 posts += [p for p in page if since <= p.created_at <= until and matches_topic(p.text, topic)]
                 oldest = min(page, key=lambda p: p.created_at)
+                oldest_seen = oldest.created_at if oldest_seen is None else min(oldest_seen, oldest.created_at)
                 if oldest.created_at < since:
                     break
                 before = oldest.id.split("/")[-1]
@@ -110,4 +113,7 @@ class TelegramWeb(Collector):
             self.log(f"telegram: {ch}: scanned {scanned} messages")
             if len(posts) >= limit:
                 break
+        self.log(f"telegram: scanned {total_scanned} messages in {len(self.channels)} channel(s) "
+                 f"(oldest {oldest_seen:%Y-%m-%d}); {len(posts)} matched the topic inside {since:%Y-%m-%d}..{until:%Y-%m-%d}"
+                 if oldest_seen else f"telegram: no readable messages in {len(self.channels)} channel(s)")
         return posts[:limit]

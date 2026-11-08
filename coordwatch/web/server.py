@@ -116,7 +116,7 @@ def _run_job(job: Job, p: dict):
 
 
 def _hint(job: Job) -> str:
-    bad = [l for l in job.logs if "skipped" in l or "blocked" in l or "failed" in l]
+    bad = [l for l in job.logs if "skipped" in l or "blocked" in l or "failed" in l or "matched the topic" in l or "no readable" in l]
     return ("Details: " + " | ".join(l.split('  ', 1)[-1] for l in bad[:3])) if bad else ""
 
 
