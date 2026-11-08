@@ -89,6 +89,7 @@ class TelegramWeb(Collector):
         total_scanned, oldest_seen = 0, None
         for ch in self.channels:
             before, scanned = None, 0
+            ch_dates, ch_matched = [], 0
             for _ in range(self.max_pages):
                 self._check()
                 try:
@@ -103,17 +104,45 @@ class TelegramWeb(Collector):
                     break
                 scanned += len(page)
                 total_scanned += len(page)
-                posts += [p for p in page if since <= p.created_at <= until and matches_topic(p.text, topic)]
+                ch_dates += [p.created_at for p in page]
+                hit = [p for p in page if since <= p.created_at <= until and matches_topic(p.text, topic)]
+                ch_matched += len(hit)
+                posts += hit
                 oldest = min(page, key=lambda p: p.created_at)
                 oldest_seen = oldest.created_at if oldest_seen is None else min(oldest_seen, oldest.created_at)
                 if oldest.created_at < since:
                     break
                 before = oldest.id.split("/")[-1]
                 time.sleep(random.uniform(*self.pause))
-            self.log(f"telegram: {ch}: scanned {scanned} messages")
+            if ch_dates:
+                self.log(f"telegram: {ch}: scanned {scanned} messages, newest {max(ch_dates):%Y-%m-%d}, oldest {min(ch_dates):%Y-%m-%d}, "
+                         f"{ch_matched} matched the topic in the window" + ("  <- dormant: nothing posted in the window" if max(ch_dates) < since else ""))
+            else:
+                self.log(f"telegram: {ch}: no messages visible (channel private/deleted/banned, or its web preview is disabled)")
             if len(posts) >= limit:
                 break
         self.log(f"telegram: scanned {total_scanned} messages in {len(self.channels)} channel(s) "
                  f"(oldest {oldest_seen:%Y-%m-%d}); {len(posts)} matched the topic inside {since:%Y-%m-%d}..{until:%Y-%m-%d}"
                  if oldest_seen else f"telegram: no readable messages in {len(self.channels)} channel(s)")
         return posts[:limit]
+
+
+def probe(channels: List[str]) -> List[dict]:
+    """Vet channels before a run: how many messages the public preview shows and when the channel last posted."""
+    out = []
+    t = TelegramWeb(channels, max_pages=1)
+    for ch in t.channels:
+        try:
+            page = parse_page(t._page(ch, None), ch)
+        except Exception as e:
+            out.append({"channel": ch, "ok": False, "error": f"{type(e).__name__}: {e}"})
+            continue
+        if not page:
+            out.append({"channel": ch, "ok": False, "error": "no messages visible (private, deleted, banned or preview disabled)"})
+            continue
+        newest = max(p.created_at for p in page)
+        out.append({"channel": ch, "ok": True, "messages_on_first_page": len(page), "newest": newest.isoformat(),
+                    "oldest_on_page": min(p.created_at for p in page).isoformat(),
+                    "days_since_last_post": (datetime.now(newest.tzinfo) - newest).days,
+                    "latest_text": next((p.text[:80] for p in sorted(page, key=lambda p: p.created_at, reverse=True) if p.text), "")})
+    return out

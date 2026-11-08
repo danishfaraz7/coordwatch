@@ -59,6 +59,8 @@ def main(argv=None):
     w.add_argument("--host", default="127.0.0.1", help="use 0.0.0.0 inside Codespaces/containers")
     w.add_argument("--port", type=int, default=8000)
     w.add_argument("--allow-host", action="append", default=[], help="extra Host header to accept")
+    tp = sub.add_parser("tg-probe", help="check public Telegram channels (no login): visible? when did they last post?")
+    tp.add_argument("channels", nargs="+", help="@name or t.me/name, one or more")
     sub.add_parser("telegram-login", help="one-time interactive Telegram login (phone + code)")
     args = ap.parse_args(argv)
     logging.basicConfig(level=logging.INFO if getattr(args, "verbose", False) else logging.WARNING, format="%(levelname)s %(message)s")
@@ -66,6 +68,16 @@ def main(argv=None):
     if args.cmd == "web":
         from .web.server import serve
         return serve(args.host, args.port, args.allow_host)
+    if args.cmd == "tg-probe":
+        from .collectors.telegram_web import probe
+        for r in probe(args.channels):
+            if r["ok"]:
+                flag = "ACTIVE" if r["days_since_last_post"] <= 7 else "STALE"
+                print(f"{flag:7}@{r['channel']}: last post {r['newest'][:10]} ({r['days_since_last_post']}d ago), "
+                      f"{r['messages_on_first_page']} msgs on page | {r['latest_text']!r}")
+            else:
+                print(f"UNUSABLE @{r['channel']}: {r['error']}")
+        return 0
     if args.cmd == "telegram-login":
         from . import secrets_store as S
         try:
