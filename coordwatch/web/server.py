@@ -101,10 +101,14 @@ def platform_status() -> dict:
     return {
         "version": __version__,
         "platforms": {
-            "x": {"mode": "live", "ready": st["X_BEARER_TOKEN"]["set"], "needs": ["X_BEARER_TOKEN"]},
-            "youtube": {"mode": "live", "ready": st["YOUTUBE_API_KEY"]["set"], "needs": ["YOUTUBE_API_KEY"]},
-            "telegram": {"mode": "live", "ready": st["TELEGRAM_API_ID"]["set"] and st["TELEGRAM_API_HASH"]["set"] and S.telegram_logged_in(),
-                         "needs": ["TELEGRAM_API_ID", "TELEGRAM_API_HASH"], "login_done": S.telegram_logged_in()},
+            # every live platform has a free route, so it is usable without paid credentials (see collect._chain)
+            "x": {"mode": "live", "ready": bool(st["X_BEARER_TOKEN"]["set"] or st["X_COOKIES_FILE"]["set"]), "needs": ["X_BEARER_TOKEN"],
+                  "route": "X API" if st["X_BEARER_TOKEN"]["set"] else "browser session (free, experimental)" if st["X_COOKIES_FILE"]["set"] else ""},
+            "youtube": {"mode": "live", "ready": True, "needs": ["YOUTUBE_API_KEY"],
+                        "route": "YouTube Data API" if st["YOUTUBE_API_KEY"]["set"] else "yt-dlp (no key)"},
+            "telegram": {"mode": "live", "ready": True, "needs": ["TELEGRAM_API_ID", "TELEGRAM_API_HASH"], "login_done": S.telegram_logged_in(),
+                         "route": "Telegram API" if (st["TELEGRAM_API_ID"]["set"] and st["TELEGRAM_API_HASH"]["set"] and S.telegram_logged_in())
+                         else "public web preview (no login)"},
             **{p: {"mode": "file", "ready": True, "needs": []} for p in FILE_ONLY},
         },
         "credentials": st,

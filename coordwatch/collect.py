@@ -39,43 +39,85 @@ def collect_posts(topic: str, since: datetime, until: datetime, platforms: List[
             continue
         if cancelled():
             raise Cancelled()
-        try:
-            log(f"{pl}: starting…")
-            c = _live_collector(pl, telegram_channels, x_archive, depth)
-            c.log, c.cancelled = log, cancelled
-            got = c.collect(topic, since, until, limit)      # server-side topic search; no local re-filter
-            posts += got
-            notes += c.notes
-            log(f"{pl}: {len(got)} posts")
-        except Cancelled:
-            raise
-        except PlatformBlocked as e:
-            notes.append(f"{pl}: BLOCKED/INCOMPLETE - {e}")
-            log(f"{pl}: blocked - {e}")
-        except RuntimeError as e:                               # missing keys / setup
-            notes.append(f"{pl}: skipped - {e}")
-            log(f"{pl}: skipped - {e}")
-        except Exception as e:                                  # one bad platform must not kill the run
-            logging.exception("collector %s failed", pl)
-            notes.append(f"{pl}: failed - {type(e).__name__}: {e}")
-            log(f"{pl}: failed - {type(e).__name__}: {e}")
+        got, used = _run_chain(pl, topic, since, until, limit, telegram_channels, x_archive, depth, cancelled, log, notes)
+        posts += got
     return posts, notes
 
 
 DEPTH = {"quick": (12, 100), "standard": (30, 200), "deep": (60, 400)}   # (videos, comments per video)
 
 
-def _live_collector(pl: str, telegram_channels: str, x_archive: bool, depth: str = "standard"):
+def _chain(pl: str, telegram_channels: str, x_archive: bool, depth: str):
+    """Ordered [(label, factory)] for a platform: official/paid route first, free fallback after.
+    A factory raises RuntimeError when its credentials are missing, which simply moves on to the next route."""
+    mv, mc = DEPTH.get(depth, DEPTH["standard"])
     if pl == "x":
-        from .collectors.x import XCollector
-        return XCollector(bearer=S.get("X_BEARER_TOKEN"), archive=x_archive)
+        def api():
+            from .collectors.x import XCollector
+            return XCollector(bearer=S.get("X_BEARER_TOKEN"), archive=x_archive)
+
+        def browser():
+            from .collectors.x_browser import XBrowser
+            return XBrowser(cookies_file=S.get("X_COOKIES_FILE"), max_scrolls={"quick": 15, "standard": 40, "deep": 80}.get(depth, 40))
+        return [("X API (paid tier)", api), ("X browser session (free, experimental)", browser)]
     if pl == "youtube":
-        from .collectors.youtube import YouTubeCollector
-        mv, mc = DEPTH.get(depth, DEPTH["standard"])
-        return YouTubeCollector(api_key=S.get("YOUTUBE_API_KEY"), max_videos=mv, max_comments=mc)
-    from .collectors.telegram import TelegramCollector
-    if not S.telegram_logged_in():
-        raise RuntimeError("Telegram needs a one-time login: run `python -m coordwatch telegram-login` in a terminal.")
-    return TelegramCollector([c.strip() for c in telegram_channels.split(",") if c.strip()],
-                             api_id=S.get("TELEGRAM_API_ID"), api_hash=S.get("TELEGRAM_API_HASH"),
-                             session=S.telegram_session_path())
+        def api():
+            from .collectors.youtube import YouTubeCollector
+            return YouTubeCollector(api_key=S.get("YOUTUBE_API_KEY"), max_videos=mv, max_comments=mc)
+
+        def ytdlp():
+            from .collectors.youtube_ytdlp import YtDlpYouTube
+            return YtDlpYouTube(max_videos=mv, max_comments=min(mc, 100))
+        return [("YouTube Data API", api), ("yt-dlp (no key)", ytdlp)]
+    chans = [c.strip() for c in telegram_channels.split(",") if c.strip()]
+
+    def tele():
+        from .collectors.telegram import TelegramCollector
+        if not (S.get("TELEGRAM_API_ID") and S.get("TELEGRAM_API_HASH") and S.telegram_logged_in()):
+            raise RuntimeError("Telegram API login not set up")
+        return TelegramCollector(chans, api_id=S.get("TELEGRAM_API_ID"), api_hash=S.get("TELEGRAM_API_HASH"),
+                                 session=S.telegram_session_path())
+
+    def web():
+        from .collectors.telegram_web import TelegramWeb
+        return TelegramWeb(chans)
+    return [("Telegram API (Telethon)", tele), ("Telegram web preview (no login)", web)]
+
+
+def _run_chain(pl, topic, since, until, limit, telegram_channels, x_archive, depth, cancelled, log, notes):
+    """Try each route in order; the first that completes wins (an empty but successful result is a valid answer).  Everything that goes wrong is written to the
+    run notes, so the report shows exactly which route produced the data and why earlier ones were skipped."""
+    tried = []
+    for label, factory in _chain(pl, telegram_channels, x_archive, depth):
+        try:
+            c = factory()
+        except RuntimeError as e:                                   # not configured -> next route
+            tried.append(f"{label}: not configured ({e})")
+            continue
+        c.log, c.cancelled = log, cancelled
+        try:
+            log(f"{pl}: starting via {label}")
+            got = c.collect(topic, since, until, limit)
+        except Cancelled:
+            raise
+        except PlatformBlocked as e:
+            tried.append(f"{label}: BLOCKED - {e}")
+            log(f"{pl}: {label} blocked - {e}")
+            continue
+        except RuntimeError as e:
+            tried.append(f"{label}: {e}")
+            log(f"{pl}: {label} failed - {e}")
+            continue
+        except Exception as e:                                      # one bad route must not kill the run
+            logging.exception("collector %s/%s failed", pl, label)
+            tried.append(f"{label}: failed - {type(e).__name__}: {e}")
+            log(f"{pl}: {label} failed - {type(e).__name__}: {e}")
+            continue
+        notes += [f"{pl}: {t}" for t in tried]
+        notes += c.notes
+        notes.append(f"{pl}: collected {len(got)} posts via {label}.")
+        log(f"{pl}: {len(got)} posts via {label}")
+        return got, label
+    notes.append(f"{pl}: skipped - no route worked. " + " | ".join(tried))
+    log(f"{pl}: skipped - " + " | ".join(tried))
+    return [], None
