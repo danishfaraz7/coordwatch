@@ -141,7 +141,34 @@ function renderSettings(focus) {
   });
   if (focus) { const card = $(`#svc-list .svc[data-s="${focus}"]`); if (card) { card.scrollIntoView({block: 'center'}); const i = card.querySelector('input:not([disabled])'); if (i) i.focus(); } }
 }
+const _day = d => { const z = new Date(d.getTime() - d.getTimezoneOffset() * 60000); return z.toISOString().slice(0, 10); };
+function logRange() {
+  const f = $('#lg-from').value, t = $('#lg-to').value; if (!f || !t) return null;
+  const a = new Date(f + 'T00:00:00'), b = new Date(t + 'T23:59:59.999');   // local days -> instants
+  return `from=${encodeURIComponent(a.toISOString())}&to=${encodeURIComponent(b.toISOString())}`;
+}
+async function logCount() {
+  const r = logRange(), n = $('#lg-n'); if (!r) { n.textContent = 'pick both dates'; return; }
+  try {
+    const res = await fetch('/api/logs?' + r), j = await res.json();
+    n.textContent = res.ok ? `${j.count} run${j.count === 1 ? '' : 's'} in range` : (j.error || 'error');
+  } catch (e) { n.textContent = 'could not check'; }
+}
+$('#lg-from').onchange = $('#lg-to').onchange = logCount;
+$('#lg-dl').onclick = () => { const r = logRange(); if (!r) return logCount(); window.location = '/api/logs?download=1&' + r; setTimeout(logCount, 800); };
+$('#lg-copy').onclick = async e => {
+  const r = logRange(), b = e.currentTarget; if (!r) return logCount();
+  try {
+    const j = await (await fetch('/api/logs?text=1&' + r)).json();
+    if (!j.count) { $('#lg-n').textContent = 'no runs in that range'; return; }
+    try { await navigator.clipboard.writeText(j.text); }
+    catch (x) { const ta = document.createElement('textarea'); ta.value = j.text; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); ta.remove(); }
+    b.textContent = 'Copied ✓'; setTimeout(() => b.textContent = 'Copy', 2000);
+  } catch (x) { $('#lg-n').textContent = 'copy failed - use Export'; }
+};
 function openSettings(focus) {
+  if (!$('#lg-to').value) { const n = new Date(); $('#lg-to').value = _day(n); $('#lg-from').value = _day(new Date(n.getTime() - 7 * 864e5)); }
+  logCount();
   $('#storage-note').textContent = st.status.in_codespaces
     ? 'Codespaces detected: for permanent storage add keys as Codespaces secrets (GitHub → Settings → Codespaces → Secrets); they become environment variables automatically.'
     : 'Saved keys live in ~/.coordwatch/credentials.json on this computer (outside the repository).';
