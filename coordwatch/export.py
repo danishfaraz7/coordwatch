@@ -102,9 +102,9 @@ def export_all(result: dict, out_dir: str) -> list:
         pl = ov["plain"]
         with open(p, "w", encoding="utf-8") as f:
             f.write("SUMMARY IN SIMPLE WORDS\n" + "\n".join("- " + s for s in pl["summary"]) + "\n\nWHAT PEOPLE ARE SAYING (main stories)\n" +
-                    "\n".join(f"- #{n['id']} {n['label']}: {n['text']}" for n in pl["narratives"]) + "\n\nGROUPS OF ACCOUNTS THAT SEEM TO WORK TOGETHER\n" +
+                    "\n".join(f"- Story {n['id']} ({n['label']}): {n['text']}" for n in pl["narratives"]) + "\n\nGROUPS OF ACCOUNTS THAT SEEM TO WORK TOGETHER\n" +
                     ("\n".join(f"- {g['text']}" for g in pl["groups"]) or "- None found.") + "\n\nWHERE EACH STORY STARTED AND HOW IT SPREAD\n" +
-                    "\n".join(f"- #{o['narrative_id']} {o['label']}: {o['text']}" for o in pl["origins"]) + "\n")
+                    "\n".join(f"- Story {o['narrative_id']} ({o['label']}): {o['text']}" for o in pl["origins"]) + "\n")
         paths.append(p)
         from .pdfreport import available, build as build_pdf        # optional: needs `pip install reportlab`
         if available():

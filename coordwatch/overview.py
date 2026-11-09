@@ -28,6 +28,8 @@ def _day(d) -> str:
 
 
 def _kind(term: str) -> str:
+    if term == "all terms together":
+        return "combined"
     if term.startswith("#"):
         return "hashtag"
     if term.startswith("@"):
@@ -70,7 +72,10 @@ def _days_between(since: Optional[datetime], until: Optional[datetime], posts) -
 
 def build(posts, assign, narratives, groups, origins, topic: str, since: Optional[datetime], until: Optional[datetime]) -> dict:
     days = _days_between(since, until, posts)
-    terms = topic_terms(topic) or [topic.lower()]
+    base = topic_terms(topic) or [topic.lower()]
+    TOG = "all terms together"
+    terms = base + ([TOG] if len([t for t in base if not t.startswith("#")]) > 1 else [])
+    hit = lambda t, x: all(matches_topic(x, b) for b in base if not b.startswith("#")) if t == TOG else matches_topic(x, t)
     plats = sorted({p.platform for p in posts})
     by_day: Dict[str, Counter] = {d: Counter() for d in days}
     term_day: Dict[str, Counter] = {t: Counter() for t in terms}
@@ -87,7 +92,7 @@ def build(posts, assign, narratives, groups, origins, topic: str, since: Optiona
             if assign[i] >= 0:
                 nar_day[assign[i]][d] += 1
         for t in terms:
-            if matches_topic(p.text, t):
+            if hit(t, p.text):
                 term_day[t][d] += 1
                 term_pl[t][p.platform] += 1
                 term_acc[t].add(p.account)

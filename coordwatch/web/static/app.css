@@ -389,3 +389,5 @@ a.xp-go{display:inline-block;text-decoration:none}
 .bn{display:flex;gap:10px;padding:9px 0;border-top:1px solid rgba(255,255,255,.08)}.bn p{margin:2px 0;font-size:13px;line-height:1.4}.bn small{opacity:.6}.bn.warn span{color:#ffb454}.bn.data span{color:#9a8cff}
 .top-actions{margin-right:52px}
 @media(max-width:720px){#bell-wrap{top:6px;right:8px}#bell{width:34px;height:34px}}
+
+.chip-btn{border:1px solid var(--line);background:rgba(255,255,255,.04);border-radius:999px;padding:3px 10px;cursor:pointer;font:inherit;font-size:12px}.chip-btn:hover,.chip-btn.on{background:rgba(154,140,255,.25);border-color:#9a8cff}.chipl a{color:inherit;text-decoration:underline dotted}.first-links a{text-decoration:underline}.nar-short{font-size:14px;line-height:1.5}

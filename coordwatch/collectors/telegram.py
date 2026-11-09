@@ -79,7 +79,7 @@ class TelegramCollector(Collector):
                 except Exception as e:
                     log.warning("telegram: cannot resolve %s (%s) - skipped", ch, e)
                     continue
-                for term in topic_terms(topic):
+                for term in topic_terms(topic, combined=True):
                     self._check()
                     self.log(f"telegram: searching {ch} for '{term}'…")
                     while True:

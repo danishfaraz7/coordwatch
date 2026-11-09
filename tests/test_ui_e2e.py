@@ -504,21 +504,41 @@ class UiTests(unittest.TestCase):
         pg.wait_for_selector("#sr-out [data-run]")
         self.assertClean()
 
-    def test_27_ai_summary_is_optional_and_asks_first(self):
+    def test_27_ai_summary_one_click_clean_text(self):
         pg = self.open()
         import json as _j
         self.run_demo(pg, "overview")
         asked = []
         pg.on("dialog", lambda d: (asked.append(d.message), d.accept()))
         pg.route("**/api/credentials", lambda r: r.fulfill(status=200, content_type="application/json", body=_j.dumps({**pg.evaluate("window.__cw.status"), "ai": {"ready": True, "local": False, "label": "Pollinations (free)", "provider": "pollinations"}})))
-        pg.route("**/api/ask", lambda r: r.fulfill(status=200, content_type="application/json", body=_j.dumps({"answer": "A short summary.", "model": "openai"})))
+        raw = '<data>{"summary":"Plain words about Story 1. Coordination would be a clue, not proof."}</data>'
+        pg.route("**/api/ask", lambda r: r.fulfill(status=200, content_type="application/json", body=_j.dumps({"answer": raw, "model": "openai"})))
         pg.evaluate("window.__cw.status.ai.ready = false")
         pg.click("#ai-sum")
         pg.wait_for_selector(".ai-box")
-        self.assertIn("A short summary.", pg.inner_text("#ai-sum-out"))
-        self.assertTrue(any("Pollinations" in m for m in asked) and any("SUMMARY" in m for m in asked))
+        t = pg.inner_text("#ai-sum-out")
+        self.assertIn("Plain words about Story 1.", t)
+        self.assertNotIn("{", t); self.assertNotIn("<data>", t); self.assertNotIn("summary\"", t)
+        self.assertEqual(asked, [])                                                # no confirmation prompts
         pg.click("[data-screen=guide]")                                           # Help works without a result too
         self.assertEqual(pg.locator("#analysis-cards >> text=/^STEP/").count(), 4)
+        self.assertClean()
+
+    def test_30_story_panel_filters_links_and_show_all(self):
+        pg = self.open()
+        self.run_demo(pg, "narratives")
+        pg.click("#analysis-cards [data-nar] >> nth=0")
+        pg.wait_for_selector("#panel:not(.hidden) .nar-short")
+        self.assertRegex(pg.inner_text("#panel").lower(), r"story 1")                      # numbering starts at 1
+        self.assertNotRegex(pg.inner_text("#panel").lower(), r"story 0|#0")
+        chips = pg.locator("#panel .chip-btn")
+        if chips.count() > 1:
+            chips.nth(1).click()
+            self.assertIn("top posts on", pg.inner_text("#panel").lower())
+        pg.click("#panel [data-posts]")
+        self.assertEqual(pg.evaluate("document.body.dataset.view"), "posts")       # Show all posts really opens the list
+        self.assertTrue(pg.is_visible("#drawer"))
+        self.assertGreater(pg.locator("#drawer tbody tr").count(), 0)
         self.assertClean()
 
     def test_28_report_bubbles_filter_the_posts(self):

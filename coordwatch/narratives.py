@@ -83,7 +83,7 @@ def cluster_posts(posts: List[Post], vecs: List[Dict[str, float]], cfg: Config) 
     # drop tiny clusters, renumber by size
     sizes = Counter(a for a in assign if a >= 0)
     keep = [k for k, n in sizes.most_common() if n >= cfg.min_narrative_size]
-    remap = {k: n for n, k in enumerate(keep)}
+    remap = {k: n for n, k in enumerate(keep, start=1)}      # story numbers start at 1 (1 = biggest)
     return [remap.get(a, -1) for a in assign]
 
 

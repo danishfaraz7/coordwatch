@@ -439,7 +439,7 @@ function frame(now) {
       const labelled = n.rank < 10 || hot || isSel || isHov || cam.k > 1.35 || related(n) && st.selected;
       if (!labelled) { txt('#' + n.id, n.x, n.y + 3.5, 10, 'rgba(255,255,255,.8)', 700, 'center'); } else {
       const L = n.x < 0, lx = L ? n.x - r - 12 : n.x + r + 12;
-      txt('#' + n.id + ' ' + title((n.d.keywords || []).slice(0, 2).join(' · ') || 'narrative'), lx, n.y - 2, 13, '#f3f6f7', 600, L ? 'right' : 'left');
+      txt('Story ' + n.id + ' · ' + title((n.d.keywords || []).slice(0, 2).join(' · ') || 'narrative'), lx, n.y - 2, 13, '#f3f6f7', 600, L ? 'right' : 'left');
       pill(Math.round(n.share * 100) + '% coord. · ' + n.d.posts + ' posts', lx, n.y + 14, hot ? '#ff9a90' : '#9fe8ff', L); }
     } else {
       glow(n.x, n.y, r, VIOL, .38); orb(n.x, n.y, r, '#e4dcff', '#4a3a9a');
@@ -506,8 +506,8 @@ function volChart(vbp) {
   buckets.forEach((b, i) => { let y = h; plats.forEach(p => { const v = vbp[p][b] || 0; if (!v) return; const bh = (h - 4) * v / mx; y -= bh; s += `<rect x="${(i * bw + 1).toFixed(1)}" y="${y.toFixed(1)}" width="${Math.max(bw - 2, 1).toFixed(1)}" height="${bh.toFixed(1)}" rx="1.5" fill="${pcol(p)}" opacity=".9"><title>${esc(b.slice(0, 13))} ${esc(p)}: ${v}</title></rect>`; }); });
   return s + '</svg>';
 }
-function platBars(map, total) { return `<div class="bars">${Object.entries(map).map(([p, v]) => `<i style="width:${v / total * 100}%;background:${pcol(p)}" title="${esc(p)} ${v}"></i>`).join('')}</div>
-  <div class="chipl">${Object.entries(map).map(([p, v]) => `<span style="color:${pcol(p)}">${esc(LABEL[p] || p)} ${v}</span>`).join('')}</div>`; }
+function platBars(map, total, pick) { return `<div class="bars">${Object.entries(map).map(([p, v]) => `<i style="width:${v / total * 100}%;background:${pcol(p)}" title="${esc(p)} ${v}"></i>`).join('')}</div>
+  <div class="chipl">${Object.entries(map).map(([p, v]) => pick ? `<button type="button" class="chip-btn${st.platPick === p ? ' on' : ''}" data-plat="${esc(p)}" style="color:${pcol(p)}">${esc(LABEL[p] || p)} ${v}</button>` : `<span style="color:${pcol(p)}">${esc(LABEL[p] || p)} ${v}</span>`).join('')}</div>`; }
 function postLink(p) { const t = esc(short(p.text, 150)); return p.url && /^https?:/.test(p.url) ? `<a href="${esc(p.url)}" target="_blank" rel="noopener noreferrer">${t}</a>` : t; }
 
 function crossHtml(c) {
@@ -516,6 +516,7 @@ function crossHtml(c) {
   return `<div class="sec"><h5>Cross-platform summary</h5>${c.summary.map(x => `<p class="small">${esc(x)}</p>`).join('')}${rows ? `<ul class="small st-list">${rows}</ul>` : ''}</div>`;
 }
 function showPanel(n) {
+  if (st.panelNode !== n) { st.platPick = ''; st.panelNode = n; }
   const el = $('#panel'), res = st.res; let h = '<button class="x" aria-label="Close" id="p-x">✕</button>';
   if (n.kind === 'core') {
     const m = res.meta;
@@ -528,20 +529,22 @@ function showPanel(n) {
       ${(m.collector_notes || []).map(x => `<div class="note"><b>Data note</b>${esc(x)}</div>`).join('')}`;
   } else if (n.kind === 'nar') {
     const d = n.d, o = res.origins.find(x => x.narrative_id === d.id), hot = n.share >= .5;
-    h += `<div class="p-eye"><i style="background:${hot ? HOT : PINK}"></i>Narrative #${d.id}</div><h2>${esc(title(d.label))}</h2>
+    h += `<div class="p-eye"><i style="background:${hot ? HOT : PINK}"></i>Story ${d.id}</div><h2>${esc(title(d.label))}</h2>
       <span class="badge ${hot ? 'b-hot' : n.share > 0 ? 'b-warn' : 'b-ok'}">${hot ? 'Pushed by coordinated accounts' : n.share > 0 ? 'Partly coordinated' : 'Looks organic'}</span>
+      <div class="sec"><h5>In short</h5><p class="nar-short">${esc(plainOf(res.overview && res.overview.plain.narratives, 'id', d.id) || '')}</p><button type="button" class="btn wide" id="nar-ai">✦ AI summary of this story</button><div id="nar-ai-out"></div></div>
       <div class="stats"><div class="stat"><b>${d.posts}</b><small>posts</small></div><div class="stat"><b>${d.accounts}</b><small>accounts</small></div>
       <div class="stat"><b>${Math.round(n.share * 100)}%</b><small>from coordinated accounts</small></div><div class="stat"><b>${d.engagement.toLocaleString()}</b><small>engagement</small></div></div>
-      <div class="sec"><h5>Volume (${esc(d.bucket)})</h5>${volChart(d.volume_by_platform)}</div><div class="sec"><h5>Platforms</h5>${platBars(d.platforms, d.posts)}</div>`;
+      <div class="sec"><h5>Volume (${esc(d.bucket)})</h5>${volChart(d.volume_by_platform)}</div><div class="sec"><h5>Platforms <small class="mut">click one to filter</small></h5>${platBars(d.platforms, d.posts, true)}</div>`;
     if (o) {
-      h += `<div class="sec"><h5>Where it started</h5><div class="note ${o.seeding_group ? 'crit' : ''}"><b>${esc(o.verdict)}</b>First seen ${esc(fmtDT(o.first_post.at))} UTC on ${esc(o.first_post.platform)} by ${esc(o.first_post.account)}.</div>
+      h += `<div class="sec"><h5>Where it started</h5><div class="note ${o.seeding_group ? 'crit' : ''}"><b>${esc(o.verdict)}</b>First seen ${esc(fmtDT(o.first_post.at))} UTC on ${esc(LABEL[o.first_post.platform] || o.first_post.platform)} by ${acctLink(o.first_post.platform, o.first_post.account, o.first_post.name)}.${/^https?:/.test(o.first_post.url || '') ? ` <a href="${esc(o.first_post.url)}" target="_blank" rel="noopener noreferrer">Open the first post ↗</a>` : ''}</div>
         <div class="hop">${o.platform_spread.map((s, i) => `${i ? `<em>→ ${esc(fmtLag(s.lag_minutes))}</em>` : ''}<span style="color:${pcol(s.platform)}">${esc(LABEL[s.platform] || s.platform)}</span>`).join('')}</div></div>
-        <div class="sec"><h5>First accounts</h5><div class="chipl">${o.first_accounts.map(a => `<span title="${esc(short(a.text, 120))}">${esc(a.name || a.account)} · ${esc(fmtLag(a.minutes_after_origin))}${a.coordinated_group ? ' · ' + esc(a.coordinated_group) : ''}</span>`).join('')}</div></div>`;
+        <div class="sec"><h5>First accounts</h5><div class="chipl">${o.first_accounts.map(a => acctLink(a.platform, a.account, a.name, ' · ' + fmtLag(a.minutes_after_origin) + (a.coordinated_group ? ' · ' + a.coordinated_group : ''))).join('')}</div></div>`;
     }
     if (n.d.coordinated_groups && Object.keys(n.d.coordinated_groups).length) h += `<div class="sec"><h5>Pushed by</h5><div class="chipl">${Object.entries(n.d.coordinated_groups).map(([g, c]) => `<a href="#" data-g="${esc(g)}">${esc(g)} · ${c} posts</a>`).join('')}</div></div>`;
-    const ex = d.representative_posts.map(id => st.scene.posts.find(p => p.id === id && p.narrative_id === d.id)).filter(Boolean);
-    h += `<div class="sec"><h5>Representative posts</h5>${ex.map(p => `<div class="ex">${postLink(p)}<small>${esc(p.platform)} · ${esc(p.author_name)} · ${esc(fmtDT(p.created_at))}</small></div>`).join('')}</div>
-      <button class="btn wide" data-posts="n:${d.id}">Show all ${d.posts} posts</button>`;
+    const ex = st.platPick ? st.scene.posts.filter(p => p.narrative_id === d.id && p.platform === st.platPick).sort((a, b) => b.engagement - a.engagement).slice(0, 6)
+      : d.representative_posts.map(id => st.scene.posts.find(p => p.id === id && p.narrative_id === d.id)).filter(Boolean);
+    h += `<div class="sec"><h5>${st.platPick ? 'Top posts on ' + esc(LABEL[st.platPick] || st.platPick) : 'Representative posts'}</h5>${ex.map(p => `<div class="ex">${postLink(p)}<small>${esc(p.platform)} · ${esc(p.author_name)} · ${esc(fmtDT(p.created_at))}</small></div>`).join('')}</div>
+      <button class="btn wide" data-posts="n:${d.id}${st.platPick ? '|' + st.platPick : ''}">Show all ${st.platPick ? (d.platforms[st.platPick] || 0) + ' ' + esc(LABEL[st.platPick] || st.platPick) : d.posts} posts</button>`;
   } else {
     const g = n.d;
     h += `<div class="p-eye"><i style="background:${VIOL}"></i>Coordinated group</div><h2>${esc(g.id)} · ${g.size} accounts</h2>
@@ -553,7 +556,7 @@ function showPanel(n) {
       <div class="sec"><h5>Evidence</h5>${g.evidence.slice(0, 4).map(ev => ev.type === 'near_duplicate'
         ? `<div class="q">${esc(short(ev.text, 190))}<small>near-verbatim from ${ev.accounts} accounts · ${esc(fmtDT(ev.first))} → ${esc(fmtDT(ev.last))}</small></div>`
         : `<div class="q"><small>${Math.round(ev.lag_seconds)}s apart</small>${esc(ev.a.account)}: ${esc(short(ev.a.text, 90))}<br>${esc(ev.b.account)}: ${esc(short(ev.b.text, 90))}</div>`).join('')}</div>
-      <div class="sec"><h5>Narratives it pushed</h5><div class="chipl">${Object.entries(g.narratives || {}).map(([nid, c]) => `<a href="#" data-n="${esc(nid)}">#${esc(nid)} · ${c} posts</a>`).join('')}</div></div>
+      <div class="sec"><h5>Narratives it pushed</h5><div class="chipl">${Object.entries(g.narratives || {}).map(([nid, c]) => `<a href="#" data-n="${esc(nid)}">Story ${esc(nid)} · ${c} posts</a>`).join('')}</div></div>
       <div class="sec"><h5>Members (${g.size})</h5><div class="chipl">${g.accounts.slice(0, 24).map(a => `<span style="color:${pcol(a.split(':')[0])}">${esc(a.split(':').slice(1).join(':').slice(0, 14))}</span>`).join('')}${g.size > 24 ? `<span>+${g.size - 24}</span>` : ''}</div></div>
       <button class="btn wide" data-posts="g:${esc(g.id)}">Show group's posts</button>`;
   }
@@ -562,6 +565,8 @@ function showPanel(n) {
   el.querySelectorAll('[data-n]').forEach(a => a.onclick = e => { e.preventDefault(); const t = st.scene.byNar.get(+a.dataset.n); if (t) select(t); });
   el.querySelectorAll('[data-g]').forEach(a => a.onclick = e => { e.preventDefault(); const t = st.scene.nodes.find(x => x.kind === 'grp' && x.id === a.dataset.g); if (t) select(t); });
   el.querySelectorAll('[data-posts]').forEach(b => b.onclick = () => openPosts(b.dataset.posts));
+  el.querySelectorAll('[data-plat]').forEach(b => b.onclick = () => { st.platPick = st.platPick === b.dataset.plat ? '' : b.dataset.plat; showPanel(n); });
+  const na = $('#nar-ai'); if (na) na.onclick = () => aiAsk('Summarise Story ' + n.d.id + ' (' + n.d.label + ') in 3 short sentences in very simple words: what is the topic, who is saying it, and does it look organic or pushed. Plain text only. Call it "this story", not a number.', $('#nar-ai-out'));
 }
 function countBy(arr, k) { const o = {}; arr.forEach(x => o[x[k]] = (o[x[k]] || 0) + 1); return o; }
 
@@ -632,7 +637,7 @@ function accountsAnswer(q, plat) {
   return `<b>${list.length} account${list.length === 1 ? '' : 's'}</b> on ${esc(label)}${esc(note)} (${rows.length} post${rows.length === 1 ? '' : 's'}). Most active:${top}${list.length > 15 ? `<div class="mut">+${list.length - 15} more</div>` : ''}<button class="btn wide" data-posts="${plat ? 'p:' + plat : ''}">Show ${plat ? esc(LABEL[plat] || plat) + ' ' : ''}posts in the table</button>`;
 }
 function answer(q) {
-  const res = st.res, l = q.toLowerCase(), m = l.match(/#(\d+)|\bnarrative (\d+)/), nid = m ? +(m[1] || m[2]) : null, o = nid !== null ? res.origins.find(x => x.narrative_id === nid) : null;
+  const res = st.res, l = q.toLowerCase(), m = l.match(/#(\d+)|\b(?:narrative|story|theme) (\d+)/), nid = m ? +(m[1] || m[2]) : null, o = nid !== null ? res.origins.find(x => x.narrative_id === nid) : null;
   const gm = l.match(/\bg(\d+)\b/), g = gm ? res.coordinated_groups.find(x => x.id.toLowerCase() === 'g' + gm[1]) : null, plat = detectPlat(l);
   if (/\b(fetch|scrape|collect|download|crawl|search for|look up|get me more|pull)\b/.test(l)) return 'I can only answer questions about the data already collected in this run — I can’t fetch new data from chat. To get more, change the <b>topic</b> (e.g. <code>NFP OR topgtraders</code>), the dates or the <b>depth</b> (Quick / Standard / Deep) above and press <b>Analyse</b>.';
   if (g) return `<b>${esc(g.id)}</b>: ${g.size} accounts, ${esc(g.confidence)} confidence (${g.score}). ${g.reasons.map(esc).join(' ')}`;
@@ -648,8 +653,8 @@ function answer(q) {
   if (/\b(who|which|list|accounts?|channels?|commenters?|users?|people|posters?|authors?)\b/.test(l)) return accountsAnswer(q, plat);
   if (/(platform|spread|hop|cross)/.test(l)) { const t = o ? [o] : res.origins.slice(0, 4); return t.map(o => `<b>#${o.narrative_id}</b>: ` + o.platform_spread.map(s => `${esc(LABEL[s.platform] || s.platform)} ${esc(fmtLag(s.lag_minutes))}`).join(' → ')).join('<br>'); }
   if (/(top|most|engag|viral|popular|best)/.test(l)) { const t = [...res.posts].filter(p => !plat || p.platform === plat).sort((a, b) => b.engagement - a.engagement).slice(0, 3); return t.map(p => `${esc(p.platform)} · <b>${esc(p.author_name)}</b> (${p.engagement.toLocaleString()} engagement): ${esc(short(p.text, 110))}`).join('<br>'); }
-  if (/(biggest|largest|main|narrative|topic|what|summary|overview|talking)/.test(l)) return res.narratives.filter(n => n.id >= 0).slice(0, 4).map(n => `<b>#${n.id}</b> ${esc(n.label)} — ${n.posts} posts, ${Math.round((n.coordinated_post_share || 0) * 100)}% coordinated`).join('<br>');
-  return 'Try: “who posted on YouTube?”, “which accounts mention nfp?”, “where did #0 start?”, “who is coordinating?”, “top posts”, “main narratives”, or “G1”. (Local rules, no AI model — tick AI answers for open-ended questions.)';
+  if (/(biggest|largest|main|narrative|topic|what|summary|overview|talking)/.test(l)) return res.narratives.filter(n => n.id >= 0).slice(0, 4).map(n => `<b>Story ${n.id}</b> ${esc(n.label)} — ${n.posts} posts, ${Math.round((n.coordinated_post_share || 0) * 100)}% coordinated`).join('<br>');
+  return 'Try: “who posted on YouTube?”, “which accounts mention nfp?”, “where did story 1 start?”, “who is coordinating?”, “top posts”, “main narratives”, or “G1”. (Local rules, no AI model — tick AI answers for open-ended questions.)';
 }
 
 // ------------------------------------------------------------------ posts drawer: filters, sorting, media, expandable rows + export
@@ -658,7 +663,7 @@ const isHttp = u => /^https?:\/\//i.test(u || '');
 function fillPosts() {
   const sc = st.scene, res = st.res, plats = [...new Set(sc.posts.map(p => p.platform))];
   $('#f-plat').innerHTML = '<option value="">All platforms</option>' + plats.map(p => `<option value="${esc(p)}">${esc(LABEL[p] || p)}</option>`).join('');
-  $('#f-nar').innerHTML = '<option value="">All narratives</option><option value="none">Unclustered</option>' + sc.nars.map(n => `<option value="${n.id}">#${n.id} ${esc(title(n.label).slice(0, 30))} (${n.posts})</option>`).join('');
+  $('#f-nar').innerHTML = '<option value="">All narratives</option><option value="none">Unclustered</option>' + sc.nars.map(n => `<option value="${n.id}">Story ${n.id}: ${esc(title(n.label).slice(0, 30))} (${n.posts})</option>`).join('');
   $('#f-grp').innerHTML = '<option value="">All accounts</option><option value="any">Coordinated only</option>' + res.coordinated_groups.map(g => `<option value="${esc(g.id)}">${esc(g.id)} · ${g.size} accounts</option>`).join('');
   $('#f-media').innerHTML = '<option value="">Any media</option><option value="photo">Has photo</option><option value="video">Has video</option><option value="none">No media</option>';
   $('#f-sort').innerHTML = '<option value="eng">Most engagement</option><option value="new">Newest first</option><option value="old">Oldest first</option><option value="likes">Most likes</option><option value="replies">Most replies</option>';
@@ -703,7 +708,8 @@ function renderPosts() {
   const mb = $('#p-more-btn'); if (mb) mb.onclick = () => { pf.limit += 300; renderPosts(); };
 }
 function openPosts(spec) {
-  resetFilters(false); const m = (spec || '').match(/^([npg]):(.+)$/);
+  if (spec && activeScreen !== 'posts') setScreen('posts');                         // the list lives on the All Posts screen
+  resetFilters(false); const [main, plat] = String(spec || '').split('|'); if (plat) pf.plat = plat; spec = main; const m = (spec || '').match(/^([npg]):(.+)$/);
   if (m) { if (m[1] === 'p') pf.plat = m[2]; else if (m[1] === 'n') pf.nar = m[2]; else pf.grp = m[2].toUpperCase(); } else pf.q = spec || '';
   syncControls(); renderPosts(); $('#drawer').classList.remove('hidden');
 }
@@ -914,8 +920,8 @@ function crossCards() {
   html += '<div class="xp-head wide"><h3>Same discussion on both platforms (' + rows.length + ')</h3><p>Each card is one discussion theme that appears on YouTube and Telegram, with the earliest post from each.</p></div>';
   html += rows.slice(0, 40).map(r => {
     const lag = (new Date(r.b.created_at) - new Date(r.a.created_at)) / 36e5, first = lag >= 0 ? 'YouTube' : 'Telegram';
-    return '<div class="analysis-card xp-card wide"><small>THEME #' + r.n.id + '</small><h3>' + esc(title(r.n.label)) + '</h3><p>' + r.yt.length + ' YouTube · ' + r.tg.length + ' Telegram · <b>' + first + ' first</b>, the other followed ' + hours(lag) + ' later</p>' +
-      '<div class="xp-pair">' + side('YouTube · first', r.a) + '<span class="xp-arrow">' + (lag >= 0 ? '→' : '←') + '</span>' + side('Telegram · first', r.b) + '</div><button class="xp-go" data-nar="' + r.n.id + '">Inspect theme in the constellation →</button></div>';
+    return '<div class="analysis-card xp-card wide"><small>STORY ' + r.n.id + '</small><h3>' + esc(title(r.n.label)) + '</h3><p>' + r.yt.length + ' YouTube · ' + r.tg.length + ' Telegram · <b>' + first + ' first</b>, the other followed ' + hours(lag) + ' later</p>' +
+      '<div class="xp-pair">' + side('YouTube · first', r.a) + '<span class="xp-arrow">' + (lag >= 0 ? '→' : '←') + '</span>' + side('Telegram · first', r.b) + '</div><button class="xp-go" data-nar="' + r.n.id + '">See this story on the map →</button></div>';
   }).join('') || '<div class="analysis-card xp-card wide"><p>No discussion theme contains both YouTube and Telegram posts yet.</p></div>';
   const links = c.youtube_links_in_telegram || [];
   html += '<div class="xp-head wide"><h3>Telegram posts that link to collected YouTube videos (' + links.length + ')</h3><p>The strongest tie between the two platforms: a Telegram post that shares one of the videos found in this run.</p></div>';
@@ -982,20 +988,35 @@ const FILES = [['report.html', 'Report you can read and share', 'One web page wi
   ['cross_platform.csv', 'YouTube and Telegram links (spreadsheet)', 'Which posts on the two sites belong together.'], ['volume_by_platform.csv', 'Posts per site (spreadsheet)', 'Volume per platform over time.'],
   ['results.json', 'Everything, for programmers (JSON)', 'The full data in one file for other tools.'], ['overview.json', 'Summary data, for programmers (JSON)', 'The dashboard numbers in one file.'], ['run_log.txt', 'Technical log', 'Only needed if something went wrong.']];
 
+
+function acctUrl(platform, account, name) {
+  const id = String(account || '').split(':').slice(1).join(':'), nm = String(name || '').replace(/^@/, '');
+  if (platform === 'youtube') return id.startsWith('UC') ? 'https://www.youtube.com/channel/' + id : (nm ? 'https://www.youtube.com/@' + encodeURIComponent(nm) : '');
+  if (platform === 'telegram') return /^[A-Za-z0-9_]{4,}$/.test(nm) ? 'https://t.me/' + nm : '';
+  if (platform === 'x') return nm ? 'https://x.com/' + encodeURIComponent(nm) : '';
+  return '';
+}
+function acctLink(platform, account, name, extra) {
+  const u = acctUrl(platform, account, name), t = esc(name || String(account).split(':').slice(1).join(':')) + (extra || '');
+  return u ? '<a href="' + esc(u) + '" target="_blank" rel="noopener noreferrer" title="Open this account on ' + esc(LABEL[platform] || platform) + '">' + t + ' ↗</a>' : '<span>' + t + '</span>';
+}
+function cleanAI(t) {                                   // some free models answer in JSON or echo the <data> tags: show plain text only
+  t = String(t || '').replace(/<\/?data>/g, '').trim();
+  try { const o = JSON.parse(t); if (o && typeof o === 'object') t = Object.values(o).filter(v => typeof v === 'string').join('\n\n') || t; } catch (e) { /* plain text already */ }
+  return t.replace(/\bnarrative\s*#\s*(\d+)/gi, 'Story $1').replace(/#(\d+)\b/g, 'Story $1');
+}
+// one click, no questions: set up the free no-login service if nothing is configured, then ask
+async function aiAsk(question, out) {
+  out.innerHTML = '<p class="mut small">✦ Asking the AI… free services can take up to a minute.</p>';
+  try {
+    if (!st.status.ai.ready) st.status = await api('/api/credentials', {method: 'POST', body: JSON.stringify({AI_PROVIDER: 'pollinations', AI_MODEL: '', AI_BASE_URL: ''})});
+    const r = await api('/api/ask', {method: 'POST', body: JSON.stringify({ai: true, job_id: st.jobId, question})});
+    out.innerHTML = '<div class="ai-box"><span class="badge b-warn">✦ AI summary · ' + esc(st.status.ai.label.split(' (')[0]) + ' · a summary of this run was sent · may be wrong</span><p style="white-space:pre-wrap">' + esc(cleanAI(r.answer)) + '</p></div>';
+  } catch (e) { out.innerHTML = '<p class="mut small">The AI service did not answer (' + esc(e.message) + '). Everything else on this page was built locally and is still correct.</p>'; }
+}
 // ---- optional AI summary: only a compact summary leaves this computer, never the raw posts; always asks first ----
 async function aiSummary() {
-  const out = $('#ai-sum-out'); let ai = st.status.ai;
-  if (!ai.ready) {
-    if (!confirm('No AI service is set up yet.\n\nUse the free no-login service Pollinations?\n\nIt is a third party. It needs no account or key, is slow, and may stop working. You can change this in Settings → AI.')) return;
-    try { st.status = await api('/api/credentials', {method: 'POST', body: JSON.stringify({AI_PROVIDER: 'pollinations', AI_MODEL: '', AI_BASE_URL: ''})}); ai = st.status.ai; }
-    catch (e) { out.innerHTML = '<p class="mut small">Could not switch: ' + esc(e.message) + '</p>'; return; }
-  }
-  if (!ai.local && !confirm('Send a SUMMARY of this run to ' + ai.label.split(' (')[0] + '?\n\nIt contains counts, story keywords, group reasons, about 8 short quotes and the public names of the busiest accounts. It does not contain all posts.')) return;
-  out.innerHTML = '<p class="mut small">✦ Asking ' + esc(ai.label.split(' (')[0]) + '… free services can take up to a minute.</p>';
-  try {
-    const r = await api('/api/ask', {method: 'POST', body: JSON.stringify({ai: true, job_id: st.jobId, question: 'Write a short summary in very simple words (max 5 sentences) that a non-technical person can understand: what people are talking about, which story is biggest, whether any accounts seem to act together, and where it started. Say clearly that coordination is a clue, not proof.'})});
-    out.innerHTML = '<div class="ai-box"><span class="badge b-warn">✦ AI-generated · ' + esc(r.model) + ' · may be wrong</span><p style="white-space:pre-wrap">' + esc(r.answer) + '</p></div>';
-  } catch (e) { out.innerHTML = '<p class="mut small">The AI service did not answer (' + esc(e.message) + '). The summary above is still correct. It was built locally.</p>'; }
+  aiAsk('Write a short summary in very simple words (max 5 sentences) for a non-technical reader: what people are talking about, which story is biggest, whether any accounts seem to act together, and where it started. Plain text only. Say that coordination is a clue, not proof.', $('#ai-sum-out'));
 }
 // ---- search everything (natural language, local) ----
 let lastSearch = {q: '', scope: 'run'};
@@ -1066,11 +1087,11 @@ function narrativeCards() {
     const cols = narMode === 'day' ? ov.days.map(d => d.date) : ov.terms.map(t => t.term), get = (n, c) => narMode === 'day' ? n.by_day[c] || 0 : n.by_term[c] || 0;
     const mx = Math.max(1, ...ov.narratives.flatMap(n => cols.map(c => get(n, c))));
     return h + '<div class="analysis-card xp-card wide"><small>' + (narMode === 'day' ? 'POSTS PER THEME, DAY BY DAY' : 'POSTS PER THEME, TERM BY TERM') + '</small><h3>' + (narMode === 'day' ? 'What was being said on each date' : 'What is said about each keyword, hashtag, person, brand or event') + '</h3>' +
-      heatTable(ov.narratives.map(n => '<tr><th class="rowh"><button class="xp-link" data-nar="' + n.id + '">#' + n.id + ' ' + esc(title(n.label)) + '</button></th><td><b>' + n.posts + '</b></td>' + cols.map(c => { const v = get(n, c); return '<td style="background:rgba(154,140,255,' + (v ? (.12 + .7 * v / mx).toFixed(2) : 0) + ')">' + (v || '') + '</td>'; }).join('') + '</tr>').join(''),
+      heatTable(ov.narratives.map(n => '<tr><th class="rowh"><button class="xp-link" data-nar="' + n.id + '">Story ' + n.id + ': ' + esc(title(n.label)) + '</button></th><td><b>' + n.posts + '</b></td>' + cols.map(c => { const v = get(n, c); return '<td style="background:rgba(154,140,255,' + (v ? (.12 + .7 * v / mx).toFixed(2) : 0) + ')">' + (v || '') + '</td>'; }).join('') + '</tr>').join(''),
         '<th>Theme</th><th>Posts</th>' + cols.map(c => '<th>' + esc(narMode === 'day' ? c.slice(5) : '“' + c + '”') + '</th>').join('')) + '</div>';
   }
-  return h + nars.map(n => '<div class="analysis-card xp-card"><small>DISCUSSION THEME #' + n.id + '</small><h3>' + esc(title(n.label)) + '</h3><p>' + esc(plainOf(ov && ov.plain.narratives, 'id', n.id) || (n.posts + ' posts · ' + n.accounts + ' accounts')) + '</p>' +
-    volChart(n.volume_by_platform) + '<p>' + Object.entries(n.platforms).map(([p, v]) => esc(LABEL[p] || p) + ' ' + v).join(' · ') + '</p><button class="xp-go" data-nar="' + n.id + '">Inspect theme in the constellation →</button></div>').join('');
+  return h + nars.map(n => '<div class="analysis-card xp-card"><small>STORY ' + n.id + '</small><h3>' + esc(title(n.label)) + '</h3><p>' + esc(plainOf(ov && ov.plain.narratives, 'id', n.id) || (n.posts + ' posts · ' + n.accounts + ' accounts')) + '</p>' +
+    volChart(n.volume_by_platform) + '<p>' + Object.entries(n.platforms).map(([p, v]) => esc(LABEL[p] || p) + ' ' + v).join(' · ') + '</p><button class="xp-go" data-nar="' + n.id + '">See this story on the map →</button></div>').join('');
 }
 function groupCards() {
   const ov = st.res.overview, gs = st.res.coordinated_groups;
@@ -1080,7 +1101,7 @@ function groupCards() {
 }
 function spreadCards() {
   const ov = st.res.overview;
-  return st.res.origins.map(o => '<div class="analysis-card xp-card wide"><small>THEME #' + o.narrative_id + '</small><h3>' + esc(o.label) + '</h3><p>' + esc(plainOf(ov && ov.plain.origins, 'narrative_id', o.narrative_id)) + '</p>' +
+  return st.res.origins.map(o => '<div class="analysis-card xp-card wide"><small>STORY ' + o.narrative_id + '</small><h3>' + esc(o.label) + '</h3><p class="first-links">First post: ' + acctLink(o.first_post.platform, o.first_post.account, o.first_post.name) + (/^https?:/.test(o.first_post.url || '') ? ' · <a href="' + esc(o.first_post.url) + '" target="_blank" rel="noopener noreferrer">Open the first post ↗</a>' : '') + '</p><p>' + esc(plainOf(ov && ov.plain.origins, 'narrative_id', o.narrative_id)) + '</p>' +
     '<p class="small">First post: ' + esc(o.first_post.platform) + ' · ' + esc(fmtDT(o.first_post.at)) + ' UTC' + (o.first_post.url ? ' · <a href="' + esc(o.first_post.url) + '" target="_blank" rel="noopener">open ↗</a>' : '') + ' · ' + esc(o.verdict) + '</p><button class="xp-go" data-nar="' + o.narrative_id + '">Inspect timeline →</button></div>').join('');
 }
 function renderAnalysisCards(kind){

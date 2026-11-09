@@ -91,7 +91,7 @@ class YtDlpYouTube(Collector):
         if os.environ.get("YTDLP_COOKIES_FILE"):                # optional: cookies of a throwaway Google account
             base["cookiefile"] = os.environ["YTDLP_COOKIES_FILE"]
         ids: List[str] = []
-        terms = topic_terms(topic)[:3]
+        terms = topic_terms(topic, combined=True)[:4]
         # newest-first search: current yt-dlp has no `ytsearchdate` prefix, so use the search-results URL with YouTube's
         # "upload date" sort (sp=CAI%3D); plain relevance search (`ytsearchN:`) is the fallback if that returns nothing.
         with yt_dlp.YoutubeDL({**base, "extract_flat": "in_playlist", "playlistend": self.max_videos}) as ydl:

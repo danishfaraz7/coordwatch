@@ -148,7 +148,7 @@ def bubble_map(nars: List[dict], w=640, h=470) -> str:
     for x, y, r, n in placed:
         col = lerp_color("#3ee6b8", "#ff4d6d", n.get("coordinated_post_share", 0) * 1.4)
         kw = [k for k in n["keywords"][:2]]
-        title = (f'#{n["id"]} {n["label"]} — {n["posts"]} posts, {n["accounts"]} accounts, '
+        title = (f'Story {n["id"]}: {n["label"]} — {n["posts"]} posts, {n["accounts"]} accounts, '
                  f'{n.get("coordinated_post_share", 0):.0%} from coordinated accounts. Click to filter posts.')
         o.append(f'<g class=bub data-n="{n["id"]}" tabindex=0 role=button aria-label="{e(title)}"><title>{e(title)}</title>'
                  f'<circle cx={x:.1f} cy={y:.1f} r={r:.1f} fill="{col}" opacity=".28" filter="url(#bglow)"/>'
@@ -346,14 +346,14 @@ def overview_blocks(result: dict) -> dict:
     top.append("<div class='tile s12'><h2>Mentions per keyword, hashtag, person, brand or event</h2><div class=tbl><table><thead><tr><th>Search term</th><th>Type</th><th>Posts</th><th>Share</th><th>Accounts</th>" +
                "".join(f"<th>{e(k)}</th>" for k in plats) + f"</tr></thead><tbody>{trows}</tbody></table></div></div>")
     nmax = max((v for n in ov["narratives"] for v in n["by_day"].values()), default=1) or 1
-    nrows = "".join(f"<tr><td style='white-space:nowrap'>#{n['id']} {e(n['label'])}</td><td><b>{n['posts']:,}</b></td>" +
+    nrows = "".join(f"<tr><td style='white-space:nowrap'>Story {n['id']}: {e(n['label'])}</td><td><b>{n['posts']:,}</b></td>" +
                     "".join(f"<td style='text-align:center;background:rgba(90,200,250,{0.08 + 0.7 * n['by_day'].get(d['date'], 0) / nmax if n['by_day'].get(d['date'], 0) else 0:.2f})'>{n['by_day'].get(d['date'], 0) or ''}</td>" for d in days) +
                     "".join(f"<td>{n['by_term'].get(t['term'], 0):,}</td>" for t in terms) + "</tr>" for n in ov["narratives"])
     top.append("<div class='tile s12'><h2>What is being said, day by day and term by term</h2><ul>" + "".join(f"<li><b>#{n['id']}</b> {e(n['text'])}</li>" for n in pl["narratives"]) +
                "</ul><p class=sub>Posts per narrative on each date, then per search term.</p><div class=tbl><table><thead><tr><th>Narrative</th><th>Posts</th>" +
                "".join(f"<th>{e(d['date'][5:])}</th>" for d in days) + "".join(f"<th>“{e(t['term'])}”</th>" for t in terms) + f"</tr></thead><tbody>{nrows}</tbody></table></div></div>")
     groups = ("<div class='tile s12'><h2>Groups in simple words</h2><ul>" + ("".join(f"<li>{e(g['text'])}</li>" for g in pl["groups"]) or "<li>No group of accounts met the evidence thresholds.</li>") + "</ul></div>")
-    origins = ("<div class='tile s12'><h2>Where each story started, in simple words</h2><ul>" + "".join(f"<li><b>#{o['narrative_id']} {e(o['label'])}</b><br>{e(o['text'])}</li>" for o in pl["origins"][:12]) + "</ul></div>")
+    origins = ("<div class='tile s12'><h2>Where each story started, in simple words</h2><ul>" + "".join(f"<li><b>Story {o['narrative_id']} {e(o['label'])}</b><br>{e(o['text'])}</li>" for o in pl["origins"][:12]) + "</ul></div>")
     return {"top": "".join(top), "groups": groups, "origins": origins}
 
 
@@ -397,7 +397,7 @@ def render(result: dict, max_posts: int = 400) -> str:
         badge = (f"<span class='badge b-hot'>{share:.0%} coord.</span>" if share >= 0.5 else
                  f"<span class='badge b-warn'>{share:.0%} coord.</span>" if share > 0 else "<span class='badge b-ok'>organic</span>")
         mix = "".join(f"<i style='width:{v / n['posts'] * 100:.1f}%;background:{color(k)}' title='{e(k)} {v}'></i>" for k, v in n["platforms"].items())
-        h.append(f"<div class=nrow data-n='{n['id']}' title='Click to filter posts'><span class=i>#{n['id']}</span><div><b>{e(n['label'])}</b>"
+        h.append(f"<div class=nrow data-n='{n['id']}' title='Click to filter posts'><span class=i>{n['id']}</span><div><b>{e(n['label'])}</b>"
                  f"<span class=muted style='font-size:12px'>{n['posts']} posts · {n['accounts']} accounts</span><div class=mix>{mix}</div></div>{badge}</div>")
     h.append("</div></div>")
 
@@ -434,7 +434,7 @@ def render(result: dict, max_posts: int = 400) -> str:
         if cp["narrative_overlap"]:
             h.append("<div class=tbl><table><thead><tr><th>Narrative</th><th>Posts by platform</th><th>First on</th><th>Then</th><th>Lag (h)</th></tr></thead><tbody>")
             for o in cp["narrative_overlap"][:8]:
-                h.append(f"<tr><td>#{o['narrative_id']} {e(o['label'])}</td><td>{e(', '.join(f'{k} {v}' for k, v in o['by_platform'].items()))}</td>"
+                h.append(f"<tr><td>Story {o['narrative_id']}: {e(o['label'])}</td><td>{e(', '.join(f'{k} {v}' for k, v in o['by_platform'].items()))}</td>"
                          f"<td>{e(o['first_platform'])}</td><td>{e(', '.join(o['then']))}</td><td>{o['lag_hours_to_next']}</td></tr>")
             h.append("</tbody></table></div>")
         if cp["youtube_links_in_telegram"]:
@@ -451,7 +451,7 @@ def render(result: dict, max_posts: int = 400) -> str:
     for o in top_orig:
         fp = o["first_post"]
         vb = ("b-hot" if o["seeding_group"] else "b-warn" if o["early_wave_coordinated_share"] > 0 else "b-ok")
-        h.append(f"<div class=origin><div class=oh><b>#{o['narrative_id']} {e(o['label'])}</b><span class='badge {vb}'>{e(o['verdict'])}</span></div>"
+        h.append(f"<div class=origin><div class=oh><b>Story {o['narrative_id']}: {e(o['label'])}</b><span class='badge {vb}'>{e(o['verdict'])}</span></div>"
                  f"<div class=muted style='font-size:12px'>first seen {e(fp['at'][:16].replace('T', ' '))} UTC on {e(fp['platform'])} by {e(fp['account'])}</div>{spread_map(o)}<div class=fa>")
         for a in o["first_accounts"]:
             lab = f"{a['account']} · {fmt_lag(a['minutes_after_origin'])}" + (f" · {a['coordinated_group']}" if a["coordinated_group"] else "")

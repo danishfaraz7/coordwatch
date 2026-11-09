@@ -9,10 +9,15 @@ from typing import Iterable, List, Optional
 from .models import Post
 
 
-def topic_terms(topic: str) -> List[str]:
-    """'Acme Bank OR #AcmeBankCollapse' (or comma / | separated) -> ['acme bank', '#acmebankcollapse'].  Quotes are ignored."""
+def topic_terms(topic: str, combined: bool = False) -> List[str]:
+    """'Acme Bank OR #AcmeBankCollapse' (or comma / | separated) -> ['acme bank', '#acmebankcollapse'].  Quotes are ignored.
+    combined=True puts one extra query first that holds every plain word together ("nvidia jensen huang chinese spy"), so collectors also look for the terms together."""
     parts = re.split(r"\s+OR\s+|[|,;]", topic.replace('"', ""), flags=re.I)
-    return [p.strip().lower() for p in parts if p.strip()]
+    terms = [p.strip().lower() for p in parts if p.strip()]
+    plain = [t for t in terms if not t.startswith("#")]
+    if combined and len(plain) > 1:
+        terms = [" ".join(plain)] + terms
+    return terms
 
 
 def matches_topic(text: str, topic: str) -> bool:

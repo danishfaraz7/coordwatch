@@ -106,3 +106,22 @@ class ExecutivePdf(unittest.TestCase):
         data = open(f, "rb").read()
         self.assertTrue(data.startswith(b"%PDF") and len(data) > 5000)
         self.assertNotIn(b"Data API", open(os.path.join(out, "report.html"), "rb").read())     # no collector warnings in the HTML report
+
+
+class StoriesAndCombinedTerms(unittest.TestCase):
+    def test_story_numbers_start_at_one_and_terms_are_also_searched_together(self):
+        out = tempfile.mkdtemp()
+        env = {**os.environ, "COORDWATCH_HOME": tempfile.mkdtemp(), "PYTHONPATH": ROOT}
+        subprocess.run([sys.executable, "-m", "coordwatch", "run", "--topic", "Acme Bank, insolvent, withdraw", "--since", "2026-10-01", "--until", "2026-10-14",
+                        "--source", "demo", "--out", out], check=True, capture_output=True, env=env)
+        import json
+        r = json.load(open(os.path.join(out, "results.json"), encoding="utf-8"))
+        ids = sorted(n["id"] for n in r["narratives"] if n["id"] >= 0)
+        self.assertEqual(ids[0], 1)
+        self.assertEqual(ids, list(range(1, len(ids) + 1)))
+        self.assertTrue(all(p["narrative_id"] != 0 for p in r["posts"]))
+        terms = {t["term"]: t for t in r["overview"]["terms"]}
+        self.assertIn("all terms together", terms)
+        self.assertLessEqual(terms["all terms together"]["posts"], min(t["posts"] for k, t in terms.items() if k != "all terms together"))
+        self.assertIn("Story 1", open(os.path.join(out, "plain_summary.txt"), encoding="utf-8").read())
+        self.assertNotIn("#0", open(os.path.join(out, "plain_summary.txt"), encoding="utf-8").read())

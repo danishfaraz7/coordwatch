@@ -470,3 +470,6 @@ Under the topic box, **See what's trending** lists suggested terms for your date
 
 ### Executive PDF and notifications
 `executive_report.pdf` is a 2–3 page plain-words report for managers (needs the free `reportlab`: `pip install reportlab`; if it is missing, the Download Results card says so). Data-source warnings (API quota notes, "collected N posts via…") are no longer printed in the HTML/PDF reports; they appear in the 🔔 notifications panel at the top right of the app.
+
+### Stories, combined terms, AI
+Stories are numbered from 1 (Story 1 = the biggest). A topic with several plain terms (`Nvidia, Jensen Huang, Chinese spy`) is searched term by term **and** all together (one extra combined query for YouTube, Telegram and X), and the Summary lists an *all terms together* row (posts that mention every term). The AI summary buttons are one click with no pop-ups; if no AI is configured they use the free no-login Pollinations service. Only a compact summary of the run is sent, and the box says so.

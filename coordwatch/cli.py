@@ -163,7 +163,7 @@ def main(argv=None):
     for g in result["coordinated_groups"]:
         print(f"  {g['id']} [{g['confidence']} {g['score']}] {g['size']} accounts: " + " | ".join(g["reasons"][:2]))
     for o in result["origins"][:5]:
-        print(f"  narrative #{o['narrative_id']} '{o['label']}': {o['verdict']}")
+        print(f"  story {o['narrative_id']} '{o['label']}': {o['verdict']}")
     if truth:
         from .evaluate import score, format_score
         s = score(result, truth)
