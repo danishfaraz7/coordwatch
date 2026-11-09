@@ -211,3 +211,13 @@ class WebTests(Base):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class CliSmokeTests(unittest.TestCase):
+    def test_demo_run_via_cli_main(self):
+        import tempfile
+        from coordwatch.cli import main
+        with tempfile.TemporaryDirectory() as d:
+            self.assertEqual(main(["run", "--topic", "Acme Bank", "--since", "2026-10-01", "--until", "2026-10-14",
+                                   "--source", "demo", "--out", d]), 0)
+            self.assertTrue(os.path.exists(os.path.join(d, "report.html")))

@@ -19,7 +19,7 @@ Findings are leads for a human analyst, not attribution. Coordination is not the
 5. [Running a search](#5-running-a-search)
 6. [Reading the results](#6-reading-the-results)
 7. [Run logs and debugging](#7-run-logs-and-debugging)
-8. [Troubleshooting](#8-troubleshooting)
+8. [Troubleshooting](#8-troubleshooting) · [Supported systems](#supported-systems)
 9. [Command line](#9-command-line-works-offline-1-second) · 10. Architecture · 11. Methodology · 12. Rate limits · 13. AI use · 14. Accuracy · 15. Limitations · 16. Layout
 
 ---------------------------------------------------------------------------------------------------
@@ -41,6 +41,24 @@ The core analysis uses only the Python standard library, so it installs and runs
 
 Platforms: **YouTube, Telegram and X** are live. TikTok, Instagram, Facebook and Snapchat have no public search API, so for those you **import an export file**
 (JSON/CSV/JSONL from your own lawful collection, for example an Apify actor) with the platform chip in the app or `--source file`.
+
+---------------------------------------------------------------------------------------------------
+
+## Supported systems
+coordwatch is plain Python (3.9 or newer) with no operating-system-specific code, and runs on **Windows 10/11, macOS (Intel and Apple Silicon) and Linux** (including GitHub Codespaces and WSL).
+
+| | Windows | macOS | Linux / Codespaces |
+|---|---|---|---|
+| Python command | `py` | `python3` | `python3` (Codespaces: `python`) |
+| Create environment | `py -m venv .venv` | `python3 -m venv .venv` | `python3 -m venv .venv` |
+| Activate it | `.venv\Scripts\activate` | `source .venv/bin/activate` | `source .venv/bin/activate` |
+| Install | `pip install -r requirements.txt` | same | same |
+| Start the app | `py -m coordwatch web` | `python3 -m coordwatch web` | `python3 -m coordwatch web` |
+| Open | <http://localhost:8000> | same | same (Codespaces: Ports tab) |
+| Keys are stored in | `C:\Users\<you>\.coordwatch` | `~/.coordwatch` | `~/.coordwatch` |
+
+Notes: all files are read and written as UTF-8, so Arabic, Hindi, emoji and other scripts work on every system, and exported CSVs open correctly in Excel. The optional X browser route additionally needs `python -m playwright install chromium`.
+Tests: `python -m pytest -q`.
 
 ---------------------------------------------------------------------------------------------------
 
@@ -69,7 +87,7 @@ python -m coordwatch web                                  # -> http://localhost:
 Click **Demo** in the app (or `python -m coordwatch run --topic "Acme Bank" --since 2026-10-01 --until 2026-10-14 --source demo --out out/demo`).
 The demo uses a synthetic dataset with planted ground truth, so you can see every output before connecting anything.
 
-Run the tests (optional): `pip install pytest && python -m pytest -q` from the repository folder (94 tests).
+Run the tests (optional): `pip install pytest && python -m pytest -q` from the repository folder (95 tests).
 
 ### Where keys are stored
 Settings (the gear icon) saves keys to `~/.coordwatch/credentials.json`, outside the repository, and never sends them back to the browser. Environment variables win over saved values,
@@ -78,77 +96,121 @@ so in Codespaces you can instead add them as **Codespaces secrets** (GitHub → 
 
 ---------------------------------------------------------------------------------------------------
 
-## 3. Connecting the platforms
+## 3. Connecting the platforms (API keys, step by step)
 
-Each platform tries its routes in order and uses the first that works. The run log and report notes say which route produced the data. Use **Settings → Validate** on any card to check a key with a cheap metadata call.
+**How the keys get into the app.** Every key goes in the same place:
+1. Start the app (see [GETTING_STARTED.md](GETTING_STARTED.md)) and open it in your browser.
+2. Click the **⚙ gear icon** at the top right. A **Settings** window opens with one card per service (YouTube, Telegram, X, AI).
+3. Click into the box on the card, paste the value, and click **Save & validate**. The card shows a status: `connected` (works), `key saved` (stored, not yet checked), `invalid key`, `limited` (quota or access) or `offline`.
+4. Click **Done**. You never have to enter a key twice: it is stored in a private file on your computer (`~/.coordwatch/credentials.json`, in your home folder, outside the project) and is never shown again or sent anywhere except to that service.
 
-### YouTube
-| Route | Needs | Notes |
-|---|---|---|
-| 1. YouTube Data API v3 (**recommended**) | free API key | official, reliable; works from Codespaces |
-| 2. yt-dlp (fallback) | nothing | YouTube often refuses datacentre IPs (Codespaces) with a bot check; the run then stops with a clear message |
+You do **not** need every key. Minimum useful setup: **the YouTube key** (5 minutes). Telegram is optional but valuable. X is optional and usually skipped.
+Tip: copy keys with a normal copy/paste. Do not add spaces, quotes or line breaks around them.
 
-**Get the free API key (about 5 minutes):**
-1. Go to <https://console.cloud.google.com/> and sign in with a Google account.
-2. Create a project (top bar → project picker → **New project**).
-3. **APIs & Services → Library** → search **YouTube Data API v3** → **Enable**.
-4. **APIs & Services → Credentials → Create credentials → API key**. Optionally restrict it to *YouTube Data API v3*.
-5. In coordwatch: **⚙ Settings → YouTube**, paste the key, **Save & validate**. (Or set `YOUTUBE_API_KEY`.)
+### 3.1 YouTube: free API key
+Each platform tries its routes in order. Without a key YouTube falls back to `yt-dlp`, but YouTube usually blocks cloud computers like Codespaces, so get the key.
 
-The free quota is 10,000 units per day. A video search costs 100 units, and coordwatch searches about one batch per day in your range, so a 3-day search is cheap, while very long ranges use more. Comments are top-level only, up to 200 per video, for the top videos.
+1. Open <https://console.cloud.google.com/> and sign in with any Google account. (If asked to accept terms, accept. You are **not** asked for a credit card for this.)
+2. At the top of the page click the **project selector** (it may say "Select a project") → **New project** → give it any name such as `coordwatch` → **Create**. Wait a few seconds, then make sure that project is selected at the top.
+3. Open the left-hand menu (☰) → **APIs & Services** → **Library**.
+4. In the search box type `YouTube Data API v3`, click the result, then click the blue **Enable** button.
+5. Left menu → **APIs & Services** → **Credentials**.
+6. Click **+ Create credentials** → **API key**. A box shows your key (a long string starting with `AIza`). Click the copy icon.
+7. (Recommended) Click **Edit API key** → under *API restrictions* choose **Restrict key** → tick **YouTube Data API v3** → **Save**.
+8. In coordwatch: **⚙ → YouTube card → paste the key into the "API key" box → Save & validate**. Wait for `connected`.
 
-### Telegram
+*Free limit:* 10,000 units per day, resetting at midnight Pacific time. A video search costs 100 units and coordwatch searches roughly once per day of your range, so short ranges cost little. If you see "quota exceeded", wait for the reset or shorten the range.
+*Safety:* anyone with the key can use your quota. Do not post it publicly. If it leaks, delete it in the same Credentials page and create a new one.
+
+### 3.2 Telegram: free API login
 | Route | Needs | What it does |
 |---|---|---|
-| 1. Telegram API via Telethon (**recommended**) | free `api_id`/`api_hash` + a one-time login | with **no channels entered**: Telegram's public post/hashtag search, then a channel-directory lookup, then global search; with channels entered: searches only those |
+| 1. Telegram API via Telethon (**recommended**) | free `api_id` and `api_hash`, plus a one-time login | with **no channels entered**: public post/hashtag search, then a channel-directory lookup, then global search; with channels entered: only those |
 | 2. Web preview (`t.me/s/...`) | nothing | reads only channels you name (or that web discovery finds); newest few dozen messages per channel; no reactions or groups |
 
-Telegram has no true search across all of Telegram for ordinary accounts, so coverage depends on the route: the public post/hashtag search is the widest, the directory lookup only finds channels whose
-name or @username matches your topic words, and the web preview only sees what you point it at.
+Telegram has no real "search everything" for ordinary accounts, so coverage depends on the route. Use a **spare phone number / Telegram account**, not your main one: automated searching is a grey area of Telegram's terms and the account can be limited.
 
-**Set up the Telegram API route:**
-1. Go to <https://my.telegram.org>, log in with a phone number, open **API development tools** and create an application (any title and short name). Note the **api_id** and **api_hash**.
-2. Use a **throwaway number/account**, not your main one. Automated searching is a grey area of Telegram's terms, and the account can be limited.
-3. In coordwatch: **⚙ Settings → Telegram**, paste both values, **Save**.
-4. In a terminal, once: `python -m coordwatch telegram-login` (enter the phone number and the code Telegram sends you).
-5. Restart the app. The run log's credentials line should show `TELEGRAM_API_ID: set`, `TELEGRAM_API_HASH: set`, `Telegram login: done`.
+**Step A: get `api_id` and `api_hash`**
+1. Open <https://my.telegram.org> in your browser.
+2. Enter the spare account's phone number **with country code** (for example `+919999999999`) → **Next**.
+3. Telegram sends a login code **inside the Telegram app** (not SMS). Type it in → **Sign In**.
+4. Click **API development tools**.
+5. If this is your first time you see a form. Fill **App title** (any name, e.g. `coordwatch`) and **Short name** (5–32 letters/digits, e.g. `coordwatch1`). Leave URL empty. Platform: choose **Other** (or Desktop). Click **Create application**. (If you see an error here, retry later, or from a different network; this page is sometimes fussy.)
+6. The next page shows **App api_id** (a number) and **App api_hash** (32 letters and digits). Keep this page open.
 
-**Check what Telegram returns before a full run:** `python -m coordwatch tg-search "#yourtag" --days 3` prints what each search route finds.
-**Vet named channels:** `python -m coordwatch tg-probe @chan1 @chan2` reports each as ACTIVE, STALE or UNUSABLE (a channel that has not posted in your window yields nothing).
+**Step B: put them into coordwatch**
+7. In coordwatch: **⚙ → Telegram card**. Paste the number into the **api_id** box and the long string into the **api_hash** box → **Save & validate**.
 
-Expect noise on hashtag searches: trading and promo bots often append trending hashtags to templated posts. They show up as genuine coordinated clusters, but they can crowd out human posts.
-Add phrase terms to the topic (see [Topic syntax](#topic-syntax)) so the search also matches the words, not only the hashtag.
+**Step C: log in once (this is a terminal command)**
+8. Open a terminal in the project folder (Codespaces: the Terminal panel at the bottom; Windows: PowerShell; Mac: Terminal; remember to activate the virtual environment as in [GETTING_STARTED.md](GETTING_STARTED.md)). If the app is running, open a **second** terminal.
+9. Run:
+   - Codespaces / Mac / Linux: `python -m coordwatch telegram-login` (use `python3` if `python` is not found)
+   - Windows: `py -m coordwatch telegram-login`
+10. It asks `Please enter your phone`: type the number with country code, press Enter.
+11. It asks for the code: type the code Telegram sent to that account's Telegram app, press Enter. (If the account has two-step verification it also asks for that password.)
+12. It prints `Logged in as ... session saved`. The login is stored in `~/.coordwatch` (treat it like a password; never share or commit it).
+13. Stop and restart the app. Open **Settings**; the Telegram card should say `connected` or `key saved`. In a run log the credentials line shows `Telegram login: done`.
 
-### X (Twitter)
-| Route | Needs | Notes |
-|---|---|---|
-| 1. X API v2 | paid `X_BEARER_TOKEN` | official; recent search covers the last 7 days, full archive needs Pro/Enterprise |
-| 2. Browser session (free, **experimental**) | cookie export of a **throwaway** X login (`X_COOKIES_FILE` or `--x-cookies`) | uses Playwright; breaks X's terms, and the account can be limited or suspended; stops on HTTP 429, a login redirect or an idle timeline and reports why |
+**Optional checks:**
+* `python -m coordwatch tg-search "#yourtag" --days 3` shows what each Telegram search route finds (prints results in the terminal).
+* `python -m coordwatch tg-probe @chan1 @chan2` tells you whether named channels are readable and whether they posted recently (ACTIVE / STALE / UNUSABLE).
 
-X is the most restricted platform. If you do not have a bearer token or a throwaway account, simply leave X out and use YouTube + Telegram.
+Hashtag searches on Telegram attract promo/crypto bots that append trending hashtags to templated posts. They appear as genuine coordinated clusters but can crowd out human posts: add phrase terms to the topic (see [Topic syntax](#topic-syntax)).
 
-### TikTok, Instagram, Facebook, Snapchat (import only)
-There is no public research API for keyword search. Collect with your own lawful tooling and import the file (app: platform chip → import; CLI: `--source file --input file.json --file-platform tiktok`).
-A row only needs `text`, a date and an author; engagement counts are optional.
+### 3.3 X (Twitter): optional, usually skipped
+X offers no free search API, so X is the hardest platform. You have two routes; if you have neither, **leave X unticked** and use YouTube + Telegram.
 
-### Optional: web discovery
-`--discover` (CLI) or the automatic discovery in the app runs a free DuckDuckGo sweep (`site:t.me`, `site:youtube.com`, `site:x.com`, news). It finds Telegram channels when you gave none and no Telegram login exists,
-lists web mentions and shows the earliest dated mention. Web mentions are leads only and never count as coordination evidence.
+**Route 1: official paid API (cleanest)**
+1. Open <https://console.x.com> (the X developer portal) and sign in with an X account.
+2. Create an app/project and add API credits (paid). Search needs credits; recent search covers the last 7 days.
+3. Open your app → **Keys & Tokens** → **Bearer Token** → generate/copy it.
+4. In coordwatch: **⚙ → X card → paste into "Bearer token" → Save & validate**. (X is not validated automatically because a check can use paid quota; click Validate yourself.)
+
+**Route 2: free browser session (experimental, against X's terms)**
+Uses a *throwaway* X account's own logged-in session; the account can be limited or suspended. Use only an account you can lose.
+1. In Chrome or Edge, log in to x.com with the throwaway account.
+2. Install a cookie-export extension (for example **Cookie-Editor**). On x.com open it → **Export → JSON**. Save the file somewhere safe, such as `C:\Users\you\x_cookies.json` or `~/x_cookies.json`. Never share this file.
+3. Tell the app where it is, by setting `X_COOKIES_FILE` before starting the app:
+   * Codespaces: add a **Codespaces secret** named `X_COOKIES_FILE` pointing at the file's path, or run `export X_COOKIES_FILE=/workspaces/x_cookies.json` in the terminal, then start the app in that same terminal.
+   * Mac/Linux: `export X_COOKIES_FILE=~/x_cookies.json` then `python3 -m coordwatch web`
+   * Windows PowerShell: `$env:X_COOKIES_FILE="$HOME\x_cookies.json"` then `py -m coordwatch web`
+   * Command line: add `--x-cookies path/to/x_cookies.json` to `coordwatch run`.
+4. The browser route needs Playwright's browser, installed once with `python -m playwright install chromium` (`py -m playwright install chromium` on Windows).
+
+### 3.4 TikTok, Instagram, Facebook, Snapchat (import only)
+There is no public research API for keyword search. Collect data with your own lawful tooling (for example an Apify actor or a vendor export) and import the file:
+in the app, click the platform's **chip in the toolbar** → choose the file (JSON, JSONL or CSV). A row only needs `text`, a date and an author; engagement counts are optional.
+On the command line: `python -m coordwatch run --source file --input tiktok.json --file-platform tiktok --topic "..." --since 2026-10-01 --until 2026-10-14`.
+
+### 3.5 Optional: web discovery (no key)
+The CLI flag `--discover`, and the automatic discovery in the app, run a free DuckDuckGo sweep (`site:t.me`, `site:youtube.com`, `site:x.com`, news). It finds Telegram channels when you gave none and no Telegram login exists, lists web mentions and shows the earliest dated mention. These are leads only and never count as coordination evidence.
+
+### 3.6 Using environment variables instead of Settings (optional)
+Instead of typing keys into Settings you can provide them as environment variables (they take priority over saved ones): `YOUTUBE_API_KEY`, `TELEGRAM_API_ID`, `TELEGRAM_API_HASH`, `X_BEARER_TOKEN`, `X_COOKIES_FILE`, `AI_API_KEY`.
+In **GitHub Codespaces** the easiest way is *GitHub → Settings → Codespaces → Secrets → New secret* (select the repository), then restart the codespace.
 
 ---------------------------------------------------------------------------------------------------
 
 ## 4. Optional: AI answers
 
-The dock in the app answers questions about a finished run using local rules, with **no AI model**. You can additionally enable AI answers (off by default): **⚙ Settings → AI answers**, choose a provider
-(Gemini free tier, Groq, OpenRouter, Qwen/DashScope, Mistral, Cerebras, xAI Grok, Ollama for fully local use, or any OpenAI-compatible endpoint), paste the key, tick the *AI answers* box.
+The dock in the app answers questions about a finished run using local rules, with **no AI model**. You can additionally enable AI answers (off by default). Pick **one** provider:
 
-**Free example (OpenRouter + Qwen):**
-1. Create an account at <https://openrouter.ai>, then **Keys → Create key**. Set a small credit limit on the key so it cannot spend.
-2. In Settings → AI answers choose **OpenRouter**, paste the key, and set a model whose slug ends in `:free` (free model names change; **Validate** shows what your key can reach).
-3. Free-tier limits are low (about 20 requests per minute and a small daily allowance until you add credits), which is plenty for occasional questions.
+| Provider | Free? | Where to get the key |
+|---|---|---|
+| Google Gemini | free tier | <https://aistudio.google.com/apikey> → sign in → **Create API key** |
+| OpenRouter (free Qwen models) | free models available | <https://openrouter.ai> → sign up → **Keys → Create key** |
+| Groq | free tier | <https://console.groq.com/keys> → **Create API Key** |
+| Ollama | free, runs on your own machine, nothing leaves it | install from <https://ollama.com>, no key |
 
-Only a *summary* of a run (statistics, group reasons, a few short quotes, names of the most active public accounts) is sent, never all posts. Posts are treated as untrusted data in the prompt, the model has no tools,
-replies are shown as escaped text tagged *AI-generated*, and keys are never sent over plain http to a remote host.
+**Step by step (example: OpenRouter + Qwen)**
+1. Go to <https://openrouter.ai>, sign up (Google or email), open **Keys** (<https://openrouter.ai/keys>) → **Create key**. Name it `coordwatch`. Set a small **credit limit** (such as $1) so it can never spend more. Copy the key (starts with `sk-or-`); it is shown once.
+2. In coordwatch: **⚙ → AI answers card**. In **Provider** choose **OpenRouter**. Paste the key. In **Model** enter a model name that ends in `:free` (free model names change; the model box suggests names after you validate).
+3. Click **Save & validate**; wait for `connected`.
+4. Close Settings, run an analysis, then tick the **AI answers** checkbox in the question dock and ask something like "which group is most suspicious and why?".
+
+Free-tier limits are low (about 20 requests per minute and a small daily allowance until you add credits), which is plenty for occasional questions. For Gemini and Groq the steps are the same: choose the provider, paste the key, Save & validate.
+
+Only a *summary* of a run (statistics, group reasons, a few short quotes, names of the most active public accounts) is sent, never all posts. Posts are treated as untrusted data in the prompt, the model has no tools, replies are shown as escaped text tagged *AI-generated*, and keys are never sent over plain http to a remote host.
 
 ---------------------------------------------------------------------------------------------------
 
@@ -210,7 +272,7 @@ git clone <this repo> && cd coordwatch
 python3 -m coordwatch run --topic "Acme Bank" --since 2026-10-01 --until 2026-10-14 \
         --source demo --discount-verified --out out/demo
 open out/demo/report.html          # or xdg-open / start
-python3 -m unittest discover -s tests -v     # 94 tests
+python3 -m unittest discover -s tests -v     # 95 tests
 python3 scripts/stress.py                    # accuracy sweep (10 seeds x 5 scenarios)
 ```
 
@@ -336,7 +398,7 @@ No third-party analysis libraries: MinHash-LSH, TF-IDF, union-find, dHash are ~1
      Narratives were over-fragmented (37 clusters for 9 topics) → threshold sweep.
   3. **Stress test** (10 seeds × 5 scenarios) exposed two real defects: creation-time coincidence among *old* accounts created false groups
      (fixed with the "fresh account" condition), and paraphrase-ring recall of 0.5–0.67 (improved by same-narrative short-window synchrony).
-  4. 94 unit tests, including adversarial cases (default avatars, XSS in scraped text, 403 not retried, cache correctness).
+  4. 95 unit tests, including adversarial cases (default avatars, XSS in scraped text, 403 not retried, cache correctness).
   5. API parsers are tested against payloads shaped like the documented responses – **not against live APIs** (no keys in this repo's CI).
      Treat the live collectors as unverified until you run them with your keys. The free routes (yt-dlp, t.me/s, X browser, DuckDuckGo) are likewise tested only on recorded-shape fixtures and a fake search backend - smoke-test each once on a real machine before the demo.
 * **Caveat I want to be explicit about:** I iterated thresholds against my own generator, so the numbers below show the *method's behaviour*, not real-world accuracy.
@@ -376,7 +438,7 @@ paraphrasing + mutual-reshare ring; decoys = 5 verified newswire outlets, 40-use
 ## 16. Layout
 ```
 coordwatch/            package (web/ (server + constellation UI), collect.py, secrets_store.py, collectors/ (incl. youtube_ytdlp, telegram_web, x_browser), discovery.py, narratives.py, coordination.py, origin.py, pipeline.py, report.py, export.py, evaluate.py, cli.py)
-tests/                 94 unit tests (unittest; pytest also works)
+tests/                 95 unit tests (unittest; pytest also works)
 scripts/stress.py      multi-seed accuracy + ablation table
 sample_data/           synthetic posts + ground truth JSON (importable via --source file)
 out/example/           pre-generated report, JSON and CSVs

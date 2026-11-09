@@ -82,13 +82,13 @@ def main(argv=None):
                 print(f"UNUSABLE @{r['channel']}: {r['error']}")
         return 0
     if args.cmd == "tg-search":
-        from datetime import datetime, timedelta, timezone
+        from datetime import timedelta as _td
         from . import secrets_store as S
         from .collectors.telegram import TelegramCollector
         c = TelegramCollector([], api_id=S.get("TELEGRAM_API_ID"), api_hash=S.get("TELEGRAM_API_HASH"), session=S.telegram_session_path())
         c.log, c.cancelled = print, (lambda: False)
         now = datetime.now(timezone.utc)
-        got = c.collect(args.query, now - timedelta(days=args.days), now, 200)
+        got = c.collect(args.query, now - _td(days=args.days), now, 200)
         for p in got[:10]:
             print(f"  {p.created_at:%Y-%m-%d %H:%M} {p.author_name}: {p.text[:100]!r} {p.url}")
         return 0
@@ -114,7 +114,7 @@ def main(argv=None):
     until = parse_dt(args.until).replace(hour=23, minute=59, second=59)
     cfg = Config()
     if args.config:
-        cfg = Config(**{**cfg.to_dict(), **json.load(open(args.config))})
+        cfg = Config(**{**cfg.to_dict(), **json.load(open(args.config, encoding="utf-8"))})
     if args.discount_verified:
         cfg.discount_verified = True
     if args.x_cookies:
@@ -168,7 +168,7 @@ def main(argv=None):
         from .evaluate import score, format_score
         s = score(result, truth)
         print("\nAccuracy vs planted ground truth:\n" + format_score(s))
-        with open(os.path.join(args.out, "evaluation.json"), "w") as f:
+        with open(os.path.join(args.out, "evaluation.json"), "w", encoding="utf-8") as f:
             json.dump(s, f, indent=1)
     print("\nwritten:\n  " + "\n  ".join(paths))
     return 0

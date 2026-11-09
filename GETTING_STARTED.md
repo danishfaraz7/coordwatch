@@ -190,4 +190,4 @@ Needs a paid API token or a spare account, so skip it unless you have one. YouTu
 | YouTube result is empty or blocked | add the YouTube key (above); without it YouTube often refuses cloud computers |
 | Telegram returns nothing | do the Telegram steps above, or type public channel names like `@channelname` in the Telegram box |
 
-More detail on every platform, the results and the method is in the main [README](README.md).
+Exact click-by-click steps for every API key (YouTube, Telegram, X, AI) are in [README section 3](README.md#3-connecting-the-platforms-api-keys-step-by-step). More detail on the results and the method is in the main [README](README.md).

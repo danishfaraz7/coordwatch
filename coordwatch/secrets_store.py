@@ -24,7 +24,7 @@ def _file() -> Path:
 
 def _load() -> Dict[str, str]:
     try:
-        return json.loads(_file().read_text())
+        return json.loads(_file().read_text(encoding="utf-8"))
     except (OSError, ValueError):
         return {}
 
@@ -53,7 +53,7 @@ def save(updates: Dict[str, Optional[str]]) -> None:
         else:
             data.pop(k, None)
     fd = os.open(_file(), os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600)   # owner read/write only (POSIX)
-    with os.fdopen(fd, "w") as f:
+    with os.fdopen(fd, "w", encoding="utf-8") as f:
         json.dump(data, f)
 
 

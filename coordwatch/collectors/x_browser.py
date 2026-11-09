@@ -109,7 +109,7 @@ class XBrowser(Collector):
 
     @staticmethod
     def _cookies(path: str) -> list:
-        cookies = json.load(open(path))
+        cookies = json.load(open(path, encoding="utf-8"))
         for c in cookies:                                           # browser-extension export -> playwright format
             c.setdefault("domain", ".x.com")
             c.setdefault("path", "/")

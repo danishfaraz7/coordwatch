@@ -170,5 +170,5 @@ def _finish(topic, results, qlog, start, end, cache: Path) -> dict:
            "youtube_video_ids": sorted({y for r in results if (y := youtube_id(r["url"]))}),
            "dated_mentions": dated, "earliest_dated_mention": dated[0] if dated else None,
            "by_platform": dict(Counter(r["platform"] for r in results))}
-    cache.write_text(json.dumps(out, indent=1))
+    cache.write_text(json.dumps(out, indent=1), encoding="utf-8")
     return out

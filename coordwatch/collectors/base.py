@@ -72,7 +72,7 @@ class HttpClient:
             cp = self._cache_path(url, params, sorted((headers or {}).keys()))
             if os.path.exists(cp):
                 self.stats["cache_hits"] += 1
-                with open(cp) as f:
+                with open(cp, encoding="utf-8") as f:
                     return json.load(f)
         for attempt in range(self.max_retries + 1):
             if self.cancelled and self.cancelled():
@@ -88,7 +88,7 @@ class HttpClient:
             if r.status_code == 200:
                 data = r.json()
                 if cp:
-                    with open(cp, "w") as f:
+                    with open(cp, "w", encoding="utf-8") as f:
                         json.dump(data, f)
                 return data
             if r.status_code in (401, 403):
