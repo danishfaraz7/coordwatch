@@ -121,6 +121,31 @@ class WebTests(Base):
         self.assertIn(b"Acme Bank", html)
         self.assertEqual(self.call("GET", f"/api/jobs/{jid}/download/../../etc/passwd")[0], 404)
 
+    def test_history_survives_a_restart(self):
+        """A finished run is listed by /api/runs and can be reopened from disk once the in-memory job table is empty."""
+        code, body, _ = self.call("POST", "/api/run", {"topic": "Acme Bank", "since": "2026-10-01", "until": "2026-10-14", "demo": True})
+        jid = json.loads(body)["id"]
+        self.assertEqual(self._wait(jid)["status"], "done")
+        for _ in range(50):                                            # the meta file is written when the run is reported finished
+            runs = json.loads(self.call("GET", "/api/runs")[1])["runs"]
+            if any(r["id"] == jid for r in runs):
+                break
+            time.sleep(0.1)
+        row = next(r for r in runs if r["id"] == jid)
+        self.assertEqual(row["topic"], "Acme Bank")
+        self.assertGreater(row["n_posts"], 100)
+        self.assertEqual((row["since"], row["until"]), ("2026-10-01", "2026-10-14"))
+        saved = dict(W.JOBS)
+        W.JOBS.clear()                                                 # simulate a server restart
+        try:
+            res = json.loads(self.call("GET", f"/api/jobs/{jid}/result")[1])
+            self.assertEqual(res["meta"]["topic"], "Acme Bank")
+            self.assertEqual(self.call("GET", f"/api/jobs/{jid}/download/posts.csv")[0], 200)
+            self.assertEqual(self.call("GET", "/api/jobs/zzzz/result")[0], 404)          # not hex: never touches the disk
+            self.assertEqual(self.call("GET", "/api/jobs/..%2F..%2Fetc/result")[0], 404)
+        finally:
+            W.JOBS.update(saved)
+
     def test_live_platform_without_keys_degrades_gracefully(self):
         def unconfigured():
             raise RuntimeError("no credentials")

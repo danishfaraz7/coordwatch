@@ -75,13 +75,41 @@ def _write_run_log(job: Job):
             runlog.build(job.params, job.status, job.error, job.logs, job.result, job.started, datetime.now(timezone.utc), job.notes),
             encoding="utf-8")
         started = job.started or datetime.now(timezone.utc)
-        (job.dir / "run_meta.json").write_text(json.dumps({
-            "id": job.id, "started": started.astimezone(timezone.utc).isoformat(), "topic": job.params.get("topic"),
-            "platforms": job.params.get("platforms"), "status": job.status}), encoding="utf-8")
+        meta = {"id": job.id, "started": started.astimezone(timezone.utc).isoformat(), "topic": job.params.get("topic"),
+                "platforms": job.params.get("platforms"), "since": job.params.get("since"), "until": job.params.get("until"),
+                "status": job.status}
+        if job.result:
+            m = job.result["meta"]
+            meta.update(n_posts=m.get("n_posts"), n_accounts=m.get("n_accounts"), n_narratives=m.get("n_narratives"), n_groups=m.get("n_groups"))
+        (job.dir / "run_meta.json").write_text(json.dumps(meta, default=str), encoding="utf-8")
     except Exception:
         traceback.print_exc()
     finally:
         job.log_written = True
+
+
+def run_dir(run_id: str):
+    """Folder of a finished run on disk (survives restarts), or None. run_id is hex only, so it cannot escape the runs folder."""
+    if not re.fullmatch(r"[a-f0-9]+", run_id or ""):
+        return None
+    d = S.home() / "runs" / run_id
+    return d if d.is_dir() else None
+
+
+def list_runs(limit: int = 30) -> list:
+    """Finished runs that left a results file, newest first (for the Recent investigations list)."""
+    runs = S.home() / "runs"
+    out = []
+    for d in (runs.iterdir() if runs.is_dir() else []):
+        if not (d / "results.json").is_file():
+            continue
+        try:
+            m = json.loads((d / "run_meta.json").read_text(encoding="utf-8"))
+        except Exception:
+            continue
+        out.append({k: m.get(k) for k in ("id", "started", "topic", "platforms", "since", "until", "n_posts", "n_accounts", "n_narratives", "n_groups")})
+    out.sort(key=lambda r: r.get("started") or "", reverse=True)
+    return out[:limit]
 
 
 def collect_logs(start: datetime, end: datetime) -> tuple:
@@ -241,6 +269,8 @@ class Handler(BaseHTTPRequestHandler):
             return self._send(200, (STATIC / fn).read_bytes(), ct)
         if path == "/api/status":
             return self._json(200, platform_status())
+        if path == "/api/runs":
+            return self._json(200, {"runs": list_runs()})
         if path == "/api/logs":
             q = parse_qs(urlparse(self.path).query)
             try:
@@ -266,13 +296,18 @@ class Handler(BaseHTTPRequestHandler):
         m = re.fullmatch(r"/api/jobs/([a-f0-9]+)/result", path)
         if m:
             j = JOBS.get(m.group(1))
-            if not j or not j.result:
-                return self._json(404, {"error": "no result"})
-            return self._json(200, j.result)
+            if j and j.result:
+                return self._json(200, j.result)
+            d = run_dir(m.group(1))                        # a run from an earlier session
+            if d and (d / "results.json").is_file():
+                return self._send(200, (d / "results.json").read_bytes(), "application/json")
+            return self._json(404, {"error": "no result"})
         m = re.fullmatch(r"/api/jobs/([a-f0-9]+)/download/([\w.]+)", path)
-        if m and m.group(2) in DOWNLOADS and m.group(1) in JOBS:
-            f = JOBS[m.group(1)].dir / m.group(2)
-            if f.exists():
+        if m and m.group(2) in DOWNLOADS:
+            j = JOBS.get(m.group(1))
+            d = j.dir if j else run_dir(m.group(1))
+            f = d / m.group(2) if d else None
+            if f and f.exists():
                 disp = "inline" if m.group(2) == "report.html" else f'attachment; filename="{m.group(2)}"'
                 return self._send(200, f.read_bytes(), DOWNLOADS[m.group(2)], {"Content-Disposition": disp})
         self._json(404, {"error": "not found"})
