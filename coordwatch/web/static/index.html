@@ -41,6 +41,7 @@
     <button class="side-link" data-screen="narratives">◉ <span>Narratives</span></button>
     <button class="side-link" data-screen="groups">◎ <span>Coordinated Groups</span></button>
     <button class="side-link" data-screen="spread">↗ <span>Origin &amp; Spread</span></button>
+    <button class="side-link" data-screen="cross">⇄ <span>Cross-Platform</span></button>
     <button class="side-link" data-screen="posts">▦ <span>Posts Explorer</span></button>
     <div class="side-spacer"></div>
     <button class="side-link" data-screen="exports">⇩ <span>Exports</span></button>
@@ -53,6 +54,21 @@
       <div class="crumb"><span>‹</span> <b id="crumb-main">Home</b> <small id="crumb-sub"></small></div>
       <div class="top-actions"><span class="system-pill"><i></i> System ready</span><button id="top-settings" aria-label="Settings">⚙</button></div>
     </header>
+    <section id="landing-view" class="app-screen landing hidden">
+      <div class="landing-copy">
+        <div class="landing-mark">✣ <b>coordwatch</b><small>Social Coordination Analysis</small></div>
+        <h1>Discover how conversations <em>are coordinated.</em></h1>
+        <p>Track narratives. Find coordinated accounts. See how information spreads across platforms.</p>
+        <div class="landing-actions"><button id="landing-go" class="btn primary">Get Started →</button><button id="landing-demo" class="btn">Try a demo</button></div>
+        <p class="landing-foot"><i></i> Local first · No data leaves your machine</p>
+      </div>
+      <svg class="landing-art" viewBox="0 0 420 420" role="img" aria-label="Accounts on several platforms linked into a coordinated network">
+        <g stroke="#7d6bff" stroke-opacity=".45" fill="none"><circle cx="210" cy="210" r="86"/><circle cx="210" cy="210" r="140" stroke-dasharray="3 6"/><circle cx="210" cy="210" r="190" stroke-opacity=".2"/></g>
+        <g stroke="#9a7bff" stroke-width="1.4" stroke-opacity=".7"><line x1="210" y1="210" x2="90" y2="110"/><line x1="210" y1="210" x2="345" y2="130"/><line x1="210" y1="210" x2="110" y2="330"/><line x1="210" y1="210" x2="330" y2="320"/><line x1="90" y1="110" x2="345" y2="130" stroke-dasharray="4 5"/></g>
+        <circle cx="210" cy="210" r="42" fill="#2a1f63" stroke="#8b6bff" stroke-width="2"/><text x="210" y="219" text-anchor="middle" font-size="26" fill="#cbbcff">✣</text>
+        <g font-size="15" text-anchor="middle" fill="#fff"><circle cx="90" cy="110" r="24" fill="#d93025"/><text x="90" y="116">▶</text><circle cx="345" cy="130" r="24" fill="#229ed9"/><text x="345" y="136">➤</text><circle cx="110" cy="330" r="24" fill="#111" stroke="#fff" stroke-opacity=".6"/><text x="110" y="336">X</text><circle cx="330" cy="320" r="18" fill="#f0a73a"/><circle cx="260" cy="75" r="9" fill="#9a7bff"/><circle cx="55" cy="235" r="9" fill="#3ccf9d"/><circle cx="385" cy="235" r="8" fill="#ff6b8a"/></g>
+      </svg>
+    </section>
     <section id="home-view" class="app-screen">
       <div class="welcome-row"><div><p class="eyebrow">YOUR WORKSPACE</p><h1>Good evening, Analyst 👋</h1><p>Here's what's happening with your investigations.</p></div><button class="btn primary" id="home-new">＋ New Investigation</button></div>
       <div class="home-kpis">

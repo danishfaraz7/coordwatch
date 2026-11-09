@@ -320,3 +320,32 @@ body.analysis:not([data-view=posts]) #drawer{display:none!important}
 @media(max-height:620px) and (min-width:721px){#legend{max-height:calc(100vh - var(--worky) - var(--lowy) - 10px);overflow:auto}}
 
 #graph-tools{position:fixed;display:flex;gap:6px;padding:6px;border-radius:12px}
+
+/* cross-platform map */
+.analysis-card.wide,.xp-head{grid-column:1/-1}
+.xp-head h3{font-size:15px;margin:10px 0 2px}.xp-head p{font-size:11px;color:var(--mut);margin:0}
+.xp-card{cursor:default}.xp-card:hover{transform:none}
+.xp-card a{color:#b79aff;font-size:11px}
+.xp-pair{display:grid;grid-template-columns:1fr 30px 1fr;gap:10px;align-items:stretch;margin-top:10px}
+.xp-side{border:1px solid var(--line);border-radius:9px;padding:10px;background:#ffffff08;min-width:0}
+.xp-side b{font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:#cfd9ec}.xp-side small{display:block;font-size:10px;color:var(--mut);letter-spacing:0;margin:3px 0}.xp-side p{font-size:12px;color:var(--tx);overflow-wrap:anywhere}
+.xp-arrow{align-self:center;text-align:center;font-size:20px;color:#b79aff}
+.xp-go{margin-top:12px;background:none;border:0;color:#bba4ff;font-size:11px;padding:0;cursor:pointer}.xp-go:hover{text-decoration:underline}
+@media(max-width:720px){.xp-pair{grid-template-columns:1fr}.xp-arrow{transform:rotate(90deg)}}
+/* the timeline must never collapse to nothing on short windows */
+#tl{min-height:210px}
+
+/* welcome page */
+.landing{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:24px;align-items:center;min-height:calc(100vh - 140px)}
+.landing.hidden{display:none}
+.landing h1{font-size:clamp(30px,4.4vw,56px);line-height:1.05;margin:18px 0 14px}.landing h1 em{font-style:normal;color:#9a7bff}
+.landing p{color:var(--mut);font-size:15px;max-width:460px}
+.landing-mark{display:flex;flex-wrap:wrap;gap:2px 10px;align-items:baseline;font-size:20px;color:#9a7bff}.landing-mark b{color:var(--tx)}.landing-mark small{flex-basis:100%;color:var(--mut);font-size:12px}
+.landing-actions{display:flex;gap:10px;flex-wrap:wrap;margin:22px 0}
+.landing-foot{display:flex;align-items:center;gap:8px;font-size:12px!important}.landing-foot i{width:8px;height:8px;border-radius:50%;background:#3ccf9d}
+.landing-art{width:100%;max-width:460px;justify-self:center;filter:drop-shadow(0 0 30px #6d4dff55)}
+@media(max-width:900px){.landing{grid-template-columns:1fr;min-height:0}.landing-art{max-width:320px}}
+.xp-card .xp-arrow{font-size:20px;margin:0;display:flex;align-items:center;justify-content:center;color:#b79aff}
+
+#analysis-cards{grid-auto-rows:max-content}
+#analysis-cards .analysis-card{height:auto;overflow:visible;min-height:0}
