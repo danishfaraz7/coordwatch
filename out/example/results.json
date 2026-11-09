@@ -8,20 +8,20 @@
    "x",
    "youtube"
   ],
-  "generated_at": "2026-11-06T17:45:42.365015+00:00",
+  "generated_at": "2026-11-09T20:01:38.658000+00:00",
   "n_posts": 727,
   "n_accounts": 271,
   "n_narratives": 13,
-  "n_groups": 2,
-  "coordinated_accounts": 34,
-  "coordinated_post_share": 0.381,
+  "n_groups": 3,
+  "coordinated_accounts": 39,
+  "coordinated_post_share": 0.402,
   "bucket": "day",
   "config": {
    "narrative_sim": 0.2,
    "narrative_merge_sim": 0.3,
    "min_narrative_size": 4,
    "dup_jaccard": 0.7,
-   "min_tokens_for_dup": 4,
+   "min_tokens_for_dup": 6,
    "max_dup_authors": 150,
    "sync_window_s": 300,
    "sync_sim": 0.55,
@@ -35,7 +35,7 @@
    "avatar_hamming": 6,
    "default_avatar_share": 0.15,
    "min_group_size": 3,
-   "discount_verified": true
+   "discount_verified": false
   },
   "collector_notes": [
    "DEMO MODE: synthetic data with a planted ground truth - not real social-media content."
@@ -111,7 +111,7 @@
  },
  "narratives": [
   {
-   "id": 0,
+   "id": 1,
    "label": "insolvent / withdraw / savings / too",
    "keywords": [
     "insolvent",
@@ -397,7 +397,7 @@
    }
   },
   {
-   "id": 1,
+   "id": 2,
    "label": "again / fix / please / transfers",
    "keywords": [
     "again",
@@ -636,7 +636,7 @@
    "coordinated_groups": {}
   },
   {
-   "id": 2,
+   "id": 3,
    "label": "fees / charges / any / hidden",
    "keywords": [
     "fees",
@@ -799,7 +799,7 @@
    "coordinated_groups": {}
   },
   {
-   "id": 3,
+   "id": 4,
    "label": "fair / advisor / answered / within",
    "keywords": [
     "fair",
@@ -941,7 +941,7 @@
    "coordinated_groups": {}
   },
   {
-   "id": 4,
+   "id": 5,
    "label": "trouble / rumours / outage / evidence",
    "keywords": [
     "trouble",
@@ -1066,7 +1066,7 @@
    "coordinated_groups": {}
   },
   {
-   "id": 5,
+   "id": 6,
    "label": "after / disruption / worth / reading",
    "keywords": [
     "after",
@@ -1177,7 +1177,7 @@
    "coordinated_groups": {}
   },
   {
-   "id": 6,
+   "id": 7,
    "label": "rip / gone / lunch / never",
    "keywords": [
     "rip",
@@ -1263,7 +1263,7 @@
    "coordinated_groups": {}
   },
   {
-   "id": 7,
+   "id": 8,
    "label": "country / several / members / man",
    "keywords": [
     "country",
@@ -1344,7 +1344,7 @@
    }
   },
   {
-   "id": 8,
+   "id": 9,
    "label": "confirms / systems / protected / deposits",
    "keywords": [
     "confirms",
@@ -1403,11 +1403,13 @@
     "714",
     "713"
    ],
-   "coordinated_post_share": 0.0,
-   "coordinated_groups": {}
+   "coordinated_post_share": 1.0,
+   "coordinated_groups": {
+    "G3": 15
+   }
   },
   {
-   "id": 9,
+   "id": 10,
    "label": "overreacting / fundamentals / fine / look",
    "keywords": [
     "overreacting",
@@ -1472,7 +1474,7 @@
    "coordinated_groups": {}
   },
   {
-   "id": 10,
+   "id": 11,
    "label": "abroad / boarded / flight / coming",
    "keywords": [
     "abroad",
@@ -1525,7 +1527,7 @@
    }
   },
   {
-   "id": 11,
+   "id": 12,
    "label": "quarterly / results / looks / fine",
    "keywords": [
     "quarterly",
@@ -1571,7 +1573,7 @@
    "coordinated_groups": {}
   },
   {
-   "id": 12,
+   "id": 13,
    "label": "finally / fixed / problem / update",
    "keywords": [
     "finally",
@@ -4876,7 +4878,7 @@
    ],
    "id": "G1",
    "narratives": {
-    "0": 233
+    "1": 233
    }
   },
   {
@@ -5014,14 +5016,186 @@
    ],
    "id": "G2",
    "narratives": {
-    "7": 35,
-    "10": 9
+    "8": 35,
+    "11": 9
+   }
+  },
+  {
+   "accounts": [
+    "telegram:te61639439",
+    "telegram:te92637421",
+    "x:x24782157",
+    "x:x29036775",
+    "x:x67329147"
+   ],
+   "size": 5,
+   "score": 0.728,
+   "confidence": "medium",
+   "posts": 15,
+   "platforms": {
+    "x": 9,
+    "telegram": 6
+   },
+   "first_post": "2026-10-05T18:01:32+00:00",
+   "last_post": "2026-10-07T07:02:59+00:00",
+   "signal_coverage": {
+    "text_dup": "10/10 links",
+    "sync": "10/10 links"
+   },
+   "reasons": [
+    "5/5 accounts posted near-identical text (1 distinct copy-pasted message(s), Jaccard ≥ 0.7)",
+    "30 post-pairs with similar content within 5 min of each other (median lag 58s)"
+   ],
+   "evidence": [
+    {
+     "type": "near_duplicate",
+     "text": "Acme Bank confirms systems restored after outage, says customer deposits are fully protected",
+     "accounts": 5,
+     "first": "2026-10-05T18:01:32+00:00",
+     "last": "2026-10-07T07:02:59+00:00",
+     "post_ids": [
+      "703",
+      "704",
+      "705",
+      "706",
+      "707",
+      "709"
+     ]
+    },
+    {
+     "type": "synchronous_pair",
+     "lag_seconds": 0.0,
+     "a": {
+      "account": "x:x24782157",
+      "text": "Acme Bank confirms systems restored after outage, says customer deposits are fully protected | ",
+      "at": "2026-10-06T09:01:38+00:00"
+     },
+     "b": {
+      "account": "telegram:te92637421",
+      "text": "Acme Bank confirms systems restored after outage, says customer deposits are fully protected | ",
+      "at": "2026-10-06T09:01:38+00:00"
+     }
+    },
+    {
+     "type": "synchronous_pair",
+     "lag_seconds": 10.0,
+     "a": {
+      "account": "telegram:te61639439",
+      "text": "Acme Bank confirms systems restored after outage, says customer deposits are fully protected",
+      "at": "2026-10-05T18:02:39+00:00"
+     },
+     "b": {
+      "account": "x:x24782157",
+      "text": "Acme Bank confirms systems restored after outage, says customer deposits are fully protected | Staff",
+      "at": "2026-10-05T18:02:49+00:00"
+     }
+    },
+    {
+     "type": "synchronous_pair",
+     "lag_seconds": 17.0,
+     "a": {
+      "account": "x:x29036775",
+      "text": "Acme Bank confirms systems restored after outage, says customer deposits are fully protected",
+      "at": "2026-10-05T18:01:32+00:00"
+     },
+     "b": {
+      "account": "x:x67329147",
+      "text": "Acme Bank confirms systems restored after outage, says customer deposits are fully protected",
+      "at": "2026-10-05T18:01:49+00:00"
+     }
+    }
+   ],
+   "edges": [
+    {
+     "a": "x:x29036775",
+     "b": "x:x67329147",
+     "signals": [
+      "text_dup",
+      "sync"
+     ]
+    },
+    {
+     "a": "telegram:te61639439",
+     "b": "x:x29036775",
+     "signals": [
+      "text_dup",
+      "sync"
+     ]
+    },
+    {
+     "a": "x:x24782157",
+     "b": "x:x29036775",
+     "signals": [
+      "text_dup",
+      "sync"
+     ]
+    },
+    {
+     "a": "telegram:te92637421",
+     "b": "x:x29036775",
+     "signals": [
+      "text_dup",
+      "sync"
+     ]
+    },
+    {
+     "a": "telegram:te61639439",
+     "b": "x:x67329147",
+     "signals": [
+      "text_dup",
+      "sync"
+     ]
+    },
+    {
+     "a": "x:x24782157",
+     "b": "x:x67329147",
+     "signals": [
+      "text_dup",
+      "sync"
+     ]
+    },
+    {
+     "a": "telegram:te92637421",
+     "b": "x:x67329147",
+     "signals": [
+      "text_dup",
+      "sync"
+     ]
+    },
+    {
+     "a": "telegram:te61639439",
+     "b": "x:x24782157",
+     "signals": [
+      "text_dup",
+      "sync"
+     ]
+    },
+    {
+     "a": "telegram:te61639439",
+     "b": "telegram:te92637421",
+     "signals": [
+      "text_dup",
+      "sync"
+     ]
+    },
+    {
+     "a": "telegram:te92637421",
+     "b": "x:x24782157",
+     "signals": [
+      "text_dup",
+      "sync"
+     ]
+    }
+   ],
+   "id": "G3",
+   "narratives": {
+    "9": 15
    }
   }
  ],
  "origins": [
   {
-   "narrative_id": 0,
+   "narrative_id": 1,
    "label": "insolvent / withdraw / savings / too",
    "first_post": {
     "post_id": "429",
@@ -5183,7 +5357,7 @@
    }
   },
   {
-   "narrative_id": 1,
+   "narrative_id": 2,
    "label": "again / fix / please / transfers",
    "first_post": {
     "post_id": "100",
@@ -5325,7 +5499,7 @@
    }
   },
   {
-   "narrative_id": 2,
+   "narrative_id": 3,
    "label": "fees / charges / any / hidden",
    "first_post": {
     "post_id": "424",
@@ -5453,7 +5627,7 @@
    }
   },
   {
-   "narrative_id": 3,
+   "narrative_id": 4,
    "label": "fair / advisor / answered / within",
    "first_post": {
     "post_id": "32",
@@ -5588,7 +5762,7 @@
    }
   },
   {
-   "narrative_id": 4,
+   "narrative_id": 5,
    "label": "trouble / rumours / outage / evidence",
    "first_post": {
     "post_id": "244",
@@ -5733,7 +5907,7 @@
    }
   },
   {
-   "narrative_id": 5,
+   "narrative_id": 6,
    "label": "after / disruption / worth / reading",
    "first_post": {
     "post_id": "4",
@@ -5912,7 +6086,7 @@
    }
   },
   {
-   "narrative_id": 6,
+   "narrative_id": 7,
    "label": "rip / gone / lunch / never",
    "first_post": {
     "post_id": "726",
@@ -6041,7 +6215,7 @@
    }
   },
   {
-   "narrative_id": 7,
+   "narrative_id": 8,
    "label": "country / several / members / man",
    "first_post": {
     "post_id": "659",
@@ -6146,7 +6320,7 @@
    }
   },
   {
-   "narrative_id": 8,
+   "narrative_id": 9,
    "label": "confirms / systems / protected / deposits",
    "first_post": {
     "post_id": "703",
@@ -6156,7 +6330,7 @@
     "at": "2026-10-05T18:01:32+00:00",
     "url": "https://demo.invalid/x/newswire_daily/703",
     "text": "Acme Bank confirms systems restored after outage, says customer deposits are fully protected",
-    "coordinated_group": null,
+    "coordinated_group": "G3",
     "minutes_after_origin": 0.0
    },
    "first_accounts": [
@@ -6168,7 +6342,7 @@
      "at": "2026-10-05T18:01:32+00:00",
      "url": "https://demo.invalid/x/newswire_daily/703",
      "text": "Acme Bank confirms systems restored after outage, says customer deposits are fully protected",
-     "coordinated_group": null,
+     "coordinated_group": "G3",
      "minutes_after_origin": 0.0
     },
     {
@@ -6179,7 +6353,7 @@
      "at": "2026-10-05T18:01:49+00:00",
      "url": "https://demo.invalid/x/newswire_post/704",
      "text": "Acme Bank confirms systems restored after outage, says customer deposits are fully protected",
-     "coordinated_group": null,
+     "coordinated_group": "G3",
      "minutes_after_origin": 0.3
     },
     {
@@ -6190,7 +6364,7 @@
      "at": "2026-10-05T18:02:39+00:00",
      "url": "https://demo.invalid/telegram/newswire_tribune/705",
      "text": "Acme Bank confirms systems restored after outage, says customer deposits are fully protected",
-     "coordinated_group": null,
+     "coordinated_group": "G3",
      "minutes_after_origin": 1.1
     },
     {
@@ -6201,7 +6375,7 @@
      "at": "2026-10-05T18:02:49+00:00",
      "url": "https://demo.invalid/x/newswire_wire/706",
      "text": "Acme Bank confirms systems restored after outage, says customer deposits are fully protected | Staff",
-     "coordinated_group": null,
+     "coordinated_group": "G3",
      "minutes_after_origin": 1.3
     },
     {
@@ -6212,7 +6386,7 @@
      "at": "2026-10-05T18:03:19+00:00",
      "url": "https://demo.invalid/telegram/newswire_gazette/707",
      "text": "Acme Bank confirms systems restored after outage, says customer deposits are fully protected",
-     "coordinated_group": null,
+     "coordinated_group": "G3",
      "minutes_after_origin": 1.8
     }
    ],
@@ -6232,11 +6406,26 @@
      "lag_minutes": 1.1
     }
    ],
-   "copy_paste_lineage": [],
+   "copy_paste_lineage": [
+    {
+     "platform": "x",
+     "account": "x:x29036775",
+     "at": "2026-10-05T18:01:32+00:00",
+     "url": "https://demo.invalid/x/newswire_daily/703",
+     "lag_minutes": 0.0
+    },
+    {
+     "platform": "telegram",
+     "account": "telegram:te61639439",
+     "at": "2026-10-05T18:02:39+00:00",
+     "url": "https://demo.invalid/telegram/newswire_tribune/705",
+     "lag_minutes": 1.1
+    }
+   ],
    "early_wave_size": 5,
-   "early_wave_coordinated_share": 0.0,
-   "seeding_group": null,
-   "verdict": "No coordinated accounts among the earliest posts (looks organic).",
+   "early_wave_coordinated_share": 1.0,
+   "seeding_group": "G3",
+   "verdict": "Likely seeded: 100% of the first 5 posts came from coordinated group G3.",
    "cascade_first_48h": {
     "0": {
      "x": 3,
@@ -6260,7 +6449,7 @@
    }
   },
   {
-   "narrative_id": 9,
+   "narrative_id": 10,
    "label": "overreacting / fundamentals / fine / look",
    "first_post": {
     "post_id": "193",
@@ -6385,7 +6574,7 @@
    }
   },
   {
-   "narrative_id": 10,
+   "narrative_id": 11,
    "label": "abroad / boarded / flight / coming",
    "first_post": {
     "post_id": "663",
@@ -6485,7 +6674,7 @@
    }
   },
   {
-   "narrative_id": 11,
+   "narrative_id": 12,
    "label": "quarterly / results / looks / fine",
    "first_post": {
     "post_id": "762",
@@ -6554,7 +6743,7 @@
    }
   },
   {
-   "narrative_id": 12,
+   "narrative_id": 13,
    "label": "finally / fixed / problem / update",
    "first_post": {
     "post_id": "768",
@@ -6620,6 +6809,1346 @@
    }
   }
  ],
+ "cross_platform": {
+  "platforms": [
+   "telegram",
+   "x",
+   "youtube"
+  ],
+  "available": true,
+  "per_platform": {
+   "telegram": {
+    "posts": 212,
+    "accounts": 84,
+    "engagement": 5285,
+    "first": "2026-10-01T01:53:48+00:00",
+    "last": "2026-10-14T23:30:56+00:00"
+   },
+   "x": {
+    "posts": 427,
+    "accounts": 142,
+    "engagement": 8507,
+    "first": "2026-10-01T01:15:43+00:00",
+    "last": "2026-10-14T15:04:22+00:00"
+   },
+   "youtube": {
+    "posts": 88,
+    "accounts": 45,
+    "engagement": 533,
+    "first": "2026-10-01T16:48:25+00:00",
+    "last": "2026-10-14T22:17:05+00:00"
+   }
+  },
+  "narrative_overlap": [
+   {
+    "narrative_id": 1,
+    "label": "insolvent / withdraw / savings / too",
+    "posts": 233,
+    "by_platform": {
+     "telegram": 78,
+     "x": 143,
+     "youtube": 12
+    },
+    "first_platform": "telegram",
+    "then": [
+     "x"
+    ],
+    "lag_hours_to_next": 0.6
+   },
+   {
+    "narrative_id": 2,
+    "label": "again / fix / please / transfers",
+    "posts": 148,
+    "by_platform": {
+     "x": 79,
+     "telegram": 40,
+     "youtube": 29
+    },
+    "first_platform": "x",
+    "then": [
+     "telegram",
+     "youtube"
+    ],
+    "lag_hours_to_next": 0.1
+   },
+   {
+    "narrative_id": 3,
+    "label": "fees / charges / any / hidden",
+    "posts": 76,
+    "by_platform": {
+     "telegram": 24,
+     "x": 38,
+     "youtube": 14
+    },
+    "first_platform": "telegram",
+    "then": [
+     "x",
+     "youtube"
+    ],
+    "lag_hours_to_next": 18.9
+   },
+   {
+    "narrative_id": 4,
+    "label": "fair / advisor / answered / within",
+    "posts": 57,
+    "by_platform": {
+     "youtube": 10,
+     "x": 32,
+     "telegram": 15
+    },
+    "first_platform": "youtube",
+    "then": [
+     "x",
+     "telegram"
+    ],
+    "lag_hours_to_next": 3.3
+   },
+   {
+    "narrative_id": 5,
+    "label": "trouble / rumours / outage / evidence",
+    "posts": 50,
+    "by_platform": {
+     "x": 24,
+     "telegram": 18,
+     "youtube": 8
+    },
+    "first_platform": "x",
+    "then": [
+     "telegram",
+     "youtube"
+    ],
+    "lag_hours_to_next": 21.4
+   },
+   {
+    "narrative_id": 6,
+    "label": "after / disruption / worth / reading",
+    "posts": 43,
+    "by_platform": {
+     "telegram": 13,
+     "x": 25,
+     "youtube": 5
+    },
+    "first_platform": "telegram",
+    "then": [
+     "x",
+     "youtube"
+    ],
+    "lag_hours_to_next": 2.4
+   },
+   {
+    "narrative_id": 7,
+    "label": "rip / gone / lunch / never",
+    "posts": 40,
+    "by_platform": {
+     "youtube": 9,
+     "telegram": 14,
+     "x": 17
+    },
+    "first_platform": "youtube",
+    "then": [
+     "telegram",
+     "x"
+    ],
+    "lag_hours_to_next": 0.1
+   },
+   {
+    "narrative_id": 9,
+    "label": "confirms / systems / protected / deposits",
+    "posts": 15,
+    "by_platform": {
+     "x": 9,
+     "telegram": 6
+    },
+    "first_platform": "x",
+    "then": [
+     "telegram"
+    ],
+    "lag_hours_to_next": 0.0
+   },
+   {
+    "narrative_id": 10,
+    "label": "overreacting / fundamentals / fine / look",
+    "posts": 9,
+    "by_platform": {
+     "x": 4,
+     "youtube": 1,
+     "telegram": 4
+    },
+    "first_platform": "x",
+    "then": [
+     "telegram"
+    ],
+    "lag_hours_to_next": 29.9
+   }
+  ],
+  "volume_correlation": [
+   {
+    "a": "telegram",
+    "b": "x",
+    "buckets": 14,
+    "unit": "day",
+    "r": 0.91,
+    "best_r": 0.91,
+    "best_lag": 0,
+    "leader": null
+   },
+   {
+    "a": "telegram",
+    "b": "youtube",
+    "buckets": 14,
+    "unit": "day",
+    "r": 0.79,
+    "best_r": 0.79,
+    "best_lag": 0,
+    "leader": null
+   },
+   {
+    "a": "x",
+    "b": "youtube",
+    "buckets": 14,
+    "unit": "day",
+    "r": 0.85,
+    "best_r": 0.85,
+    "best_lag": 0,
+    "leader": null
+   }
+  ],
+  "shared_urls": [],
+  "shared_hashtags": [
+   {
+    "tag": "#acmebank",
+    "platforms": [
+     "telegram",
+     "x",
+     "youtube"
+    ],
+    "posts": 90
+   },
+   {
+    "tag": "#withdrawnow",
+    "platforms": [
+     "telegram",
+     "x",
+     "youtube"
+    ],
+    "posts": 76
+   },
+   {
+    "tag": "#bankrun",
+    "platforms": [
+     "telegram",
+     "x",
+     "youtube"
+    ],
+    "posts": 58
+   },
+   {
+    "tag": "#acmebankcollapse",
+    "platforms": [
+     "telegram",
+     "x",
+     "youtube"
+    ],
+    "posts": 51
+   },
+   {
+    "tag": "#banking",
+    "platforms": [
+     "telegram",
+     "x",
+     "youtube"
+    ],
+    "posts": 30
+   }
+  ],
+  "youtube_links_in_telegram": [],
+  "cross_platform_copies": [
+   {
+    "cluster": 16,
+    "platforms": [
+     "telegram",
+     "x",
+     "youtube"
+    ],
+    "posts": 65,
+    "accounts": 26,
+    "first_platform": "telegram",
+    "first_at": "2026-10-04T08:03:02+00:00",
+    "sample": "‼️ URGENT! Acme Bank is INSOLVENT, withdraw your savings now before it's too late. Share this! #AcmeBank"
+   },
+   {
+    "cluster": 17,
+    "platforms": [
+     "telegram",
+     "x",
+     "youtube"
+    ],
+    "posts": 65,
+    "accounts": 24,
+    "first_platform": "telegram",
+    "first_at": "2026-10-04T08:03:18+00:00",
+    "sample": "🚨 BREAKING: Acme Bank is insolvent - withdraw all your savings now before it is too late #AcmeBank"
+   },
+   {
+    "cluster": 15,
+    "platforms": [
+     "telegram",
+     "x",
+     "youtube"
+    ],
+    "posts": 58,
+    "accounts": 25,
+    "first_platform": "telegram",
+    "first_at": "2026-10-04T08:05:48+00:00",
+    "sample": "🚨 BREAKING: Acme Bank is INSOLVENT. Withdraw your savings NOW before it's too late! #AcmeBankCollapse"
+   },
+   {
+    "cluster": 23,
+    "platforms": [
+     "telegram",
+     "x",
+     "youtube"
+    ],
+    "posts": 40,
+    "accounts": 40,
+    "first_platform": "youtube",
+    "first_at": "2026-10-05T14:01:54+00:00",
+    "sample": "RIP Acme Bank app, gone to lunch and never came back, press F to pay respects"
+   },
+   {
+    "cluster": 25,
+    "platforms": [
+     "telegram",
+     "x"
+    ],
+    "posts": 15,
+    "accounts": 5,
+    "first_platform": "x",
+    "first_at": "2026-10-05T18:01:32+00:00",
+    "sample": "Acme Bank confirms systems restored after outage, says customer deposits are fully protected"
+   },
+   {
+    "cluster": 29,
+    "platforms": [
+     "telegram",
+     "x"
+    ],
+    "posts": 5,
+    "accounts": 5,
+    "first_platform": "x",
+    "first_at": "2026-10-05T23:41:07+00:00",
+    "sample": "My Acme Bank app just spins and times out while my card is declined at the shop Fix this please. @AcmeBankHelp"
+   },
+   {
+    "cluster": 3,
+    "platforms": [
+     "telegram",
+     "x",
+     "youtube"
+    ],
+    "posts": 3,
+    "accounts": 3,
+    "first_platform": "youtube",
+    "first_at": "2026-10-02T02:33:45+00:00",
+    "sample": "The Acme Bank website has been down since this morning so I can't pay rent Trying again later."
+   },
+   {
+    "cluster": 7,
+    "platforms": [
+     "telegram",
+     "x",
+     "youtube"
+    ],
+    "posts": 3,
+    "accounts": 3,
+    "first_platform": "youtube",
+    "first_at": "2026-10-04T04:50:51+00:00",
+    "sample": "Not saying anything is wrong at Acme Bank but this outage related to rumours about the loan book? Sources are thin DYOR."
+   },
+   {
+    "cluster": 12,
+    "platforms": [
+     "telegram",
+     "x",
+     "youtube"
+    ],
+    "posts": 3,
+    "accounts": 3,
+    "first_platform": "telegram",
+    "first_at": "2026-10-06T08:14:14+00:00",
+    "sample": "The Acme Bank website is completely unusable today and I cannot see my balance Anyone else?"
+   },
+   {
+    "cluster": 0,
+    "platforms": [
+     "x",
+     "youtube"
+    ],
+    "posts": 2,
+    "accounts": 2,
+    "first_platform": "youtube",
+    "first_at": "2026-10-05T20:34:15+00:00",
+    "sample": "Hidden fees at Acme Bank are insane for existing customers and I paid 35 dollars for one transfer Do the maths."
+   },
+   {
+    "cluster": 2,
+    "platforms": [
+     "telegram",
+     "x"
+    ],
+    "posts": 2,
+    "accounts": 2,
+    "first_platform": "telegram",
+    "first_at": "2026-10-05T14:28:16+00:00",
+    "sample": "Acme Bank's branch staff who were genuinely helpful which I did not expect Just saying. @AcmeBankHelp"
+   },
+   {
+    "cluster": 4,
+    "platforms": [
+     "telegram",
+     "x"
+    ],
+    "posts": 2,
+    "accounts": 2,
+    "first_platform": "telegram",
+    "first_at": "2026-10-05T14:55:13+00:00",
+    "sample": "The Acme Bank website has been down since this morning and I cannot see my balance Trying again later."
+   },
+   {
+    "cluster": 5,
+    "platforms": [
+     "x",
+     "youtube"
+    ],
+    "posts": 2,
+    "accounts": 2,
+    "first_platform": "youtube",
+    "first_at": "2026-10-05T12:01:36+00:00",
+    "sample": "Everyone panicking about Acme Bank is a concern or just IT trouble? No evidence either way yet Staying calm."
+   },
+   {
+    "cluster": 6,
+    "platforms": [
+     "telegram",
+     "x"
+    ],
+    "posts": 2,
+    "accounts": 2,
+    "first_platform": "x",
+    "first_at": "2026-10-05T12:24:18+00:00",
+    "sample": "Not saying anything is wrong at Acme Bank but this outage really is in trouble or not? No evidence either way yet Careful with rumours. ugh"
+   },
+   {
+    "cluster": 9,
+    "platforms": [
+     "telegram",
+     "x"
+    ],
+    "posts": 2,
+    "accounts": 2,
+    "first_platform": "x",
+    "first_at": "2026-10-06T12:21:44+00:00",
+    "sample": "Acme Bank online banking is completely unusable today - third time this month Fix this please. smh"
+   },
+   {
+    "cluster": 11,
+    "platforms": [
+     "x",
+     "youtube"
+    ],
+    "posts": 2,
+    "accounts": 2,
+    "first_platform": "x",
+    "first_at": "2026-10-03T17:13:41+00:00",
+    "sample": "Account charges at Acme Bank again so I'm switching banks Shop around. @AcmeBankHelp"
+   },
+   {
+    "cluster": 20,
+    "platforms": [
+     "telegram",
+     "x"
+    ],
+    "posts": 2,
+    "accounts": 2,
+    "first_platform": "x",
+    "first_at": "2026-10-05T04:07:40+00:00",
+    "sample": "Acme Bank's chief executive told customers the outage came from a software update in a short video message Worth reading in full."
+   },
+   {
+    "cluster": 21,
+    "platforms": [
+     "x",
+     "youtube"
+    ],
+    "posts": 2,
+    "accounts": 2,
+    "first_platform": "x",
+    "first_at": "2026-10-05T10:20:47+00:00",
+    "sample": "Acme Bank's mobile login went offline right when I needed it so I can't pay rent Anyone else? @AcmeBankHelp"
+   },
+   {
+    "cluster": 22,
+    "platforms": [
+     "x",
+     "youtube"
+    ],
+    "posts": 2,
+    "accounts": 2,
+    "first_platform": "x",
+    "first_at": "2026-10-06T05:14:33+00:00",
+    "sample": "Acme Bank's mobile login went offline right when I needed it and support is jammed Anyone else?"
+   },
+   {
+    "cluster": 24,
+    "platforms": [
+     "x",
+     "youtube"
+    ],
+    "posts": 2,
+    "accounts": 2,
+    "first_platform": "youtube",
+    "first_at": "2026-10-09T20:58:33+00:00",
+    "sample": "My Acme Bank app just spins and times out so I can't pay rent Fix this please. thoughts?"
+   },
+   {
+    "cluster": 31,
+    "platforms": [
+     "x",
+     "youtube"
+    ],
+    "posts": 2,
+    "accounts": 2,
+    "first_platform": "x",
+    "first_at": "2026-10-06T06:51:12+00:00",
+    "sample": "The Acme Bank wire fee for basic accounts - compare before you stay Thoughts? thoughts?"
+   },
+   {
+    "cluster": 32,
+    "platforms": [
+     "x",
+     "youtube"
+    ],
+    "posts": 2,
+    "accounts": 2,
+    "first_platform": "x",
+    "first_at": "2026-10-06T10:17:31+00:00",
+    "sample": "Acme Bank's new overdraft charges for existing customers so I'm switching banks Shop around."
+   },
+   {
+    "cluster": 33,
+    "platforms": [
+     "telegram",
+     "x"
+    ],
+    "posts": 2,
+    "accounts": 2,
+    "first_platform": "x",
+    "first_at": "2026-10-06T20:25:53+00:00",
+    "sample": "Account charges at Acme Bank for existing customers which feels like a cash grab Thoughts? seriously"
+   },
+   {
+    "cluster": 34,
+    "platforms": [
+     "telegram",
+     "youtube"
+    ],
+    "posts": 2,
+    "accounts": 2,
+    "first_platform": "telegram",
+    "first_at": "2026-10-06T21:06:13+00:00",
+    "sample": "Regulators confirm that Acme Bank there is no cause for concern after the morning disruption Worth reading in full. @AcmeBankHelp"
+   },
+   {
+    "cluster": 35,
+    "platforms": [
+     "telegram",
+     "x"
+    ],
+    "posts": 2,
+    "accounts": 2,
+    "first_platform": "telegram",
+    "first_at": "2026-10-07T11:29:07+00:00",
+    "sample": "The Acme Bank wire fee for basic accounts which feels like a cash grab Any recommendations? lol"
+   }
+  ],
+  "same_name_accounts": [
+   {
+    "name": "truthfinance06",
+    "accounts": [
+     "telegram:te35574404",
+     "x:x95450010"
+    ]
+   },
+   {
+    "name": "truthfinance04",
+    "accounts": [
+     "telegram:te59381407",
+     "x:x30302410"
+    ]
+   },
+   {
+    "name": "truthfinance00",
+    "accounts": [
+     "telegram:te86556525",
+     "x:x79386899"
+    ]
+   },
+   {
+    "name": "truthfinance02",
+    "accounts": [
+     "telegram:te72065617",
+     "x:x32143753"
+    ]
+   }
+  ],
+  "summary": [
+   "Volume: telegram 212 posts from 84 accounts, x 427 posts from 142 accounts, youtube 88 posts from 45 accounts.",
+   "9 narrative(s) appear on more than one platform. The largest, \"insolvent / withdraw / savings / too\", is on telegram, x, youtube; it surfaced first on telegram and reached x about 0.6 h later.",
+   "telegram vs x: daily volume correlates strongly (r=0.91) with no clear leader.",
+   "telegram vs youtube: daily volume correlates strongly (r=0.79) with no clear leader.",
+   "x vs youtube: daily volume correlates strongly (r=0.85) with no clear leader.",
+   "25 near-identical text cluster(s) span platforms; the largest has 65 posts from 26 accounts and first appeared on telegram.",
+   "4 display name(s) occur on several platforms; treat as a lead only, names are not identities.",
+   "These are correlations in public data, not proof of coordination or common control."
+  ]
+ },
+ "overview": {
+  "days": [
+   {
+    "date": "2026-10-01",
+    "total": 11,
+    "by_platform": {
+     "telegram": 3,
+     "x": 7,
+     "youtube": 1
+    },
+    "by_term": {
+     "acme bank": 11
+    }
+   },
+   {
+    "date": "2026-10-02",
+    "total": 15,
+    "by_platform": {
+     "telegram": 4,
+     "x": 8,
+     "youtube": 3
+    },
+    "by_term": {
+     "acme bank": 15
+    }
+   },
+   {
+    "date": "2026-10-03",
+    "total": 20,
+    "by_platform": {
+     "telegram": 8,
+     "x": 11,
+     "youtube": 1
+    },
+    "by_term": {
+     "acme bank": 20
+    }
+   },
+   {
+    "date": "2026-10-04",
+    "total": 124,
+    "by_platform": {
+     "telegram": 53,
+     "x": 67,
+     "youtube": 4
+    },
+    "by_term": {
+     "acme bank": 124
+    }
+   },
+   {
+    "date": "2026-10-05",
+    "total": 227,
+    "by_platform": {
+     "telegram": 69,
+     "x": 121,
+     "youtube": 37
+    },
+    "by_term": {
+     "acme bank": 227
+    }
+   },
+   {
+    "date": "2026-10-06",
+    "total": 140,
+    "by_platform": {
+     "telegram": 30,
+     "x": 97,
+     "youtube": 13
+    },
+    "by_term": {
+     "acme bank": 140
+    }
+   },
+   {
+    "date": "2026-10-07",
+    "total": 55,
+    "by_platform": {
+     "telegram": 12,
+     "x": 37,
+     "youtube": 6
+    },
+    "by_term": {
+     "acme bank": 55
+    }
+   },
+   {
+    "date": "2026-10-08",
+    "total": 31,
+    "by_platform": {
+     "telegram": 7,
+     "x": 18,
+     "youtube": 6
+    },
+    "by_term": {
+     "acme bank": 31
+    }
+   },
+   {
+    "date": "2026-10-09",
+    "total": 30,
+    "by_platform": {
+     "telegram": 7,
+     "x": 19,
+     "youtube": 4
+    },
+    "by_term": {
+     "acme bank": 30
+    }
+   },
+   {
+    "date": "2026-10-10",
+    "total": 14,
+    "by_platform": {
+     "telegram": 2,
+     "x": 10,
+     "youtube": 2
+    },
+    "by_term": {
+     "acme bank": 14
+    }
+   },
+   {
+    "date": "2026-10-11",
+    "total": 17,
+    "by_platform": {
+     "telegram": 4,
+     "x": 9,
+     "youtube": 4
+    },
+    "by_term": {
+     "acme bank": 17
+    }
+   },
+   {
+    "date": "2026-10-12",
+    "total": 18,
+    "by_platform": {
+     "telegram": 3,
+     "x": 10,
+     "youtube": 5
+    },
+    "by_term": {
+     "acme bank": 18
+    }
+   },
+   {
+    "date": "2026-10-13",
+    "total": 14,
+    "by_platform": {
+     "telegram": 6,
+     "x": 7,
+     "youtube": 1
+    },
+    "by_term": {
+     "acme bank": 14
+    }
+   },
+   {
+    "date": "2026-10-14",
+    "total": 11,
+    "by_platform": {
+     "telegram": 4,
+     "x": 6,
+     "youtube": 1
+    },
+    "by_term": {
+     "acme bank": 11
+    }
+   }
+  ],
+  "terms": [
+   {
+    "term": "acme bank",
+    "kind": "phrase",
+    "posts": 727,
+    "share": 1.0,
+    "accounts": 271,
+    "by_platform": {
+     "telegram": 212,
+     "x": 427,
+     "youtube": 88
+    },
+    "by_day": {
+     "2026-10-01": 11,
+     "2026-10-02": 15,
+     "2026-10-03": 20,
+     "2026-10-04": 124,
+     "2026-10-05": 227,
+     "2026-10-06": 140,
+     "2026-10-07": 55,
+     "2026-10-08": 31,
+     "2026-10-09": 30,
+     "2026-10-10": 14,
+     "2026-10-11": 17,
+     "2026-10-12": 18,
+     "2026-10-13": 14,
+     "2026-10-14": 11
+    },
+    "first": "2026-10-01T01:15:43+00:00",
+    "last": "2026-10-14T23:30:56+00:00"
+   }
+  ],
+  "narratives": [
+   {
+    "id": 1,
+    "label": "insolvent / withdraw / savings / too",
+    "posts": 233,
+    "by_day": {
+     "2026-10-01": 0,
+     "2026-10-02": 0,
+     "2026-10-03": 0,
+     "2026-10-04": 111,
+     "2026-10-05": 84,
+     "2026-10-06": 38,
+     "2026-10-07": 0,
+     "2026-10-08": 0,
+     "2026-10-09": 0,
+     "2026-10-10": 0,
+     "2026-10-11": 0,
+     "2026-10-12": 0,
+     "2026-10-13": 0,
+     "2026-10-14": 0
+    },
+    "by_term": {
+     "acme bank": 233
+    },
+    "by_platform": {
+     "telegram": 78,
+     "x": 143,
+     "youtube": 12
+    }
+   },
+   {
+    "id": 2,
+    "label": "again / fix / please / transfers",
+    "posts": 148,
+    "by_day": {
+     "2026-10-01": 3,
+     "2026-10-02": 6,
+     "2026-10-03": 6,
+     "2026-10-04": 5,
+     "2026-10-05": 39,
+     "2026-10-06": 26,
+     "2026-10-07": 20,
+     "2026-10-08": 7,
+     "2026-10-09": 6,
+     "2026-10-10": 6,
+     "2026-10-11": 9,
+     "2026-10-12": 7,
+     "2026-10-13": 4,
+     "2026-10-14": 4
+    },
+    "by_term": {
+     "acme bank": 148
+    },
+    "by_platform": {
+     "x": 79,
+     "telegram": 40,
+     "youtube": 29
+    }
+   },
+   {
+    "id": 3,
+    "label": "fees / charges / any / hidden",
+    "posts": 76,
+    "by_day": {
+     "2026-10-01": 2,
+     "2026-10-02": 4,
+     "2026-10-03": 5,
+     "2026-10-04": 2,
+     "2026-10-05": 16,
+     "2026-10-06": 20,
+     "2026-10-07": 8,
+     "2026-10-08": 1,
+     "2026-10-09": 3,
+     "2026-10-10": 3,
+     "2026-10-11": 4,
+     "2026-10-12": 2,
+     "2026-10-13": 5,
+     "2026-10-14": 1
+    },
+    "by_term": {
+     "acme bank": 76
+    },
+    "by_platform": {
+     "telegram": 24,
+     "x": 38,
+     "youtube": 14
+    }
+   },
+   {
+    "id": 4,
+    "label": "fair / advisor / answered / within",
+    "posts": 57,
+    "by_day": {
+     "2026-10-01": 2,
+     "2026-10-02": 2,
+     "2026-10-03": 4,
+     "2026-10-04": 2,
+     "2026-10-05": 11,
+     "2026-10-06": 12,
+     "2026-10-07": 5,
+     "2026-10-08": 3,
+     "2026-10-09": 3,
+     "2026-10-10": 1,
+     "2026-10-11": 3,
+     "2026-10-12": 4,
+     "2026-10-13": 2,
+     "2026-10-14": 3
+    },
+    "by_term": {
+     "acme bank": 57
+    },
+    "by_platform": {
+     "youtube": 10,
+     "x": 32,
+     "telegram": 15
+    }
+   },
+   {
+    "id": 5,
+    "label": "trouble / rumours / outage / evidence",
+    "posts": 50,
+    "by_day": {
+     "2026-10-01": 4,
+     "2026-10-02": 3,
+     "2026-10-03": 2,
+     "2026-10-04": 1,
+     "2026-10-05": 14,
+     "2026-10-06": 13,
+     "2026-10-07": 4,
+     "2026-10-08": 3,
+     "2026-10-09": 1,
+     "2026-10-10": 1,
+     "2026-10-11": 1,
+     "2026-10-12": 2,
+     "2026-10-13": 1,
+     "2026-10-14": 0
+    },
+    "by_term": {
+     "acme bank": 50
+    },
+    "by_platform": {
+     "x": 24,
+     "telegram": 18,
+     "youtube": 8
+    }
+   },
+   {
+    "id": 6,
+    "label": "after / disruption / worth / reading",
+    "posts": 43,
+    "by_day": {
+     "2026-10-01": 0,
+     "2026-10-02": 0,
+     "2026-10-03": 0,
+     "2026-10-04": 0,
+     "2026-10-05": 13,
+     "2026-10-06": 11,
+     "2026-10-07": 5,
+     "2026-10-08": 3,
+     "2026-10-09": 4,
+     "2026-10-10": 2,
+     "2026-10-11": 0,
+     "2026-10-12": 1,
+     "2026-10-13": 1,
+     "2026-10-14": 3
+    },
+    "by_term": {
+     "acme bank": 43
+    },
+    "by_platform": {
+     "telegram": 13,
+     "x": 25,
+     "youtube": 5
+    }
+   },
+   {
+    "id": 7,
+    "label": "rip / gone / lunch / never",
+    "posts": 40,
+    "by_day": {
+     "2026-10-01": 0,
+     "2026-10-02": 0,
+     "2026-10-03": 0,
+     "2026-10-04": 0,
+     "2026-10-05": 40,
+     "2026-10-06": 0,
+     "2026-10-07": 0,
+     "2026-10-08": 0,
+     "2026-10-09": 0,
+     "2026-10-10": 0,
+     "2026-10-11": 0,
+     "2026-10-12": 0,
+     "2026-10-13": 0,
+     "2026-10-14": 0
+    },
+    "by_term": {
+     "acme bank": 40
+    },
+    "by_platform": {
+     "youtube": 9,
+     "telegram": 14,
+     "x": 17
+    }
+   },
+   {
+    "id": 8,
+    "label": "country / several / members / man",
+    "posts": 35,
+    "by_day": {
+     "2026-10-01": 0,
+     "2026-10-02": 0,
+     "2026-10-03": 0,
+     "2026-10-04": 0,
+     "2026-10-05": 0,
+     "2026-10-06": 9,
+     "2026-10-07": 5,
+     "2026-10-08": 10,
+     "2026-10-09": 11,
+     "2026-10-10": 0,
+     "2026-10-11": 0,
+     "2026-10-12": 0,
+     "2026-10-13": 0,
+     "2026-10-14": 0
+    },
+    "by_term": {
+     "acme bank": 35
+    },
+    "by_platform": {
+     "x": 35
+    }
+   },
+   {
+    "id": 9,
+    "label": "confirms / systems / protected / deposits",
+    "posts": 15,
+    "by_day": {
+     "2026-10-01": 0,
+     "2026-10-02": 0,
+     "2026-10-03": 0,
+     "2026-10-04": 0,
+     "2026-10-05": 5,
+     "2026-10-06": 5,
+     "2026-10-07": 5,
+     "2026-10-08": 0,
+     "2026-10-09": 0,
+     "2026-10-10": 0,
+     "2026-10-11": 0,
+     "2026-10-12": 0,
+     "2026-10-13": 0,
+     "2026-10-14": 0
+    },
+    "by_term": {
+     "acme bank": 15
+    },
+    "by_platform": {
+     "x": 9,
+     "telegram": 6
+    }
+   },
+   {
+    "id": 10,
+    "label": "overreacting / fundamentals / fine / look",
+    "posts": 9,
+    "by_day": {
+     "2026-10-01": 0,
+     "2026-10-02": 0,
+     "2026-10-03": 1,
+     "2026-10-04": 1,
+     "2026-10-05": 3,
+     "2026-10-06": 2,
+     "2026-10-07": 0,
+     "2026-10-08": 0,
+     "2026-10-09": 0,
+     "2026-10-10": 1,
+     "2026-10-11": 0,
+     "2026-10-12": 0,
+     "2026-10-13": 1,
+     "2026-10-14": 0
+    },
+    "by_term": {
+     "acme bank": 9
+    },
+    "by_platform": {
+     "x": 4,
+     "youtube": 1,
+     "telegram": 4
+    }
+   },
+   {
+    "id": 11,
+    "label": "abroad / boarded / flight / coming",
+    "posts": 9,
+    "by_day": {
+     "2026-10-01": 0,
+     "2026-10-02": 0,
+     "2026-10-03": 0,
+     "2026-10-04": 0,
+     "2026-10-05": 0,
+     "2026-10-06": 4,
+     "2026-10-07": 3,
+     "2026-10-08": 2,
+     "2026-10-09": 0,
+     "2026-10-10": 0,
+     "2026-10-11": 0,
+     "2026-10-12": 0,
+     "2026-10-13": 0,
+     "2026-10-14": 0
+    },
+    "by_term": {
+     "acme bank": 9
+    },
+    "by_platform": {
+     "x": 9
+    }
+   },
+   {
+    "id": 12,
+    "label": "quarterly / results / looks / fine",
+    "posts": 6,
+    "by_day": {
+     "2026-10-01": 0,
+     "2026-10-02": 0,
+     "2026-10-03": 2,
+     "2026-10-04": 0,
+     "2026-10-05": 2,
+     "2026-10-06": 0,
+     "2026-10-07": 0,
+     "2026-10-08": 0,
+     "2026-10-09": 2,
+     "2026-10-10": 0,
+     "2026-10-11": 0,
+     "2026-10-12": 0,
+     "2026-10-13": 0,
+     "2026-10-14": 0
+    },
+    "by_term": {
+     "acme bank": 6
+    },
+    "by_platform": {
+     "x": 6
+    }
+   },
+   {
+    "id": 13,
+    "label": "finally / fixed / problem / update",
+    "posts": 6,
+    "by_day": {
+     "2026-10-01": 0,
+     "2026-10-02": 0,
+     "2026-10-03": 0,
+     "2026-10-04": 2,
+     "2026-10-05": 0,
+     "2026-10-06": 0,
+     "2026-10-07": 0,
+     "2026-10-08": 2,
+     "2026-10-09": 0,
+     "2026-10-10": 0,
+     "2026-10-11": 0,
+     "2026-10-12": 2,
+     "2026-10-13": 0,
+     "2026-10-14": 0
+    },
+    "by_term": {
+     "acme bank": 6
+    },
+    "by_platform": {
+     "x": 6
+    }
+   }
+  ],
+  "platforms": [
+   "telegram",
+   "x",
+   "youtube"
+  ],
+  "plain": {
+   "summary": [
+    "We looked at 'Acme Bank' from 2026-10-01 to 2026-10-14 on Telegram, X, YouTube.",
+    "We found 727 posts written by 271 different accounts.",
+    "The busiest day was 2026-10-05 with 227 posts.",
+    "“acme bank” (phrase) was mentioned in 727 posts (100% of everything) by 271 accounts.",
+    "People are talking about 13 main things. The biggest is “insolvent / withdraw / savings / too”, with 233 posts.",
+    "We found 3 group(s) of accounts that seem to work together. Together they wrote about 40% of all the posts."
+   ],
+   "narratives": [
+    {
+     "id": 1,
+     "label": "insolvent / withdraw / savings / too",
+     "text": "233 posts from 28 accounts talk about: insolvent, withdraw, savings, too, late. Mostly on X and Telegram. It was loudest on 2026-10-04. 100% of these posts come from accounts that seem to work together."
+    },
+    {
+     "id": 2,
+     "label": "again / fix / please / transfers",
+     "text": "148 posts from 122 accounts talk about: again, fix, please, transfers, website. Mostly on X and Telegram. It was loudest on 2026-10-05. It looks like normal people talking."
+    },
+    {
+     "id": 3,
+     "label": "fees / charges / any / hidden",
+     "text": "76 posts from 71 accounts talk about: fees, charges, any, hidden, insane. Mostly on X and Telegram. It was loudest on 2026-10-06. It looks like normal people talking."
+    },
+    {
+     "id": 4,
+     "label": "fair / advisor / answered / within",
+     "text": "57 posts from 50 accounts talk about: fair, advisor, answered, within, minutes. Mostly on X and Telegram. It was loudest on 2026-10-06. It looks like normal people talking."
+    },
+    {
+     "id": 5,
+     "label": "trouble / rumours / outage / evidence",
+     "text": "50 posts from 47 accounts talk about: trouble, rumours, outage, evidence, either. Mostly on X and Telegram. It was loudest on 2026-10-05. It looks like normal people talking."
+    },
+    {
+     "id": 6,
+     "label": "after / disruption / worth / reading",
+     "text": "43 posts from 43 accounts talk about: after, disruption, worth, reading, full. Mostly on X and Telegram. It was loudest on 2026-10-05. It looks like normal people talking."
+    },
+    {
+     "id": 7,
+     "label": "rip / gone / lunch / never",
+     "text": "40 posts from 40 accounts talk about: rip, gone, lunch, never, press. Mostly on X and Telegram. It was loudest on 2026-10-05. It looks like normal people talking."
+    },
+    {
+     "id": 8,
+     "label": "country / several / members / man",
+     "text": "35 posts from 6 accounts talk about: country, several, members, man, running. Mostly on X. It was loudest on 2026-10-09. 100% of these posts come from accounts that seem to work together."
+    },
+    {
+     "id": 9,
+     "label": "confirms / systems / protected / deposits",
+     "text": "15 posts from 5 accounts talk about: confirms, systems, protected, deposits, restored. Mostly on X and Telegram. It was loudest on 2026-10-05. 100% of these posts come from accounts that seem to work together."
+    },
+    {
+     "id": 10,
+     "label": "overreacting / fundamentals / fine / look",
+     "text": "9 posts from 9 accounts talk about: overreacting, fundamentals, fine, look, analysts. Mostly on X and Telegram. It was loudest on 2026-10-05. It looks like normal people talking."
+    },
+    {
+     "id": 11,
+     "label": "abroad / boarded / flight / coming",
+     "text": "9 posts from 5 accounts talk about: abroad, boarded, flight, coming, board. Mostly on X. It was loudest on 2026-10-06. 100% of these posts come from accounts that seem to work together."
+    },
+    {
+     "id": 12,
+     "label": "quarterly / results / looks / fine",
+     "text": "6 posts from 2 accounts talk about: quarterly, results, looks, fine. Mostly on X. It was loudest on 2026-10-03. It looks like normal people talking."
+    },
+    {
+     "id": 13,
+     "label": "finally / fixed / problem / update",
+     "text": "6 posts from 2 accounts talk about: finally, fixed, problem, update, mobile. Mostly on X. It was loudest on 2026-10-04. It looks like normal people talking."
+    }
+   ],
+   "groups": [
+    {
+     "id": "G1",
+     "text": "Group G1 has 28 accounts that seem to work together. Why we think so: they posted the same or almost the same words; their accounts were made around the same time; they posted within minutes of each other; they keep sharing and boosting each other's posts. This is a clue, not proof: real friends or fans can also look alike."
+    },
+    {
+     "id": "G2",
+     "text": "Group G2 has 6 accounts that seem to work together. Why we think so: they keep sharing and boosting each other's posts; they posted within minutes of each other. This is a clue, not proof: real friends or fans can also look alike."
+    },
+    {
+     "id": "G3",
+     "text": "Group G3 has 5 accounts that seem to work together. Why we think so: they posted the same or almost the same words; they posted within minutes of each other. This is a clue, not proof: real friends or fans can also look alike."
+    }
+   ],
+   "origins": [
+    {
+     "narrative_id": 1,
+     "label": "insolvent / withdraw / savings / too",
+     "text": "It first showed up on Telegram at 04 Oct 08:03 UTC, posted by “truth_finance_06”. After that it reached X about 38 minutes later, then YouTube about 26 hours later. The first wave of posts came from group G1, which suggests it was pushed on purpose."
+    },
+    {
+     "narrative_id": 2,
+     "label": "again / fix / please / transfers",
+     "text": "It first showed up on X at 01 Oct 03:11 UTC, posted by “user_056_tom”. After that it reached Telegram about 3 minutes later, then YouTube about 23 hours later. The first posts look like ordinary users."
+    },
+    {
+     "narrative_id": 3,
+     "label": "fees / charges / any / hidden",
+     "text": "It first showed up on Telegram at 01 Oct 01:53 UTC, posted by “user_228_jo”. After that it reached X about 19 hours later, then YouTube about 30 hours later. The first posts look like ordinary users."
+    },
+    {
+     "narrative_id": 4,
+     "label": "fair / advisor / answered / within",
+     "text": "It first showed up on YouTube at 01 Oct 16:48 UTC, posted by “user_021_raj”. After that it reached X about 3 hours later, then Telegram about 2 days later. The first posts look like ordinary users."
+    },
+    {
+     "narrative_id": 5,
+     "label": "trouble / rumours / outage / evidence",
+     "text": "It first showed up on X at 01 Oct 01:15 UTC, posted by “user_133_ana”. After that it reached Telegram about 21 hours later, then YouTube about 3 days later. The first posts look like ordinary users."
+    },
+    {
+     "narrative_id": 6,
+     "label": "after / disruption / worth / reading",
+     "text": "It first showed up on Telegram at 05 Oct 01:46 UTC, posted by “user_003_sam”. After that it reached X about 2 hours later, then YouTube about 8 hours later. The first posts look like ordinary users."
+    },
+    {
+     "narrative_id": 7,
+     "label": "rip / gone / lunch / never",
+     "text": "It first showed up on YouTube at 05 Oct 14:01 UTC, posted by “user_145_tom”. After that it reached Telegram about 5 minutes later, then X about 6 minutes later. The first posts look like ordinary users."
+    },
+    {
+     "narrative_id": 8,
+     "label": "country / several / members / man",
+     "text": "It first showed up on X at 06 Oct 14:00 UTC, posted by “insider_leaks_2”. It stayed on that one platform. The first wave of posts came from group G2, which suggests it was pushed on purpose."
+    },
+    {
+     "narrative_id": 9,
+     "label": "confirms / systems / protected / deposits",
+     "text": "It first showed up on X at 05 Oct 18:01 UTC, posted by “newswire_daily”. After that it reached Telegram about 1 minutes later. The first wave of posts came from group G3, which suggests it was pushed on purpose."
+    },
+    {
+     "narrative_id": 10,
+     "label": "overreacting / fundamentals / fine / look",
+     "text": "It first showed up on X at 03 Oct 18:30 UTC, posted by “user_106_sam”. After that it reached YouTube about 26 hours later, then Telegram about 30 hours later. The first posts look like ordinary users."
+    },
+    {
+     "narrative_id": 11,
+     "label": "abroad / boarded / flight / coming",
+     "text": "It first showed up on X at 06 Oct 14:04 UTC, posted by “insider_leaks_1”. It stayed on that one platform. The first wave of posts came from group G2, which suggests it was pushed on purpose."
+    },
+    {
+     "narrative_id": 12,
+     "label": "quarterly / results / looks / fine",
+     "text": "It first showed up on X at 03 Oct 15:15 UTC, posted by “fan_one”. It stayed on that one platform. The first posts look like ordinary users."
+    },
+    {
+     "narrative_id": 13,
+     "label": "finally / fixed / problem / update",
+     "text": "It first showed up on X at 04 Oct 00:08 UTC, posted by “fan_two”. It stayed on that one platform. The first posts look like ordinary users."
+    }
+   ]
+  }
+ },
  "posts": [
   {
    "id": "244",
@@ -6646,7 +8175,7 @@
    "lang": null,
    "account": "x:x94982908",
    "engagement": 2,
-   "narrative_id": 4,
+   "narrative_id": 5,
    "coordinated_group": null
   },
   {
@@ -6679,7 +8208,7 @@
    "lang": null,
    "account": "telegram:te63143336",
    "engagement": 1,
-   "narrative_id": 2,
+   "narrative_id": 3,
    "coordinated_group": null
   },
   {
@@ -6707,7 +8236,7 @@
    "lang": null,
    "account": "x:x66240084",
    "engagement": 0,
-   "narrative_id": 1,
+   "narrative_id": 2,
    "coordinated_group": null
   },
   {
@@ -6735,7 +8264,7 @@
    "lang": null,
    "account": "telegram:te47111151",
    "engagement": 10,
-   "narrative_id": 1,
+   "narrative_id": 2,
    "coordinated_group": null
   },
   {
@@ -6763,7 +8292,7 @@
    "lang": null,
    "account": "x:x49711319",
    "engagement": 3,
-   "narrative_id": 1,
+   "narrative_id": 2,
    "coordinated_group": null
   },
   {
@@ -6791,7 +8320,7 @@
    "lang": null,
    "account": "x:x17634247",
    "engagement": 12,
-   "narrative_id": 4,
+   "narrative_id": 5,
    "coordinated_group": null
   },
   {
@@ -6819,7 +8348,7 @@
    "lang": null,
    "account": "x:x16792127",
    "engagement": 6,
-   "narrative_id": 4,
+   "narrative_id": 5,
    "coordinated_group": null
   },
   {
@@ -6847,7 +8376,7 @@
    "lang": null,
    "account": "youtube:yo57553014",
    "engagement": 0,
-   "narrative_id": 3,
+   "narrative_id": 4,
    "coordinated_group": null
   },
   {
@@ -6875,7 +8404,7 @@
    "lang": null,
    "account": "x:x63100814",
    "engagement": 1,
-   "narrative_id": 3,
+   "narrative_id": 4,
    "coordinated_group": null
   },
   {
@@ -6903,7 +8432,7 @@
    "lang": null,
    "account": "x:x21631697",
    "engagement": 8,
-   "narrative_id": 2,
+   "narrative_id": 3,
    "coordinated_group": null
   },
   {
@@ -6931,7 +8460,7 @@
    "lang": null,
    "account": "telegram:te34391257",
    "engagement": 7,
-   "narrative_id": 4,
+   "narrative_id": 5,
    "coordinated_group": null
   },
   {
@@ -6959,7 +8488,7 @@
    "lang": null,
    "account": "x:x93926371",
    "engagement": 12,
-   "narrative_id": 2,
+   "narrative_id": 3,
    "coordinated_group": null
   },
   {
@@ -6992,7 +8521,7 @@
    "lang": null,
    "account": "youtube:yo40354559",
    "engagement": 1,
-   "narrative_id": 1,
+   "narrative_id": 2,
    "coordinated_group": null
   },
   {
@@ -7020,7 +8549,7 @@
    "lang": null,
    "account": "x:x18620650",
    "engagement": 7,
-   "narrative_id": 1,
+   "narrative_id": 2,
    "coordinated_group": null
   },
   {
@@ -7048,7 +8577,7 @@
    "lang": null,
    "account": "x:x97735896",
    "engagement": 10,
-   "narrative_id": 3,
+   "narrative_id": 4,
    "coordinated_group": null
   },
   {
@@ -7076,7 +8605,7 @@
    "lang": null,
    "account": "youtube:yo61167978",
    "engagement": 0,
-   "narrative_id": 2,
+   "narrative_id": 3,
    "coordinated_group": null
   },
   {
@@ -7104,7 +8633,7 @@
    "lang": null,
    "account": "telegram:te88990506",
    "engagement": 12,
-   "narrative_id": 4,
+   "narrative_id": 5,
    "coordinated_group": null
   },
   {
@@ -7137,7 +8666,7 @@
    "lang": null,
    "account": "x:x38351344",
    "engagement": 0,
-   "narrative_id": 1,
+   "narrative_id": 2,
    "coordinated_group": null
   },
   {
@@ -7165,7 +8694,7 @@
    "lang": null,
    "account": "x:x92545028",
    "engagement": 11,
-   "narrative_id": 3,
+   "narrative_id": 4,
    "coordinated_group": null
   },
   {
@@ -7193,7 +8722,7 @@
    "lang": null,
    "account": "youtube:yo71428713",
    "engagement": 0,
-   "narrative_id": 1,
+   "narrative_id": 2,
    "coordinated_group": null
   },
   {
@@ -7221,7 +8750,7 @@
    "lang": null,
    "account": "telegram:te63747791",
    "engagement": 4,
-   "narrative_id": 4,
+   "narrative_id": 5,
    "coordinated_group": null
   },
   {
@@ -7249,7 +8778,7 @@
    "lang": null,
    "account": "telegram:te31217198",
    "engagement": 8,
-   "narrative_id": 2,
+   "narrative_id": 3,
    "coordinated_group": null
   },
   {
@@ -7277,7 +8806,7 @@
    "lang": null,
    "account": "x:x93303777",
    "engagement": 3,
-   "narrative_id": 1,
+   "narrative_id": 2,
    "coordinated_group": null
   },
   {
@@ -7305,7 +8834,7 @@
    "lang": null,
    "account": "telegram:te60557040",
    "engagement": 5,
-   "narrative_id": 4,
+   "narrative_id": 5,
    "coordinated_group": null
   },
   {
@@ -7338,7 +8867,7 @@
    "lang": null,
    "account": "x:x86134287",
    "engagement": 0,
-   "narrative_id": 2,
+   "narrative_id": 3,
    "coordinated_group": null
   },
   {
@@ -7366,7 +8895,7 @@
    "lang": null,
    "account": "x:x79244185",
    "engagement": 7,
-   "narrative_id": 1,
+   "narrative_id": 2,
    "coordinated_group": null
   },
   {
@@ -7394,7 +8923,7 @@
    "lang": null,
    "account": "x:x81690398",
    "engagement": 22,
-   "narrative_id": 3,
+   "narrative_id": 4,
    "coordinated_group": null
   },
   {
@@ -7422,7 +8951,7 @@
    "lang": null,
    "account": "telegram:te40885967",
    "engagement": 17,
-   "narrative_id": 2,
+   "narrative_id": 3,
    "coordinated_group": null
   },
   {
@@ -7450,7 +8979,7 @@
    "lang": null,
    "account": "telegram:te54585178",
    "engagement": 12,
-   "narrative_id": 1,
+   "narrative_id": 2,
    "coordinated_group": null
   },
   {
@@ -7478,7 +9007,7 @@
    "lang": null,
    "account": "x:x46702849",
    "engagement": 20,
-   "narrative_id": 4,
+   "narrative_id": 5,
    "coordinated_group": null
   },
   {
@@ -7506,7 +9035,7 @@
    "lang": null,
    "account": "x:x96213226",
    "engagement": 1,
-   "narrative_id": 1,
+   "narrative_id": 2,
    "coordinated_group": null
   },
   {
@@ -7539,7 +9068,7 @@
    "lang": null,
    "account": "x:x28450513",
    "engagement": 0,
-   "narrative_id": 3,
+   "narrative_id": 4,
    "coordinated_group": null
   },
   {
@@ -7567,7 +9096,7 @@
    "lang": null,
    "account": "x:x66581473",
    "engagement": 5,
-   "narrative_id": 2,
+   "narrative_id": 3,
    "coordinated_group": null
   },
   {
@@ -7600,7 +9129,7 @@
    "lang": null,
    "account": "x:x87446468",
    "engagement": 16,
-   "narrative_id": 4,
+   "narrative_id": 5,
    "coordinated_group": null
   },
   {
@@ -7628,7 +9157,7 @@
    "lang": null,
    "account": "x:x52974720",
    "engagement": 3,
-   "narrative_id": 11,
+   "narrative_id": 12,
    "coordinated_group": null
   },
   {
@@ -7656,7 +9185,7 @@
    "lang": null,
    "account": "x:x13079321",
    "engagement": 0,
-   "narrative_id": 11,
+   "narrative_id": 12,
    "coordinated_group": null
   },
   {
@@ -7684,7 +9213,7 @@
    "lang": null,
    "account": "youtube:yo53455870",
    "engagement": 2,
-   "narrative_id": 1,
+   "narrative_id": 2,
    "coordinated_group": null
   },
   {
@@ -7712,7 +9241,7 @@
    "lang": null,
    "account": "x:x58678896",
    "engagement": 0,
-   "narrative_id": 2,
+   "narrative_id": 3,
    "coordinated_group": null
   },
   {
@@ -7740,7 +9269,7 @@
    "lang": null,
    "account": "x:x71315464",
    "engagement": 20,
-   "narrative_id": 9,
+   "narrative_id": 10,
    "coordinated_group": null
   },
   {
@@ -7773,7 +9302,7 @@
    "lang": null,
    "account": "telegram:te84905122",
    "engagement": 2,
-   "narrative_id": 1,
+   "narrative_id": 2,
    "coordinated_group": null
   },
   {
@@ -7801,7 +9330,7 @@
    "lang": null,
    "account": "telegram:te39219319",
    "engagement": 34,
-   "narrative_id": 1,
+   "narrative_id": 2,
    "coordinated_group": null
   },
   {
@@ -7829,7 +9358,7 @@
    "lang": null,
    "account": "telegram:te75569635",
    "engagement": 10,
-   "narrative_id": 1,
+   "narrative_id": 2,
    "coordinated_group": null
   },
   {
@@ -7857,7 +9386,7 @@
    "lang": null,
    "account": "telegram:te57459130",
    "engagement": 1,
-   "narrative_id": 2,
+   "narrative_id": 3,
    "coordinated_group": null
   },
   {
@@ -7885,7 +9414,7 @@
    "lang": null,
    "account": "telegram:te53154591",
    "engagement": 1,
-   "narrative_id": 3,
+   "narrative_id": 4,
    "coordinated_group": null
   },
   {
@@ -7913,7 +9442,7 @@
    "lang": null,
    "account": "telegram:te74180488",
    "engagement": 10,
-   "narrative_id": 2,
+   "narrative_id": 3,
    "coordinated_group": null
   },
   {
@@ -7941,7 +9470,7 @@
    "lang": null,
    "account": "x:x14380847",
    "engagement": 2,
-   "narrative_id": 3,
+   "narrative_id": 4,
    "coordinated_group": null
   },
   {
@@ -7969,7 +9498,7 @@
    "lang": null,
    "account": "x:x13079321",
    "engagement": 4,
-   "narrative_id": 12,
+   "narrative_id": 13,
    "coordinated_group": null
   },
   {
@@ -7997,7 +9526,7 @@
    "lang": null,
    "account": "x:x52974720",
    "engagement": 0,
-   "narrative_id": 12,
+   "narrative_id": 13,
    "coordinated_group": null
   },
   {
@@ -8025,7 +9554,7 @@
    "lang": null,
    "account": "telegram:te24508349",
    "engagement": 7,
-   "narrative_id": 1,
+   "narrative_id": 2,
    "coordinated_group": null
   },
   {
@@ -8053,7 +9582,7 @@
    "lang": null,
    "account": "telegram:te24508349",
    "engagement": 30,
-   "narrative_id": 3,
+   "narrative_id": 4,
    "coordinated_group": null
   },
   {
@@ -8081,7 +9610,7 @@
    "lang": null,
    "account": "youtube:yo23489853",
    "engagement": 5,
-   "narrative_id": 2,
+   "narrative_id": 3,
    "coordinated_group": null
   },
   {
@@ -8109,7 +9638,7 @@
    "lang": null,
    "account": "youtube:yo23903144",
    "engagement": 1,
-   "narrative_id": 4,
+   "narrative_id": 5,
    "coordinated_group": null
   },
   {
@@ -8137,7 +9666,7 @@
    "lang": null,
    "account": "youtube:yo61167978",
    "engagement": 0,
-   "narrative_id": 3,
+   "narrative_id": 4,
    "coordinated_group": null
   },
   {
@@ -8165,7 +9694,7 @@
    "lang": null,
    "account": "x:x15512205",
    "engagement": 2,
-   "narrative_id": 2,
+   "narrative_id": 3,
    "coordinated_group": null
   },
   {
@@ -8193,7 +9722,7 @@
    "lang": null,
    "account": "telegram:te35574404",
    "engagement": 1,
-   "narrative_id": 0,
+   "narrative_id": 1,
    "coordinated_group": "G1"
   },
   {
@@ -8221,7 +9750,7 @@
    "lang": null,
    "account": "telegram:te92947099",
    "engagement": 7,
-   "narrative_id": 0,
+   "narrative_id": 1,
    "coordinated_group": "G1"
   },
   {
@@ -8249,7 +9778,7 @@
    "lang": null,
    "account": "telegram:te96853189",
    "engagement": 1,
-   "narrative_id": 0,
+   "narrative_id": 1,
    "coordinated_group": "G1"
   },
   {
@@ -8277,7 +9806,7 @@
    "lang": null,
    "account": "telegram:te59381407",
    "engagement": 1,
-   "narrative_id": 0,
+   "narrative_id": 1,
    "coordinated_group": "G1"
   },
   {
@@ -8310,7 +9839,7 @@
    "lang": null,
    "account": "telegram:te86556525",
    "engagement": 2,
-   "narrative_id": 0,
+   "narrative_id": 1,
    "coordinated_group": "G1"
   },
   {
@@ -8338,7 +9867,7 @@
    "lang": null,
    "account": "telegram:te86556525",
    "engagement": 0,
-   "narrative_id": 0,
+   "narrative_id": 1,
    "coordinated_group": "G1"
   },
   {
@@ -8366,7 +9895,7 @@
    "lang": null,
    "account": "telegram:te59381407",
    "engagement": 0,
-   "narrative_id": 0,
+   "narrative_id": 1,
    "coordinated_group": "G1"
   },
   {
@@ -8394,7 +9923,7 @@
    "lang": null,
    "account": "telegram:te80576741",
    "engagement": 0,
-   "narrative_id": 0,
+   "narrative_id": 1,
    "coordinated_group": "G1"
   },
   {
@@ -8422,7 +9951,7 @@
    "lang": null,
    "account": "telegram:te96853189",
    "engagement": 0,
-   "narrative_id": 0,
+   "narrative_id": 1,
    "coordinated_group": "G1"
   },
   {
@@ -8450,7 +9979,7 @@
    "lang": null,
    "account": "telegram:te80576741",
    "engagement": 0,
-   "narrative_id": 0,
+   "narrative_id": 1,
    "coordinated_group": "G1"
   },
   {
@@ -8478,7 +10007,7 @@
    "lang": null,
    "account": "telegram:te72065617",
    "engagement": 0,
-   "narrative_id": 0,
+   "narrative_id": 1,
    "coordinated_group": "G1"
   },
   {
@@ -8506,7 +10035,7 @@
    "lang": null,
    "account": "telegram:te35574404",
    "engagement": 0,
-   "narrative_id": 0,
+   "narrative_id": 1,
    "coordinated_group": "G1"
   },
   {
@@ -8534,7 +10063,7 @@
    "lang": null,
    "account": "telegram:te59381407",
    "engagement": 0,
-   "narrative_id": 0,
+   "narrative_id": 1,
    "coordinated_group": "G1"
   },
   {
@@ -8562,7 +10091,7 @@
    "lang": null,
    "account": "telegram:te92947099",
    "engagement": 0,
-   "narrative_id": 0,
+   "narrative_id": 1,
    "coordinated_group": "G1"
   },
   {
@@ -8590,7 +10119,7 @@
    "lang": null,
    "account": "telegram:te48649601",
    "engagement": 0,
-   "narrative_id": 0,
+   "narrative_id": 1,
    "coordinated_group": "G1"
   },
   {
@@ -8618,7 +10147,7 @@
    "lang": null,
    "account": "telegram:te96853189",
    "engagement": 0,
-   "narrative_id": 0,
+   "narrative_id": 1,
    "coordinated_group": "G1"
   },
   {
@@ -8651,7 +10180,7 @@
    "lang": null,
    "account": "x:x30302410",
    "engagement": 6,
-   "narrative_id": 0,
+   "narrative_id": 1,
    "coordinated_group": "G1"
   },
   {
@@ -8684,7 +10213,7 @@
    "lang": null,
    "account": "x:x85102924",
    "engagement": 1,
-   "narrative_id": 0,
+   "narrative_id": 1,
    "coordinated_group": "G1"
   },
   {
@@ -8717,7 +10246,7 @@
    "lang": null,
    "account": "x:x79386899",
    "engagement": 10,
-   "narrative_id": 0,
+   "narrative_id": 1,
    "coordinated_group": "G1"
   },
   {
@@ -8745,7 +10274,7 @@
    "lang": null,
    "account": "x:x16108500",
    "engagement": 0,
-   "narrative_id": 0,
+   "narrative_id": 1,
    "coordinated_group": "G1"
   },
   {
@@ -8773,7 +10302,7 @@
    "lang": null,
    "account": "x:x32143753",
    "engagement": 11,
-   "narrative_id": 0,
+   "narrative_id": 1,
    "coordinated_group": "G1"
   },
   {
@@ -8801,7 +10330,7 @@
    "lang": null,
    "account": "x:x37730181",
    "engagement": 0,
-   "narrative_id": 0,
+   "narrative_id": 1,
    "coordinated_group": "G1"
   },
   {
@@ -8829,7 +10358,7 @@
    "lang": null,
    "account": "x:x37730181",
    "engagement": 2,
-   "narrative_id": 0,
+   "narrative_id": 1,
    "coordinated_group": "G1"
   },
   {
@@ -8857,7 +10386,7 @@
    "lang": null,
    "account": "x:x19805359",
    "engagement": 4,
-   "narrative_id": 0,
+   "narrative_id": 1,
    "coordinated_group": "G1"
   },
   {
@@ -8885,7 +10414,7 @@
    "lang": null,
    "account": "x:x91386202",
    "engagement": 0,
-   "narrative_id": 0,
+   "narrative_id": 1,
    "coordinated_group": "G1"
   },
   {
@@ -8913,7 +10442,7 @@
    "lang": null,
    "account": "x:x37730181",
    "engagement": 0,
-   "narrative_id": 0,
+   "narrative_id": 1,
    "coordinated_group": "G1"
   },
   {
@@ -8941,7 +10470,7 @@
    "lang": null,
    "account": "x:x61471888",
    "engagement": 0,
-   "narrative_id": 0,
+   "narrative_id": 1,
    "coordinated_group": "G1"
   },
   {
@@ -8969,7 +10498,7 @@
    "lang": null,
    "account": "x:x91386202",
    "engagement": 0,
-   "narrative_id": 0,
+   "narrative_id": 1,
    "coordinated_group": "G1"
   },
   {
@@ -8997,7 +10526,7 @@
    "lang": null,
    "account": "x:x41606345",
    "engagement": 0,
-   "narrative_id": 0,
+   "narrative_id": 1,
    "coordinated_group": "G1"
   },
   {
@@ -9025,7 +10554,7 @@
    "lang": null,
    "account": "x:x64831176",
    "engagement": 0,
-   "narrative_id": 0,
+   "narrative_id": 1,
    "coordinated_group": "G1"
   },
   {
@@ -9053,7 +10582,7 @@
    "lang": null,
    "account": "x:x41606345",
    "engagement": 0,
-   "narrative_id": 0,
+   "narrative_id": 1,
    "coordinated_group": "G1"
   },
   {
@@ -9081,7 +10610,7 @@
    "lang": null,
    "account": "x:x54676053",
    "engagement": 0,
-   "narrative_id": 0,
+   "narrative_id": 1,
    "coordinated_group": "G1"
   },
   {
@@ -9114,7 +10643,7 @@
    "lang": null,
    "account": "telegram:te80576741",
    "engagement": 5,
-   "narrative_id": 0,
+   "narrative_id": 1,
    "coordinated_group": "G1"
   },
   {
@@ -9147,7 +10676,7 @@
    "lang": null,
    "account": "telegram:te72065617",
    "engagement": 7,
-   "narrative_id": 0,
+   "narrative_id": 1,
    "coordinated_group": "G1"
   },
   {
@@ -9175,7 +10704,7 @@
    "lang": null,
    "account": "telegram:te96853189",
    "engagement": 7,
-   "narrative_id": 0,
+   "narrative_id": 1,
    "coordinated_group": "G1"
   },
   {
@@ -9203,7 +10732,7 @@
    "lang": null,
    "account": "telegram:te86556525",
    "engagement": 8,
-   "narrative_id": 0,
+   "narrative_id": 1,
    "coordinated_group": "G1"
   },
   {
@@ -9231,7 +10760,7 @@
    "lang": null,
    "account": "telegram:te59381407",
    "engagement": 5,
-   "narrative_id": 0,
+   "narrative_id": 1,
    "coordinated_group": "G1"
   },
   {
@@ -9259,7 +10788,7 @@
    "lang": null,
    "account": "x:x32143753",
    "engagement": 0,
-   "narrative_id": 0,
+   "narrative_id": 1,
    "coordinated_group": "G1"
   },
   {
@@ -9287,7 +10816,7 @@
    "lang": null,
    "account": "x:x53385340",
    "engagement": 0,
-   "narrative_id": 0,
+   "narrative_id": 1,
    "coordinated_group": "G1"
   },
   {
@@ -9315,7 +10844,7 @@
    "lang": null,
    "account": "x:x88235926",
    "engagement": 0,
-   "narrative_id": 0,
+   "narrative_id": 1,
    "coordinated_group": "G1"
   },
   {
@@ -9343,7 +10872,7 @@
    "lang": null,
    "account": "telegram:te35574404",
    "engagement": 9,
-   "narrative_id": 0,
+   "narrative_id": 1,
    "coordinated_group": "G1"
   },
   {
@@ -9371,7 +10900,7 @@
    "lang": null,
    "account": "x:x30302410",
    "engagement": 0,
-   "narrative_id": 0,
+   "narrative_id": 1,
    "coordinated_group": "G1"
   },
   {
@@ -9404,7 +10933,7 @@
    "lang": null,
    "account": "telegram:te48649601",
    "engagement": 0,
-   "narrative_id": 0,
+   "narrative_id": 1,
    "coordinated_group": "G1"
   },
   {
@@ -9432,7 +10961,7 @@
    "lang": null,
    "account": "telegram:te92947099",
    "engagement": 2,
-   "narrative_id": 0,
+   "narrative_id": 1,
    "coordinated_group": "G1"
   },
   {
@@ -9460,7 +10989,7 @@
    "lang": null,
    "account": "x:x79386899",
    "engagement": 0,
-   "narrative_id": 0,
+   "narrative_id": 1,
    "coordinated_group": "G1"
   },
   {
@@ -9488,7 +11017,7 @@
    "lang": null,
    "account": "x:x79386899",
    "engagement": 0,
-   "narrative_id": 0,
+   "narrative_id": 1,
    "coordinated_group": "G1"
   },
   {
@@ -9516,7 +11045,7 @@
    "lang": null,
    "account": "x:x54676053",
    "engagement": 0,
-   "narrative_id": 0,
+   "narrative_id": 1,
    "coordinated_group": "G1"
   },
   {
@@ -9544,7 +11073,7 @@
    "lang": null,
    "account": "x:x19805359",
    "engagement": 0,
-   "narrative_id": 0,
+   "narrative_id": 1,
    "coordinated_group": "G1"
   },
   {
@@ -9572,7 +11101,7 @@
    "lang": null,
    "account": "x:x53385340",
    "engagement": 0,
-   "narrative_id": 0,
+   "narrative_id": 1,
    "coordinated_group": "G1"
   },
   {
@@ -9600,7 +11129,7 @@
    "lang": null,
    "account": "x:x88235926",
    "engagement": 0,
-   "narrative_id": 0,
+   "narrative_id": 1,
    "coordinated_group": "G1"
   },
   {
@@ -9628,7 +11157,7 @@
    "lang": null,
    "account": "x:x85102924",
    "engagement": 0,
-   "narrative_id": 0,
+   "narrative_id": 1,
    "coordinated_group": "G1"
   },
   {
@@ -9656,7 +11185,7 @@
    "lang": null,
    "account": "x:x95450010",
    "engagement": 0,
-   "narrative_id": 0,
+   "narrative_id": 1,
    "coordinated_group": "G1"
   },
   {
@@ -9684,7 +11213,7 @@
    "lang": null,
    "account": "x:x95450010",
    "engagement": 0,
-   "narrative_id": 0,
+   "narrative_id": 1,
    "coordinated_group": "G1"
   },
   {
@@ -9712,7 +11241,7 @@
    "lang": null,
    "account": "x:x32143753",
    "engagement": 0,
-   "narrative_id": 0,
+   "narrative_id": 1,
    "coordinated_group": "G1"
   },
   {
@@ -9740,7 +11269,7 @@
    "lang": null,
    "account": "x:x77611740",
    "engagement": 0,
-   "narrative_id": 0,
+   "narrative_id": 1,
    "coordinated_group": "G1"
   },
   {
@@ -9768,7 +11297,7 @@
    "lang": null,
    "account": "x:x64831176",
    "engagement": 0,
-   "narrative_id": 0,
+   "narrative_id": 1,
    "coordinated_group": "G1"
   },
   {
@@ -9796,7 +11325,7 @@
    "lang": null,
    "account": "x:x61471888",
    "engagement": 0,
-   "narrative_id": 0,
+   "narrative_id": 1,
    "coordinated_group": "G1"
   },
   {
@@ -9824,7 +11353,7 @@
    "lang": null,
    "account": "x:x19805359",
    "engagement": 0,
-   "narrative_id": 0,
+   "narrative_id": 1,
    "coordinated_group": "G1"
   },
   {
@@ -9852,7 +11381,7 @@
    "lang": null,
    "account": "x:x85102924",
    "engagement": 0,
-   "narrative_id": 0,
+   "narrative_id": 1,
    "coordinated_group": "G1"
   },
   {
@@ -9880,7 +11409,7 @@
    "lang": null,
    "account": "x:x77611740",
    "engagement": 0,
-   "narrative_id": 0,
+   "narrative_id": 1,
    "coordinated_group": "G1"
   },
   {
@@ -9908,7 +11437,7 @@
    "lang": null,
    "account": "x:x16108500",
    "engagement": 0,
-   "narrative_id": 0,
+   "narrative_id": 1,
    "coordinated_group": "G1"
   },
   {
@@ -9936,7 +11465,7 @@
    "lang": null,
    "account": "telegram:te72065617",
    "engagement": 0,
-   "narrative_id": 0,
+   "narrative_id": 1,
    "coordinated_group": "G1"
   },
   {
@@ -9964,7 +11493,7 @@
    "lang": null,
    "account": "telegram:te86556525",
    "engagement": 0,
-   "narrative_id": 0,
+   "narrative_id": 1,
    "coordinated_group": "G1"
   },
   {
@@ -9992,7 +11521,7 @@
    "lang": null,
    "account": "telegram:te35574404",
    "engagement": 0,
-   "narrative_id": 0,
+   "narrative_id": 1,
    "coordinated_group": "G1"
   },
   {
@@ -10020,7 +11549,7 @@
    "lang": null,
    "account": "telegram:te48649601",
    "engagement": 9,
-   "narrative_id": 0,
+   "narrative_id": 1,
    "coordinated_group": "G1"
   },
   {
@@ -10053,7 +11582,7 @@
    "lang": null,
    "account": "telegram:te96853189",
    "engagement": 6,
-   "narrative_id": 0,
+   "narrative_id": 1,
    "coordinated_group": "G1"
   },
   {
@@ -10086,7 +11615,7 @@
    "lang": null,
    "account": "telegram:te86556525",
    "engagement": 1,
-   "narrative_id": 0,
+   "narrative_id": 1,
    "coordinated_group": "G1"
   },
   {
@@ -10119,7 +11648,7 @@
    "lang": null,
    "account": "telegram:te72065617",
    "engagement": 8,
-   "narrative_id": 0,
+   "narrative_id": 1,
    "coordinated_group": "G1"
   },
   {
@@ -10152,7 +11681,7 @@
    "lang": null,
    "account": "telegram:te92947099",
    "engagement": 1,
-   "narrative_id": 0,
+   "narrative_id": 1,
    "coordinated_group": "G1"
   },
   {
@@ -10180,7 +11709,7 @@
    "lang": null,
    "account": "telegram:te80576741",
    "engagement": 7,
-   "narrative_id": 0,
+   "narrative_id": 1,
    "coordinated_group": "G1"
   },
   {
@@ -10208,7 +11737,7 @@
    "lang": null,
    "account": "telegram:te35574404",
    "engagement": 1,
-   "narrative_id": 0,
+   "narrative_id": 1,
    "coordinated_group": "G1"
   },
   {
@@ -10236,7 +11765,7 @@
    "lang": null,
    "account": "telegram:te59381407",
    "engagement": 2,
-   "narrative_id": 0,
+   "narrative_id": 1,
    "coordinated_group": "G1"
   },
   {
@@ -10264,7 +11793,7 @@
    "lang": null,
    "account": "x:x79386899",
    "engagement": 5,
-   "narrative_id": 0,
+   "narrative_id": 1,
    "coordinated_group": "G1"
   },
   {
@@ -10297,7 +11826,7 @@
    "lang": null,
    "account": "x:x91386202",
    "engagement": 2,
-   "narrative_id": 0,
+   "narrative_id": 1,
    "coordinated_group": "G1"
   },
   {
@@ -10325,7 +11854,7 @@
    "lang": null,
    "account": "x:x85102924",
    "engagement": 11,
-   "narrative_id": 0,
+   "narrative_id": 1,
    "coordinated_group": "G1"
   },
   {
@@ -10353,7 +11882,7 @@
    "lang": null,
    "account": "x:x54676053",
    "engagement": 2,
-   "narrative_id": 0,
+   "narrative_id": 1,
    "coordinated_group": "G1"
   },
   {
@@ -10381,7 +11910,7 @@
    "lang": null,
    "account": "x:x16108500",
    "engagement": 10,
-   "narrative_id": 0,
+   "narrative_id": 1,
    "coordinated_group": "G1"
   },
   {
@@ -10409,7 +11938,7 @@
    "lang": null,
    "account": "x:x77611740",
    "engagement": 2,
-   "narrative_id": 0,
+   "narrative_id": 1,
    "coordinated_group": "G1"
   },
   {
@@ -10437,7 +11966,7 @@
    "lang": null,
    "account": "x:x30302410",
    "engagement": 8,
-   "narrative_id": 0,
+   "narrative_id": 1,
    "coordinated_group": "G1"
   },
   {
@@ -10465,7 +11994,7 @@
    "lang": null,
    "account": "x:x41606345",
    "engagement": 5,
-   "narrative_id": 0,
+   "narrative_id": 1,
    "coordinated_group": "G1"
   },
   {
@@ -10498,7 +12027,7 @@
    "lang": null,
    "account": "x:x16108500",
    "engagement": 0,
-   "narrative_id": 0,
+   "narrative_id": 1,
    "coordinated_group": "G1"
   },
   {
@@ -10526,7 +12055,7 @@
    "lang": null,
    "account": "x:x79386899",
    "engagement": 0,
-   "narrative_id": 0,
+   "narrative_id": 1,
    "coordinated_group": "G1"
   },
   {
@@ -10554,7 +12083,7 @@
    "lang": null,
    "account": "x:x30302410",
    "engagement": 13,
-   "narrative_id": 0,
+   "narrative_id": 1,
    "coordinated_group": "G1"
   },
   {
@@ -10582,7 +12111,7 @@
    "lang": null,
    "account": "x:x61471888",
    "engagement": 8,
-   "narrative_id": 0,
+   "narrative_id": 1,
    "coordinated_group": "G1"
   },
   {
@@ -10610,7 +12139,7 @@
    "lang": null,
    "account": "x:x19805359",
    "engagement": 2,
-   "narrative_id": 0,
+   "narrative_id": 1,
    "coordinated_group": "G1"
   },
   {
@@ -10638,7 +12167,7 @@
    "lang": null,
    "account": "x:x37730181",
    "engagement": 6,
-   "narrative_id": 0,
+   "narrative_id": 1,
    "coordinated_group": "G1"
   },
   {
@@ -10671,7 +12200,7 @@
    "lang": null,
    "account": "x:x95450010",
    "engagement": 8,
-   "narrative_id": 0,
+   "narrative_id": 1,
    "coordinated_group": "G1"
   },
   {
@@ -10699,7 +12228,7 @@
    "lang": null,
    "account": "x:x37730181",
    "engagement": 1,
-   "narrative_id": 0,
+   "narrative_id": 1,
    "coordinated_group": "G1"
   },
   {
@@ -10727,7 +12256,7 @@
    "lang": null,
    "account": "x:x85102924",
    "engagement": 1,
-   "narrative_id": 0,
+   "narrative_id": 1,
    "coordinated_group": "G1"
   },
   {
@@ -10755,7 +12284,7 @@
    "lang": null,
    "account": "x:x32143753",
    "engagement": 4,
-   "narrative_id": 0,
+   "narrative_id": 1,
    "coordinated_group": "G1"
   },
   {
@@ -10783,7 +12312,7 @@
    "lang": null,
    "account": "x:x19805359",
    "engagement": 5,
-   "narrative_id": 0,
+   "narrative_id": 1,
    "coordinated_group": "G1"
   },
   {
@@ -10811,7 +12340,7 @@
    "lang": null,
    "account": "x:x79386899",
    "engagement": 8,
-   "narrative_id": 0,
+   "narrative_id": 1,
    "coordinated_group": "G1"
   },
   {
@@ -10839,7 +12368,7 @@
    "lang": null,
    "account": "x:x54676053",
    "engagement": 4,
-   "narrative_id": 0,
+   "narrative_id": 1,
    "coordinated_group": "G1"
   },
   {
@@ -10867,7 +12396,7 @@
    "lang": null,
    "account": "x:x16108500",
    "engagement": 9,
-   "narrative_id": 0,
+   "narrative_id": 1,
    "coordinated_group": "G1"
   },
   {
@@ -10895,7 +12424,7 @@
    "lang": null,
    "account": "x:x41606345",
    "engagement": 0,
-   "narrative_id": 0,
+   "narrative_id": 1,
    "coordinated_group": "G1"
   },
   {
@@ -10923,7 +12452,7 @@
    "lang": null,
    "account": "telegram:te96853189",
    "engagement": 11,
-   "narrative_id": 0,
+   "narrative_id": 1,
    "coordinated_group": "G1"
   },
   {
@@ -10951,7 +12480,7 @@
    "lang": null,
    "account": "telegram:te48649601",
    "engagement": 4,
-   "narrative_id": 0,
+   "narrative_id": 1,
    "coordinated_group": "G1"
   },
   {
@@ -10979,7 +12508,7 @@
    "lang": null,
    "account": "telegram:te35574404",
    "engagement": 1,
-   "narrative_id": 0,
+   "narrative_id": 1,
    "coordinated_group": "G1"
   },
   {
@@ -11007,7 +12536,7 @@
    "lang": null,
    "account": "telegram:te86556525",
    "engagement": 0,
-   "narrative_id": 0,
+   "narrative_id": 1,
    "coordinated_group": "G1"
   },
   {
@@ -11035,7 +12564,7 @@
    "lang": null,
    "account": "telegram:te59381407",
    "engagement": 9,
-   "narrative_id": 0,
+   "narrative_id": 1,
    "coordinated_group": "G1"
   },
   {
@@ -11063,7 +12592,7 @@
    "lang": null,
    "account": "telegram:te80576741",
    "engagement": 3,
-   "narrative_id": 0,
+   "narrative_id": 1,
    "coordinated_group": "G1"
   },
   {
@@ -11096,7 +12625,7 @@
    "lang": null,
    "account": "telegram:te92947099",
    "engagement": 8,
-   "narrative_id": 0,
+   "narrative_id": 1,
    "coordinated_group": "G1"
   },
   {
@@ -11129,7 +12658,7 @@
    "lang": null,
    "account": "telegram:te72065617",
    "engagement": 5,
-   "narrative_id": 0,
+   "narrative_id": 1,
    "coordinated_group": "G1"
   },
   {
@@ -11157,7 +12686,7 @@
    "lang": null,
    "account": "x:x71070189",
    "engagement": 3,
-   "narrative_id": 1,
+   "narrative_id": 2,
    "coordinated_group": null
   },
   {
@@ -11190,7 +12719,7 @@
    "lang": null,
    "account": "x:x36040410",
    "engagement": 15,
-   "narrative_id": 1,
+   "narrative_id": 2,
    "coordinated_group": null
   },
   {
@@ -11218,7 +12747,7 @@
    "lang": null,
    "account": "x:x20555833",
    "engagement": 0,
-   "narrative_id": 1,
+   "narrative_id": 2,
    "coordinated_group": null
   },
   {
@@ -11246,7 +12775,7 @@
    "lang": null,
    "account": "telegram:te92947099",
    "engagement": 7,
-   "narrative_id": 0,
+   "narrative_id": 1,
    "coordinated_group": "G1"
   },
   {
@@ -11274,7 +12803,7 @@
    "lang": null,
    "account": "telegram:te48649601",
    "engagement": 9,
-   "narrative_id": 0,
+   "narrative_id": 1,
    "coordinated_group": "G1"
   },
   {
@@ -11302,7 +12831,7 @@
    "lang": null,
    "account": "telegram:te96853189",
    "engagement": 7,
-   "narrative_id": 0,
+   "narrative_id": 1,
    "coordinated_group": "G1"
   },
   {
@@ -11330,7 +12859,7 @@
    "lang": null,
    "account": "telegram:te72065617",
    "engagement": 6,
-   "narrative_id": 0,
+   "narrative_id": 1,
    "coordinated_group": "G1"
   },
   {
@@ -11358,7 +12887,7 @@
    "lang": null,
    "account": "telegram:te80576741",
    "engagement": 2,
-   "narrative_id": 0,
+   "narrative_id": 1,
    "coordinated_group": "G1"
   },
   {
@@ -11391,7 +12920,7 @@
    "lang": null,
    "account": "telegram:te86556525",
    "engagement": 8,
-   "narrative_id": 0,
+   "narrative_id": 1,
    "coordinated_group": "G1"
   },
   {
@@ -11424,7 +12953,7 @@
    "lang": null,
    "account": "telegram:te35574404",
    "engagement": 3,
-   "narrative_id": 0,
+   "narrative_id": 1,
    "coordinated_group": "G1"
   },
   {
@@ -11457,7 +12986,7 @@
    "lang": null,
    "account": "telegram:te59381407",
    "engagement": 7,
-   "narrative_id": 0,
+   "narrative_id": 1,
    "coordinated_group": "G1"
   },
   {
@@ -11485,7 +13014,7 @@
    "lang": null,
    "account": "x:x52352128",
    "engagement": 1,
-   "narrative_id": 1,
+   "narrative_id": 2,
    "coordinated_group": null
   },
   {
@@ -11513,7 +13042,7 @@
    "lang": null,
    "account": "youtube:yo15614174",
    "engagement": 8,
-   "narrative_id": 9,
+   "narrative_id": 10,
    "coordinated_group": null
   },
   {
@@ -11541,7 +13070,7 @@
    "lang": null,
    "account": "telegram:te24665841",
    "engagement": 6,
-   "narrative_id": 9,
+   "narrative_id": 10,
    "coordinated_group": null
   },
   {
@@ -11574,7 +13103,7 @@
    "lang": null,
    "account": "x:x22257687",
    "engagement": 0,
-   "narrative_id": 4,
+   "narrative_id": 5,
    "coordinated_group": null
   },
   {
@@ -11602,7 +13131,7 @@
    "lang": null,
    "account": "telegram:te73655158",
    "engagement": 7,
-   "narrative_id": 2,
+   "narrative_id": 3,
    "coordinated_group": null
   },
   {
@@ -11630,7 +13159,7 @@
    "lang": null,
    "account": "telegram:te91030736",
    "engagement": 10,
-   "narrative_id": 5,
+   "narrative_id": 6,
    "coordinated_group": null
   },
   {
@@ -11658,7 +13187,7 @@
    "lang": null,
    "account": "x:x60043345",
    "engagement": 0,
-   "narrative_id": 9,
+   "narrative_id": 10,
    "coordinated_group": null
   },
   {
@@ -11686,7 +13215,7 @@
    "lang": null,
    "account": "youtube:yo48851599",
    "engagement": 2,
-   "narrative_id": 2,
+   "narrative_id": 3,
    "coordinated_group": null
   },
   {
@@ -11714,7 +13243,7 @@
    "lang": null,
    "account": "x:x49700543",
    "engagement": 3,
-   "narrative_id": 1,
+   "narrative_id": 2,
    "coordinated_group": null
   },
   {
@@ -11742,7 +13271,7 @@
    "lang": null,
    "account": "x:x82503409",
    "engagement": 8,
-   "narrative_id": 3,
+   "narrative_id": 4,
    "coordinated_group": null
   },
   {
@@ -11775,7 +13304,7 @@
    "lang": null,
    "account": "youtube:yo28012011",
    "engagement": 2,
-   "narrative_id": 1,
+   "narrative_id": 2,
    "coordinated_group": null
   },
   {
@@ -11803,7 +13332,7 @@
    "lang": null,
    "account": "x:x69476001",
    "engagement": 2,
-   "narrative_id": 1,
+   "narrative_id": 2,
    "coordinated_group": null
   },
   {
@@ -11831,7 +13360,7 @@
    "lang": null,
    "account": "youtube:yo71428713",
    "engagement": 2,
-   "narrative_id": 1,
+   "narrative_id": 2,
    "coordinated_group": null
   },
   {
@@ -11859,7 +13388,7 @@
    "lang": null,
    "account": "x:x15646068",
    "engagement": 11,
-   "narrative_id": 1,
+   "narrative_id": 2,
    "coordinated_group": null
   },
   {
@@ -11887,7 +13416,7 @@
    "lang": null,
    "account": "telegram:te77853916",
    "engagement": 5,
-   "narrative_id": 4,
+   "narrative_id": 5,
    "coordinated_group": null
   },
   {
@@ -11915,7 +13444,7 @@
    "lang": null,
    "account": "x:x79067939",
    "engagement": 13,
-   "narrative_id": 5,
+   "narrative_id": 6,
    "coordinated_group": null
   },
   {
@@ -11948,7 +13477,7 @@
    "lang": null,
    "account": "x:x24636981",
    "engagement": 1,
-   "narrative_id": 4,
+   "narrative_id": 5,
    "coordinated_group": null
   },
   {
@@ -11976,7 +13505,7 @@
    "lang": null,
    "account": "x:x65625330",
    "engagement": 13,
-   "narrative_id": 1,
+   "narrative_id": 2,
    "coordinated_group": null
   },
   {
@@ -12004,7 +13533,7 @@
    "lang": null,
    "account": "x:x78371272",
    "engagement": 1,
-   "narrative_id": 1,
+   "narrative_id": 2,
    "coordinated_group": null
   },
   {
@@ -12032,7 +13561,7 @@
    "lang": null,
    "account": "x:x15512205",
    "engagement": 1,
-   "narrative_id": 1,
+   "narrative_id": 2,
    "coordinated_group": null
   },
   {
@@ -12060,7 +13589,7 @@
    "lang": null,
    "account": "telegram:te84597009",
    "engagement": 7,
-   "narrative_id": 2,
+   "narrative_id": 3,
    "coordinated_group": null
   },
   {
@@ -12088,7 +13617,7 @@
    "lang": null,
    "account": "x:x65625330",
    "engagement": 6,
-   "narrative_id": 2,
+   "narrative_id": 3,
    "coordinated_group": null
   },
   {
@@ -12116,7 +13645,7 @@
    "lang": null,
    "account": "x:x93851247",
    "engagement": 1,
-   "narrative_id": 1,
+   "narrative_id": 2,
    "coordinated_group": null
   },
   {
@@ -12144,7 +13673,7 @@
    "lang": null,
    "account": "telegram:te84905122",
    "engagement": 24,
-   "narrative_id": 9,
+   "narrative_id": 10,
    "coordinated_group": null
   },
   {
@@ -12172,7 +13701,7 @@
    "lang": null,
    "account": "x:x79244185",
    "engagement": 6,
-   "narrative_id": 5,
+   "narrative_id": 6,
    "coordinated_group": null
   },
   {
@@ -12200,7 +13729,7 @@
    "lang": null,
    "account": "x:x19939096",
    "engagement": 6,
-   "narrative_id": 3,
+   "narrative_id": 4,
    "coordinated_group": null
   },
   {
@@ -12228,7 +13757,7 @@
    "lang": null,
    "account": "youtube:yo94183695",
    "engagement": 2,
-   "narrative_id": 4,
+   "narrative_id": 5,
    "coordinated_group": null
   },
   {
@@ -12256,7 +13785,7 @@
    "lang": null,
    "account": "x:x69476001",
    "engagement": 7,
-   "narrative_id": 1,
+   "narrative_id": 2,
    "coordinated_group": null
   },
   {
@@ -12284,7 +13813,7 @@
    "lang": null,
    "account": "telegram:te75569635",
    "engagement": 2,
-   "narrative_id": 5,
+   "narrative_id": 6,
    "coordinated_group": null
   },
   {
@@ -12312,7 +13841,7 @@
    "lang": null,
    "account": "x:x75793759",
    "engagement": 0,
-   "narrative_id": 3,
+   "narrative_id": 4,
    "coordinated_group": null
   },
   {
@@ -12340,7 +13869,7 @@
    "lang": null,
    "account": "telegram:te96031876",
    "engagement": 0,
-   "narrative_id": 1,
+   "narrative_id": 2,
    "coordinated_group": null
   },
   {
@@ -12368,7 +13897,7 @@
    "lang": null,
    "account": "youtube:yo61167978",
    "engagement": 3,
-   "narrative_id": 3,
+   "narrative_id": 4,
    "coordinated_group": null
   },
   {
@@ -12396,7 +13925,7 @@
    "lang": null,
    "account": "youtube:yo10380581",
    "engagement": 10,
-   "narrative_id": 1,
+   "narrative_id": 2,
    "coordinated_group": null
   },
   {
@@ -12424,7 +13953,7 @@
    "lang": null,
    "account": "telegram:te24508349",
    "engagement": 2,
-   "narrative_id": 4,
+   "narrative_id": 5,
    "coordinated_group": null
   },
   {
@@ -12452,7 +13981,7 @@
    "lang": null,
    "account": "youtube:yo68646621",
    "engagement": 3,
-   "narrative_id": 5,
+   "narrative_id": 6,
    "coordinated_group": null
   },
   {
@@ -12480,7 +14009,7 @@
    "lang": null,
    "account": "telegram:te47111151",
    "engagement": 0,
-   "narrative_id": 1,
+   "narrative_id": 2,
    "coordinated_group": null
   },
   {
@@ -12508,7 +14037,7 @@
    "lang": null,
    "account": "x:x45186708",
    "engagement": 1,
-   "narrative_id": 1,
+   "narrative_id": 2,
    "coordinated_group": null
   },
   {
@@ -12536,7 +14065,7 @@
    "lang": null,
    "account": "x:x55667651",
    "engagement": 22,
-   "narrative_id": 1,
+   "narrative_id": 2,
    "coordinated_group": null
   },
   {
@@ -12564,7 +14093,7 @@
    "lang": null,
    "account": "youtube:yo27705940",
    "engagement": 0,
-   "narrative_id": 0,
+   "narrative_id": 1,
    "coordinated_group": "G1"
   },
   {
@@ -12592,7 +14121,7 @@
    "lang": null,
    "account": "youtube:yo92266282",
    "engagement": 3,
-   "narrative_id": 0,
+   "narrative_id": 1,
    "coordinated_group": "G1"
   },
   {
@@ -12625,7 +14154,7 @@
    "lang": null,
    "account": "youtube:yo58397866",
    "engagement": 9,
-   "narrative_id": 0,
+   "narrative_id": 1,
    "coordinated_group": "G1"
   },
   {
@@ -12658,7 +14187,7 @@
    "lang": null,
    "account": "youtube:yo15927344",
    "engagement": 5,
-   "narrative_id": 0,
+   "narrative_id": 1,
    "coordinated_group": "G1"
   },
   {
@@ -12686,7 +14215,7 @@
    "lang": null,
    "account": "x:x58678896",
    "engagement": 0,
-   "narrative_id": 1,
+   "narrative_id": 2,
    "coordinated_group": null
   },
   {
@@ -12714,7 +14243,7 @@
    "lang": null,
    "account": "x:x92545028",
    "engagement": 9,
-   "narrative_id": 2,
+   "narrative_id": 3,
    "coordinated_group": null
   },
   {
@@ -12742,7 +14271,7 @@
    "lang": null,
    "account": "x:x90023800",
    "engagement": 9,
-   "narrative_id": 1,
+   "narrative_id": 2,
    "coordinated_group": null
   },
   {
@@ -12770,7 +14299,7 @@
    "lang": null,
    "account": "youtube:yo58397866",
    "engagement": 8,
-   "narrative_id": 0,
+   "narrative_id": 1,
    "coordinated_group": "G1"
   },
   {
@@ -12798,7 +14327,7 @@
    "lang": null,
    "account": "youtube:yo92266282",
    "engagement": 7,
-   "narrative_id": 0,
+   "narrative_id": 1,
    "coordinated_group": "G1"
   },
   {
@@ -12831,7 +14360,7 @@
    "lang": null,
    "account": "youtube:yo15927344",
    "engagement": 6,
-   "narrative_id": 0,
+   "narrative_id": 1,
    "coordinated_group": "G1"
   },
   {
@@ -12859,7 +14388,7 @@
    "lang": null,
    "account": "youtube:yo27705940",
    "engagement": 3,
-   "narrative_id": 0,
+   "narrative_id": 1,
    "coordinated_group": "G1"
   },
   {
@@ -12887,7 +14416,7 @@
    "lang": null,
    "account": "youtube:yo53106399",
    "engagement": 10,
-   "narrative_id": 5,
+   "narrative_id": 6,
    "coordinated_group": null
   },
   {
@@ -12915,7 +14444,7 @@
    "lang": null,
    "account": "x:x92631441",
    "engagement": 4,
-   "narrative_id": 1,
+   "narrative_id": 2,
    "coordinated_group": null
   },
   {
@@ -12943,7 +14472,7 @@
    "lang": null,
    "account": "telegram:te33574011",
    "engagement": 8,
-   "narrative_id": 2,
+   "narrative_id": 3,
    "coordinated_group": null
   },
   {
@@ -12971,7 +14500,7 @@
    "lang": null,
    "account": "telegram:te15291208",
    "engagement": 1,
-   "narrative_id": 5,
+   "narrative_id": 6,
    "coordinated_group": null
   },
   {
@@ -12999,7 +14528,7 @@
    "lang": null,
    "account": "x:x52974720",
    "engagement": 3,
-   "narrative_id": 11,
+   "narrative_id": 12,
    "coordinated_group": null
   },
   {
@@ -13027,7 +14556,7 @@
    "lang": null,
    "account": "x:x13079321",
    "engagement": 0,
-   "narrative_id": 11,
+   "narrative_id": 12,
    "coordinated_group": null
   },
   {
@@ -13060,7 +14589,7 @@
    "lang": null,
    "account": "youtube:yo15927344",
    "engagement": 4,
-   "narrative_id": 0,
+   "narrative_id": 1,
    "coordinated_group": "G1"
   },
   {
@@ -13088,7 +14617,7 @@
    "lang": null,
    "account": "youtube:yo58397866",
    "engagement": 7,
-   "narrative_id": 0,
+   "narrative_id": 1,
    "coordinated_group": "G1"
   },
   {
@@ -13116,7 +14645,7 @@
    "lang": null,
    "account": "youtube:yo92266282",
    "engagement": 5,
-   "narrative_id": 0,
+   "narrative_id": 1,
    "coordinated_group": "G1"
   },
   {
@@ -13149,7 +14678,7 @@
    "lang": null,
    "account": "youtube:yo27705940",
    "engagement": 9,
-   "narrative_id": 0,
+   "narrative_id": 1,
    "coordinated_group": "G1"
   },
   {
@@ -13177,7 +14706,7 @@
    "lang": null,
    "account": "x:x79244185",
    "engagement": 3,
-   "narrative_id": 4,
+   "narrative_id": 5,
    "coordinated_group": null
   },
   {
@@ -13205,7 +14734,7 @@
    "lang": null,
    "account": "youtube:yo96977837",
    "engagement": 1,
-   "narrative_id": 2,
+   "narrative_id": 3,
    "coordinated_group": null
   },
   {
@@ -13233,7 +14762,7 @@
    "lang": null,
    "account": "youtube:yo12550658",
    "engagement": 2,
-   "narrative_id": 4,
+   "narrative_id": 5,
    "coordinated_group": null
   },
   {
@@ -13261,7 +14790,7 @@
    "lang": null,
    "account": "x:x41895531",
    "engagement": 4,
-   "narrative_id": 4,
+   "narrative_id": 5,
    "coordinated_group": null
   },
   {
@@ -13289,7 +14818,7 @@
    "lang": null,
    "account": "youtube:yo54559574",
    "engagement": 3,
-   "narrative_id": 2,
+   "narrative_id": 3,
    "coordinated_group": null
   },
   {
@@ -13317,7 +14846,7 @@
    "lang": null,
    "account": "x:x48735464",
    "engagement": 4,
-   "narrative_id": 2,
+   "narrative_id": 3,
    "coordinated_group": null
   },
   {
@@ -13345,7 +14874,7 @@
    "lang": null,
    "account": "x:x64831176",
    "engagement": 0,
-   "narrative_id": 0,
+   "narrative_id": 1,
    "coordinated_group": "G1"
   },
   {
@@ -13373,7 +14902,7 @@
    "lang": null,
    "account": "x:x19805359",
    "engagement": 8,
-   "narrative_id": 0,
+   "narrative_id": 1,
    "coordinated_group": "G1"
   },
   {
@@ -13406,7 +14935,7 @@
    "lang": null,
    "account": "x:x54676053",
    "engagement": 1,
-   "narrative_id": 0,
+   "narrative_id": 1,
    "coordinated_group": "G1"
   },
   {
@@ -13434,7 +14963,7 @@
    "lang": null,
    "account": "x:x77611740",
    "engagement": 7,
-   "narrative_id": 0,
+   "narrative_id": 1,
    "coordinated_group": "G1"
   },
   {
@@ -13462,7 +14991,7 @@
    "lang": null,
    "account": "telegram:te45575298",
    "engagement": 4,
-   "narrative_id": 1,
+   "narrative_id": 2,
    "coordinated_group": null
   },
   {
@@ -13490,7 +15019,7 @@
    "lang": null,
    "account": "x:x88235926",
    "engagement": 5,
-   "narrative_id": 0,
+   "narrative_id": 1,
    "coordinated_group": "G1"
   },
   {
@@ -13518,7 +15047,7 @@
    "lang": null,
    "account": "youtube:yo54559574",
    "engagement": 2,
-   "narrative_id": 1,
+   "narrative_id": 2,
    "coordinated_group": null
   },
   {
@@ -13551,7 +15080,7 @@
    "lang": null,
    "account": "x:x79839059",
    "engagement": 31,
-   "narrative_id": 2,
+   "narrative_id": 3,
    "coordinated_group": null
   },
   {
@@ -13579,7 +15108,7 @@
    "lang": null,
    "account": "x:x80723898",
    "engagement": 8,
-   "narrative_id": 1,
+   "narrative_id": 2,
    "coordinated_group": null
   },
   {
@@ -13607,7 +15136,7 @@
    "lang": null,
    "account": "x:x12446861",
    "engagement": 0,
-   "narrative_id": 1,
+   "narrative_id": 2,
    "coordinated_group": null
   },
   {
@@ -13635,7 +15164,7 @@
    "lang": null,
    "account": "x:x24549543",
    "engagement": 2,
-   "narrative_id": 1,
+   "narrative_id": 2,
    "coordinated_group": null
   },
   {
@@ -13663,7 +15192,7 @@
    "lang": null,
    "account": "telegram:te64277800",
    "engagement": 6,
-   "narrative_id": 1,
+   "narrative_id": 2,
    "coordinated_group": null
   },
   {
@@ -13691,7 +15220,7 @@
    "lang": null,
    "account": "x:x37730181",
    "engagement": 1,
-   "narrative_id": 0,
+   "narrative_id": 1,
    "coordinated_group": "G1"
   },
   {
@@ -13724,7 +15253,7 @@
    "lang": null,
    "account": "x:x36802975",
    "engagement": 3,
-   "narrative_id": 2,
+   "narrative_id": 3,
    "coordinated_group": null
   },
   {
@@ -13752,7 +15281,7 @@
    "lang": null,
    "account": "x:x16108500",
    "engagement": 8,
-   "narrative_id": 0,
+   "narrative_id": 1,
    "coordinated_group": "G1"
   },
   {
@@ -13780,7 +15309,7 @@
    "lang": null,
    "account": "x:x19805359",
    "engagement": 8,
-   "narrative_id": 0,
+   "narrative_id": 1,
    "coordinated_group": "G1"
   },
   {
@@ -13808,7 +15337,7 @@
    "lang": null,
    "account": "x:x32143753",
    "engagement": 4,
-   "narrative_id": 0,
+   "narrative_id": 1,
    "coordinated_group": "G1"
   },
   {
@@ -13841,7 +15370,7 @@
    "lang": null,
    "account": "x:x61471888",
    "engagement": 0,
-   "narrative_id": 0,
+   "narrative_id": 1,
    "coordinated_group": "G1"
   },
   {
@@ -13869,7 +15398,7 @@
    "lang": null,
    "account": "x:x54676053",
    "engagement": 9,
-   "narrative_id": 0,
+   "narrative_id": 1,
    "coordinated_group": "G1"
   },
   {
@@ -13902,7 +15431,7 @@
    "lang": null,
    "account": "x:x64831176",
    "engagement": 6,
-   "narrative_id": 0,
+   "narrative_id": 1,
    "coordinated_group": "G1"
   },
   {
@@ -13935,7 +15464,7 @@
    "lang": null,
    "account": "x:x85102924",
    "engagement": 0,
-   "narrative_id": 0,
+   "narrative_id": 1,
    "coordinated_group": "G1"
   },
   {
@@ -13968,7 +15497,7 @@
    "lang": null,
    "account": "x:x30302410",
    "engagement": 4,
-   "narrative_id": 0,
+   "narrative_id": 1,
    "coordinated_group": "G1"
   },
   {
@@ -13996,7 +15525,7 @@
    "lang": null,
    "account": "youtube:yo94183695",
    "engagement": 1,
-   "narrative_id": 6,
+   "narrative_id": 7,
    "coordinated_group": null
   },
   {
@@ -14024,7 +15553,7 @@
    "lang": null,
    "account": "youtube:yo74251933",
    "engagement": 18,
-   "narrative_id": 6,
+   "narrative_id": 7,
    "coordinated_group": null
   },
   {
@@ -14052,7 +15581,7 @@
    "lang": null,
    "account": "youtube:yo87342561",
    "engagement": 1,
-   "narrative_id": 6,
+   "narrative_id": 7,
    "coordinated_group": null
   },
   {
@@ -14080,7 +15609,7 @@
    "lang": null,
    "account": "youtube:yo99501846",
    "engagement": 11,
-   "narrative_id": 6,
+   "narrative_id": 7,
    "coordinated_group": null
   },
   {
@@ -14108,7 +15637,7 @@
    "lang": null,
    "account": "telegram:te85776373",
    "engagement": 5,
-   "narrative_id": 6,
+   "narrative_id": 7,
    "coordinated_group": null
   },
   {
@@ -14136,7 +15665,7 @@
    "lang": null,
    "account": "x:x37730181",
    "engagement": 1,
-   "narrative_id": 0,
+   "narrative_id": 1,
    "coordinated_group": "G1"
   },
   {
@@ -14164,7 +15693,7 @@
    "lang": null,
    "account": "x:x63100814",
    "engagement": 0,
-   "narrative_id": 6,
+   "narrative_id": 7,
    "coordinated_group": null
   },
   {
@@ -14192,7 +15721,7 @@
    "lang": null,
    "account": "x:x88235926",
    "engagement": 3,
-   "narrative_id": 0,
+   "narrative_id": 1,
    "coordinated_group": "G1"
   },
   {
@@ -14225,7 +15754,7 @@
    "lang": null,
    "account": "x:x41606345",
    "engagement": 8,
-   "narrative_id": 0,
+   "narrative_id": 1,
    "coordinated_group": "G1"
   },
   {
@@ -14258,7 +15787,7 @@
    "lang": null,
    "account": "x:x77611740",
    "engagement": 0,
-   "narrative_id": 0,
+   "narrative_id": 1,
    "coordinated_group": "G1"
   },
   {
@@ -14286,7 +15815,7 @@
    "lang": null,
    "account": "x:x30302410",
    "engagement": 13,
-   "narrative_id": 0,
+   "narrative_id": 1,
    "coordinated_group": "G1"
   },
   {
@@ -14314,7 +15843,7 @@
    "lang": null,
    "account": "x:x53385340",
    "engagement": 13,
-   "narrative_id": 0,
+   "narrative_id": 1,
    "coordinated_group": "G1"
   },
   {
@@ -14347,7 +15876,7 @@
    "lang": null,
    "account": "x:x95450010",
    "engagement": 6,
-   "narrative_id": 0,
+   "narrative_id": 1,
    "coordinated_group": "G1"
   },
   {
@@ -14375,7 +15904,7 @@
    "lang": null,
    "account": "x:x40547349",
    "engagement": 12,
-   "narrative_id": 6,
+   "narrative_id": 7,
    "coordinated_group": null
   },
   {
@@ -14403,7 +15932,7 @@
    "lang": null,
    "account": "x:x79386899",
    "engagement": 4,
-   "narrative_id": 0,
+   "narrative_id": 1,
    "coordinated_group": "G1"
   },
   {
@@ -14431,7 +15960,7 @@
    "lang": null,
    "account": "x:x17507864",
    "engagement": 0,
-   "narrative_id": 6,
+   "narrative_id": 7,
    "coordinated_group": null
   },
   {
@@ -14459,7 +15988,7 @@
    "lang": null,
    "account": "x:x85102924",
    "engagement": 0,
-   "narrative_id": 0,
+   "narrative_id": 1,
    "coordinated_group": "G1"
   },
   {
@@ -14487,7 +16016,7 @@
    "lang": null,
    "account": "x:x86134287",
    "engagement": 0,
-   "narrative_id": 5,
+   "narrative_id": 6,
    "coordinated_group": null
   },
   {
@@ -14515,7 +16044,7 @@
    "lang": null,
    "account": "telegram:te91030736",
    "engagement": 1,
-   "narrative_id": 6,
+   "narrative_id": 7,
    "coordinated_group": null
   },
   {
@@ -14543,7 +16072,7 @@
    "lang": null,
    "account": "telegram:te31217198",
    "engagement": 13,
-   "narrative_id": 6,
+   "narrative_id": 7,
    "coordinated_group": null
   },
   {
@@ -14571,7 +16100,7 @@
    "lang": null,
    "account": "telegram:te24508349",
    "engagement": 0,
-   "narrative_id": 6,
+   "narrative_id": 7,
    "coordinated_group": null
   },
   {
@@ -14599,7 +16128,7 @@
    "lang": null,
    "account": "youtube:yo12550658",
    "engagement": 3,
-   "narrative_id": 6,
+   "narrative_id": 7,
    "coordinated_group": null
   },
   {
@@ -14627,7 +16156,7 @@
    "lang": null,
    "account": "telegram:te75181765",
    "engagement": 2,
-   "narrative_id": 3,
+   "narrative_id": 4,
    "coordinated_group": null
   },
   {
@@ -14655,7 +16184,7 @@
    "lang": null,
    "account": "x:x86134287",
    "engagement": 10,
-   "narrative_id": 6,
+   "narrative_id": 7,
    "coordinated_group": null
   },
   {
@@ -14683,7 +16212,7 @@
    "lang": null,
    "account": "telegram:te73655158",
    "engagement": 0,
-   "narrative_id": 6,
+   "narrative_id": 7,
    "coordinated_group": null
   },
   {
@@ -14711,7 +16240,7 @@
    "lang": null,
    "account": "x:x83226170",
    "engagement": 6,
-   "narrative_id": 6,
+   "narrative_id": 7,
    "coordinated_group": null
   },
   {
@@ -14739,7 +16268,7 @@
    "lang": null,
    "account": "x:x92134318",
    "engagement": 0,
-   "narrative_id": 6,
+   "narrative_id": 7,
    "coordinated_group": null
   },
   {
@@ -14767,7 +16296,7 @@
    "lang": null,
    "account": "youtube:yo62780072",
    "engagement": 1,
-   "narrative_id": 6,
+   "narrative_id": 7,
    "coordinated_group": null
   },
   {
@@ -14795,7 +16324,7 @@
    "lang": null,
    "account": "telegram:te65590800",
    "engagement": 5,
-   "narrative_id": 6,
+   "narrative_id": 7,
    "coordinated_group": null
   },
   {
@@ -14823,7 +16352,7 @@
    "lang": null,
    "account": "x:x52352128",
    "engagement": 4,
-   "narrative_id": 6,
+   "narrative_id": 7,
    "coordinated_group": null
   },
   {
@@ -14851,7 +16380,7 @@
    "lang": null,
    "account": "x:x81690398",
    "engagement": 7,
-   "narrative_id": 3,
+   "narrative_id": 4,
    "coordinated_group": null
   },
   {
@@ -14879,7 +16408,7 @@
    "lang": null,
    "account": "x:x93303777",
    "engagement": 2,
-   "narrative_id": 6,
+   "narrative_id": 7,
    "coordinated_group": null
   },
   {
@@ -14907,7 +16436,7 @@
    "lang": null,
    "account": "telegram:te54585178",
    "engagement": 8,
-   "narrative_id": 6,
+   "narrative_id": 7,
    "coordinated_group": null
   },
   {
@@ -14935,7 +16464,7 @@
    "lang": null,
    "account": "x:x71315464",
    "engagement": 29,
-   "narrative_id": 6,
+   "narrative_id": 7,
    "coordinated_group": null
   },
   {
@@ -14963,7 +16492,7 @@
    "lang": null,
    "account": "x:x41895531",
    "engagement": 4,
-   "narrative_id": 6,
+   "narrative_id": 7,
    "coordinated_group": null
   },
   {
@@ -14991,7 +16520,7 @@
    "lang": null,
    "account": "x:x99903592",
    "engagement": 0,
-   "narrative_id": 6,
+   "narrative_id": 7,
    "coordinated_group": null
   },
   {
@@ -15019,7 +16548,7 @@
    "lang": null,
    "account": "x:x49682169",
    "engagement": 3,
-   "narrative_id": 6,
+   "narrative_id": 7,
    "coordinated_group": null
   },
   {
@@ -15047,7 +16576,7 @@
    "lang": null,
    "account": "youtube:yo53106399",
    "engagement": 6,
-   "narrative_id": 6,
+   "narrative_id": 7,
    "coordinated_group": null
   },
   {
@@ -15075,7 +16604,7 @@
    "lang": null,
    "account": "telegram:te87337818",
    "engagement": 0,
-   "narrative_id": 6,
+   "narrative_id": 7,
    "coordinated_group": null
   },
   {
@@ -15103,7 +16632,7 @@
    "lang": null,
    "account": "telegram:te43046464",
    "engagement": 27,
-   "narrative_id": 6,
+   "narrative_id": 7,
    "coordinated_group": null
   },
   {
@@ -15131,7 +16660,7 @@
    "lang": null,
    "account": "telegram:te10054484",
    "engagement": 9,
-   "narrative_id": 3,
+   "narrative_id": 4,
    "coordinated_group": null
   },
   {
@@ -15159,7 +16688,7 @@
    "lang": null,
    "account": "telegram:te84905122",
    "engagement": 16,
-   "narrative_id": 6,
+   "narrative_id": 7,
    "coordinated_group": null
   },
   {
@@ -15187,7 +16716,7 @@
    "lang": null,
    "account": "x:x19805359",
    "engagement": 1,
-   "narrative_id": 0,
+   "narrative_id": 1,
    "coordinated_group": "G1"
   },
   {
@@ -15215,7 +16744,7 @@
    "lang": null,
    "account": "x:x30302410",
    "engagement": 0,
-   "narrative_id": 0,
+   "narrative_id": 1,
    "coordinated_group": "G1"
   },
   {
@@ -15243,7 +16772,7 @@
    "lang": null,
    "account": "x:x64831176",
    "engagement": 2,
-   "narrative_id": 0,
+   "narrative_id": 1,
    "coordinated_group": "G1"
   },
   {
@@ -15276,7 +16805,7 @@
    "lang": null,
    "account": "x:x88235926",
    "engagement": 0,
-   "narrative_id": 0,
+   "narrative_id": 1,
    "coordinated_group": "G1"
   },
   {
@@ -15304,7 +16833,7 @@
    "lang": null,
    "account": "youtube:yo15614174",
    "engagement": 4,
-   "narrative_id": 6,
+   "narrative_id": 7,
    "coordinated_group": null
   },
   {
@@ -15332,7 +16861,7 @@
    "lang": null,
    "account": "x:x32143753",
    "engagement": 1,
-   "narrative_id": 0,
+   "narrative_id": 1,
    "coordinated_group": "G1"
   },
   {
@@ -15360,7 +16889,7 @@
    "lang": null,
    "account": "x:x16108500",
    "engagement": 1,
-   "narrative_id": 0,
+   "narrative_id": 1,
    "coordinated_group": "G1"
   },
   {
@@ -15388,7 +16917,7 @@
    "lang": null,
    "account": "telegram:te73509974",
    "engagement": 7,
-   "narrative_id": 6,
+   "narrative_id": 7,
    "coordinated_group": null
   },
   {
@@ -15416,7 +16945,7 @@
    "lang": null,
    "account": "x:x41606345",
    "engagement": 9,
-   "narrative_id": 0,
+   "narrative_id": 1,
    "coordinated_group": "G1"
   },
   {
@@ -15449,7 +16978,7 @@
    "lang": null,
    "account": "x:x95450010",
    "engagement": 1,
-   "narrative_id": 0,
+   "narrative_id": 1,
    "coordinated_group": "G1"
   },
   {
@@ -15477,7 +17006,7 @@
    "lang": null,
    "account": "youtube:yo74759996",
    "engagement": 1,
-   "narrative_id": 6,
+   "narrative_id": 7,
    "coordinated_group": null
   },
   {
@@ -15505,7 +17034,7 @@
    "lang": null,
    "account": "x:x45186708",
    "engagement": 9,
-   "narrative_id": 6,
+   "narrative_id": 7,
    "coordinated_group": null
   },
   {
@@ -15538,7 +17067,7 @@
    "lang": null,
    "account": "x:x32143753",
    "engagement": 5,
-   "narrative_id": 0,
+   "narrative_id": 1,
    "coordinated_group": "G1"
   },
   {
@@ -15571,7 +17100,7 @@
    "lang": null,
    "account": "x:x19805359",
    "engagement": 10,
-   "narrative_id": 0,
+   "narrative_id": 1,
    "coordinated_group": "G1"
   },
   {
@@ -15599,7 +17128,7 @@
    "lang": null,
    "account": "x:x30302410",
    "engagement": 7,
-   "narrative_id": 0,
+   "narrative_id": 1,
    "coordinated_group": "G1"
   },
   {
@@ -15632,7 +17161,7 @@
    "lang": null,
    "account": "x:x16108500",
    "engagement": 2,
-   "narrative_id": 0,
+   "narrative_id": 1,
    "coordinated_group": "G1"
   },
   {
@@ -15660,7 +17189,7 @@
    "lang": null,
    "account": "x:x53385340",
    "engagement": 6,
-   "narrative_id": 0,
+   "narrative_id": 1,
    "coordinated_group": "G1"
   },
   {
@@ -15688,7 +17217,7 @@
    "lang": null,
    "account": "x:x61471888",
    "engagement": 3,
-   "narrative_id": 0,
+   "narrative_id": 1,
    "coordinated_group": "G1"
   },
   {
@@ -15716,7 +17245,7 @@
    "lang": null,
    "account": "x:x28392710",
    "engagement": 15,
-   "narrative_id": 6,
+   "narrative_id": 7,
    "coordinated_group": null
   },
   {
@@ -15744,7 +17273,7 @@
    "lang": null,
    "account": "x:x43214247",
    "engagement": 21,
-   "narrative_id": 1,
+   "narrative_id": 2,
    "coordinated_group": null
   },
   {
@@ -15772,7 +17301,7 @@
    "lang": null,
    "account": "x:x12446861",
    "engagement": 3,
-   "narrative_id": 6,
+   "narrative_id": 7,
    "coordinated_group": null
   },
   {
@@ -15800,7 +17329,7 @@
    "lang": null,
    "account": "telegram:te53622663",
    "engagement": 5,
-   "narrative_id": 1,
+   "narrative_id": 2,
    "coordinated_group": null
   },
   {
@@ -15833,7 +17362,7 @@
    "lang": null,
    "account": "telegram:te57459130",
    "engagement": 17,
-   "narrative_id": 1,
+   "narrative_id": 2,
    "coordinated_group": null
   },
   {
@@ -15861,7 +17390,7 @@
    "lang": null,
    "account": "telegram:te26941092",
    "engagement": 9,
-   "narrative_id": 6,
+   "narrative_id": 7,
    "coordinated_group": null
   },
   {
@@ -15889,7 +17418,7 @@
    "lang": null,
    "account": "x:x54349361",
    "engagement": 2,
-   "narrative_id": 6,
+   "narrative_id": 7,
    "coordinated_group": null
   },
   {
@@ -15917,7 +17446,7 @@
    "lang": null,
    "account": "telegram:te77447155",
    "engagement": 5,
-   "narrative_id": 6,
+   "narrative_id": 7,
    "coordinated_group": null
   },
   {
@@ -15945,7 +17474,7 @@
    "lang": null,
    "account": "x:x42138745",
    "engagement": 0,
-   "narrative_id": 6,
+   "narrative_id": 7,
    "coordinated_group": null
   },
   {
@@ -15973,7 +17502,7 @@
    "lang": null,
    "account": "telegram:te31473054",
    "engagement": 6,
-   "narrative_id": 6,
+   "narrative_id": 7,
    "coordinated_group": null
   },
   {
@@ -16001,7 +17530,7 @@
    "lang": null,
    "account": "x:x37730181",
    "engagement": 6,
-   "narrative_id": 0,
+   "narrative_id": 1,
    "coordinated_group": "G1"
   },
   {
@@ -16029,7 +17558,7 @@
    "lang": null,
    "account": "x:x54676053",
    "engagement": 0,
-   "narrative_id": 0,
+   "narrative_id": 1,
    "coordinated_group": "G1"
   },
   {
@@ -16057,7 +17586,7 @@
    "lang": null,
    "account": "x:x91386202",
    "engagement": 2,
-   "narrative_id": 0,
+   "narrative_id": 1,
    "coordinated_group": "G1"
   },
   {
@@ -16085,7 +17614,7 @@
    "lang": null,
    "account": "x:x19805359",
    "engagement": 5,
-   "narrative_id": 0,
+   "narrative_id": 1,
    "coordinated_group": "G1"
   },
   {
@@ -16118,7 +17647,7 @@
    "lang": null,
    "account": "x:x30302410",
    "engagement": 6,
-   "narrative_id": 0,
+   "narrative_id": 1,
    "coordinated_group": "G1"
   },
   {
@@ -16146,7 +17675,7 @@
    "lang": null,
    "account": "x:x41606345",
    "engagement": 3,
-   "narrative_id": 0,
+   "narrative_id": 1,
    "coordinated_group": "G1"
   },
   {
@@ -16179,7 +17708,7 @@
    "lang": null,
    "account": "x:x61471888",
    "engagement": 7,
-   "narrative_id": 0,
+   "narrative_id": 1,
    "coordinated_group": "G1"
   },
   {
@@ -16207,7 +17736,7 @@
    "lang": null,
    "account": "x:x16108500",
    "engagement": 11,
-   "narrative_id": 0,
+   "narrative_id": 1,
    "coordinated_group": "G1"
   },
   {
@@ -16235,7 +17764,7 @@
    "lang": null,
    "account": "x:x36040410",
    "engagement": 2,
-   "narrative_id": 1,
+   "narrative_id": 2,
    "coordinated_group": null
   },
   {
@@ -16263,7 +17792,7 @@
    "lang": null,
    "account": "x:x54318698",
    "engagement": 1,
-   "narrative_id": 1,
+   "narrative_id": 2,
    "coordinated_group": null
   },
   {
@@ -16291,7 +17820,7 @@
    "lang": null,
    "account": "telegram:te80576741",
    "engagement": 0,
-   "narrative_id": 0,
+   "narrative_id": 1,
    "coordinated_group": "G1"
   },
   {
@@ -16319,7 +17848,7 @@
    "lang": null,
    "account": "telegram:te35574404",
    "engagement": 8,
-   "narrative_id": 0,
+   "narrative_id": 1,
    "coordinated_group": "G1"
   },
   {
@@ -16347,7 +17876,7 @@
    "lang": null,
    "account": "telegram:te92947099",
    "engagement": 9,
-   "narrative_id": 0,
+   "narrative_id": 1,
    "coordinated_group": "G1"
   },
   {
@@ -16380,7 +17909,7 @@
    "lang": null,
    "account": "telegram:te59381407",
    "engagement": 6,
-   "narrative_id": 0,
+   "narrative_id": 1,
    "coordinated_group": "G1"
   },
   {
@@ -16413,7 +17942,7 @@
    "lang": null,
    "account": "telegram:te96853189",
    "engagement": 0,
-   "narrative_id": 0,
+   "narrative_id": 1,
    "coordinated_group": "G1"
   },
   {
@@ -16446,7 +17975,7 @@
    "lang": null,
    "account": "telegram:te86556525",
    "engagement": 0,
-   "narrative_id": 0,
+   "narrative_id": 1,
    "coordinated_group": "G1"
   },
   {
@@ -16474,7 +18003,7 @@
    "lang": null,
    "account": "telegram:te48649601",
    "engagement": 2,
-   "narrative_id": 0,
+   "narrative_id": 1,
    "coordinated_group": "G1"
   },
   {
@@ -16502,7 +18031,7 @@
    "lang": null,
    "account": "x:x12232974",
    "engagement": 7,
-   "narrative_id": 5,
+   "narrative_id": 6,
    "coordinated_group": null
   },
   {
@@ -16535,7 +18064,7 @@
    "lang": null,
    "account": "telegram:te86556525",
    "engagement": 6,
-   "narrative_id": 0,
+   "narrative_id": 1,
    "coordinated_group": "G1"
   },
   {
@@ -16568,7 +18097,7 @@
    "lang": null,
    "account": "telegram:te92947099",
    "engagement": 7,
-   "narrative_id": 0,
+   "narrative_id": 1,
    "coordinated_group": "G1"
   },
   {
@@ -16596,7 +18125,7 @@
    "lang": null,
    "account": "telegram:te80576741",
    "engagement": 8,
-   "narrative_id": 0,
+   "narrative_id": 1,
    "coordinated_group": "G1"
   },
   {
@@ -16624,7 +18153,7 @@
    "lang": null,
    "account": "telegram:te96853189",
    "engagement": 2,
-   "narrative_id": 0,
+   "narrative_id": 1,
    "coordinated_group": "G1"
   },
   {
@@ -16652,7 +18181,7 @@
    "lang": null,
    "account": "telegram:te72065617",
    "engagement": 0,
-   "narrative_id": 0,
+   "narrative_id": 1,
    "coordinated_group": "G1"
   },
   {
@@ -16680,7 +18209,7 @@
    "lang": null,
    "account": "telegram:te48649601",
    "engagement": 3,
-   "narrative_id": 0,
+   "narrative_id": 1,
    "coordinated_group": "G1"
   },
   {
@@ -16708,7 +18237,7 @@
    "lang": null,
    "account": "telegram:te35574404",
    "engagement": 6,
-   "narrative_id": 0,
+   "narrative_id": 1,
    "coordinated_group": "G1"
   },
   {
@@ -16736,7 +18265,7 @@
    "lang": null,
    "account": "telegram:te59381407",
    "engagement": 6,
-   "narrative_id": 0,
+   "narrative_id": 1,
    "coordinated_group": "G1"
   },
   {
@@ -16764,7 +18293,7 @@
    "lang": null,
    "account": "x:x52352128",
    "engagement": 8,
-   "narrative_id": 4,
+   "narrative_id": 5,
    "coordinated_group": null
   },
   {
@@ -16792,7 +18321,7 @@
    "lang": null,
    "account": "x:x59093843",
    "engagement": 2,
-   "narrative_id": 4,
+   "narrative_id": 5,
    "coordinated_group": null
   },
   {
@@ -16820,7 +18349,7 @@
    "lang": null,
    "account": "x:x28392710",
    "engagement": 3,
-   "narrative_id": 3,
+   "narrative_id": 4,
    "coordinated_group": null
   },
   {
@@ -16848,7 +18377,7 @@
    "lang": null,
    "account": "x:x38553319",
    "engagement": 20,
-   "narrative_id": 4,
+   "narrative_id": 5,
    "coordinated_group": null
   },
   {
@@ -16881,8 +18410,8 @@
    "lang": null,
    "account": "x:x29036775",
    "engagement": 285,
-   "narrative_id": 8,
-   "coordinated_group": null
+   "narrative_id": 9,
+   "coordinated_group": "G3"
   },
   {
    "id": "704",
@@ -16914,8 +18443,8 @@
    "lang": null,
    "account": "x:x67329147",
    "engagement": 856,
-   "narrative_id": 8,
-   "coordinated_group": null
+   "narrative_id": 9,
+   "coordinated_group": "G3"
   },
   {
    "id": "705",
@@ -16947,8 +18476,8 @@
    "lang": null,
    "account": "telegram:te61639439",
    "engagement": 652,
-   "narrative_id": 8,
-   "coordinated_group": null
+   "narrative_id": 9,
+   "coordinated_group": "G3"
   },
   {
    "id": "706",
@@ -16980,8 +18509,8 @@
    "lang": null,
    "account": "x:x24782157",
    "engagement": 1287,
-   "narrative_id": 8,
-   "coordinated_group": null
+   "narrative_id": 9,
+   "coordinated_group": "G3"
   },
   {
    "id": "707",
@@ -17013,8 +18542,8 @@
    "lang": null,
    "account": "telegram:te92637421",
    "engagement": 509,
-   "narrative_id": 8,
-   "coordinated_group": null
+   "narrative_id": 9,
+   "coordinated_group": "G3"
   },
   {
    "id": "209",
@@ -17041,7 +18570,7 @@
    "lang": null,
    "account": "x:x14994527",
    "engagement": 4,
-   "narrative_id": 3,
+   "narrative_id": 4,
    "coordinated_group": null
   },
   {
@@ -17069,7 +18598,7 @@
    "lang": null,
    "account": "telegram:te35574404",
    "engagement": 1,
-   "narrative_id": 0,
+   "narrative_id": 1,
    "coordinated_group": "G1"
   },
   {
@@ -17097,7 +18626,7 @@
    "lang": null,
    "account": "telegram:te92947099",
    "engagement": 4,
-   "narrative_id": 0,
+   "narrative_id": 1,
    "coordinated_group": "G1"
   },
   {
@@ -17125,7 +18654,7 @@
    "lang": null,
    "account": "telegram:te72065617",
    "engagement": 7,
-   "narrative_id": 0,
+   "narrative_id": 1,
    "coordinated_group": "G1"
   },
   {
@@ -17158,7 +18687,7 @@
    "lang": null,
    "account": "telegram:te96853189",
    "engagement": 3,
-   "narrative_id": 0,
+   "narrative_id": 1,
    "coordinated_group": "G1"
   },
   {
@@ -17186,7 +18715,7 @@
    "lang": null,
    "account": "telegram:te80576741",
    "engagement": 6,
-   "narrative_id": 0,
+   "narrative_id": 1,
    "coordinated_group": "G1"
   },
   {
@@ -17214,7 +18743,7 @@
    "lang": null,
    "account": "telegram:te59381407",
    "engagement": 2,
-   "narrative_id": 0,
+   "narrative_id": 1,
    "coordinated_group": "G1"
   },
   {
@@ -17242,7 +18771,7 @@
    "lang": null,
    "account": "telegram:te48649601",
    "engagement": 5,
-   "narrative_id": 0,
+   "narrative_id": 1,
    "coordinated_group": "G1"
   },
   {
@@ -17270,7 +18799,7 @@
    "lang": null,
    "account": "telegram:te35511941",
    "engagement": 5,
-   "narrative_id": 1,
+   "narrative_id": 2,
    "coordinated_group": null
   },
   {
@@ -17298,7 +18827,7 @@
    "lang": null,
    "account": "telegram:te81688860",
    "engagement": 3,
-   "narrative_id": 1,
+   "narrative_id": 2,
    "coordinated_group": null
   },
   {
@@ -17331,7 +18860,7 @@
    "lang": null,
    "account": "telegram:te80576741",
    "engagement": 2,
-   "narrative_id": 0,
+   "narrative_id": 1,
    "coordinated_group": "G1"
   },
   {
@@ -17364,7 +18893,7 @@
    "lang": null,
    "account": "telegram:te59381407",
    "engagement": 9,
-   "narrative_id": 0,
+   "narrative_id": 1,
    "coordinated_group": "G1"
   },
   {
@@ -17392,7 +18921,7 @@
    "lang": null,
    "account": "telegram:te72065617",
    "engagement": 4,
-   "narrative_id": 0,
+   "narrative_id": 1,
    "coordinated_group": "G1"
   },
   {
@@ -17420,7 +18949,7 @@
    "lang": null,
    "account": "telegram:te92947099",
    "engagement": 3,
-   "narrative_id": 0,
+   "narrative_id": 1,
    "coordinated_group": "G1"
   },
   {
@@ -17448,7 +18977,7 @@
    "lang": null,
    "account": "telegram:te35574404",
    "engagement": 0,
-   "narrative_id": 0,
+   "narrative_id": 1,
    "coordinated_group": "G1"
   },
   {
@@ -17476,7 +19005,7 @@
    "lang": null,
    "account": "telegram:te51971886",
    "engagement": 0,
-   "narrative_id": 5,
+   "narrative_id": 6,
    "coordinated_group": null
   },
   {
@@ -17504,7 +19033,7 @@
    "lang": null,
    "account": "youtube:yo57553014",
    "engagement": 6,
-   "narrative_id": 3,
+   "narrative_id": 4,
    "coordinated_group": null
   },
   {
@@ -17532,7 +19061,7 @@
    "lang": null,
    "account": "youtube:yo96977837",
    "engagement": 21,
-   "narrative_id": 1,
+   "narrative_id": 2,
    "coordinated_group": null
   },
   {
@@ -17560,7 +19089,7 @@
    "lang": null,
    "account": "x:x95585469",
    "engagement": 7,
-   "narrative_id": 5,
+   "narrative_id": 6,
    "coordinated_group": null
   },
   {
@@ -17588,7 +19117,7 @@
    "lang": null,
    "account": "youtube:yo24972279",
    "engagement": 14,
-   "narrative_id": 2,
+   "narrative_id": 3,
    "coordinated_group": null
   },
   {
@@ -17616,7 +19145,7 @@
    "lang": null,
    "account": "x:x46468984",
    "engagement": 6,
-   "narrative_id": 4,
+   "narrative_id": 5,
    "coordinated_group": null
   },
   {
@@ -17644,7 +19173,7 @@
    "lang": null,
    "account": "x:x91952730",
    "engagement": 19,
-   "narrative_id": 5,
+   "narrative_id": 6,
    "coordinated_group": null
   },
   {
@@ -17672,7 +19201,7 @@
    "lang": null,
    "account": "telegram:te95728324",
    "engagement": 6,
-   "narrative_id": 1,
+   "narrative_id": 2,
    "coordinated_group": null
   },
   {
@@ -17700,7 +19229,7 @@
    "lang": null,
    "account": "x:x90023800",
    "engagement": 4,
-   "narrative_id": 5,
+   "narrative_id": 6,
    "coordinated_group": null
   },
   {
@@ -17728,7 +19257,7 @@
    "lang": null,
    "account": "x:x48401154",
    "engagement": 3,
-   "narrative_id": 3,
+   "narrative_id": 4,
    "coordinated_group": null
   },
   {
@@ -17756,7 +19285,7 @@
    "lang": null,
    "account": "x:x29090631",
    "engagement": 11,
-   "narrative_id": 2,
+   "narrative_id": 3,
    "coordinated_group": null
   },
   {
@@ -17784,7 +19313,7 @@
    "lang": null,
    "account": "telegram:te83871890",
    "engagement": 3,
-   "narrative_id": 1,
+   "narrative_id": 2,
    "coordinated_group": null
   },
   {
@@ -17812,7 +19341,7 @@
    "lang": null,
    "account": "x:x15512205",
    "engagement": 1,
-   "narrative_id": 1,
+   "narrative_id": 2,
    "coordinated_group": null
   },
   {
@@ -17840,7 +19369,7 @@
    "lang": null,
    "account": "x:x59093843",
    "engagement": 0,
-   "narrative_id": 2,
+   "narrative_id": 3,
    "coordinated_group": null
   },
   {
@@ -17868,7 +19397,7 @@
    "lang": null,
    "account": "x:x29090631",
    "engagement": 0,
-   "narrative_id": 2,
+   "narrative_id": 3,
    "coordinated_group": null
   },
   {
@@ -17896,7 +19425,7 @@
    "lang": null,
    "account": "telegram:te44355473",
    "engagement": 1,
-   "narrative_id": 1,
+   "narrative_id": 2,
    "coordinated_group": null
   },
   {
@@ -17929,7 +19458,7 @@
    "lang": null,
    "account": "telegram:te56952151",
    "engagement": 2,
-   "narrative_id": 4,
+   "narrative_id": 5,
    "coordinated_group": null
   },
   {
@@ -17962,7 +19491,7 @@
    "lang": null,
    "account": "telegram:te73509974",
    "engagement": 0,
-   "narrative_id": 1,
+   "narrative_id": 2,
    "coordinated_group": null
   },
   {
@@ -17990,7 +19519,7 @@
    "lang": null,
    "account": "x:x42138745",
    "engagement": 2,
-   "narrative_id": 4,
+   "narrative_id": 5,
    "coordinated_group": null
   },
   {
@@ -18023,7 +19552,7 @@
    "lang": null,
    "account": "youtube:yo21318464",
    "engagement": 3,
-   "narrative_id": 1,
+   "narrative_id": 2,
    "coordinated_group": null
   },
   {
@@ -18051,7 +19580,7 @@
    "lang": null,
    "account": "x:x52352128",
    "engagement": 5,
-   "narrative_id": 1,
+   "narrative_id": 2,
    "coordinated_group": null
   },
   {
@@ -18079,7 +19608,7 @@
    "lang": null,
    "account": "x:x54349361",
    "engagement": 1,
-   "narrative_id": 2,
+   "narrative_id": 3,
    "coordinated_group": null
   },
   {
@@ -18107,7 +19636,7 @@
    "lang": null,
    "account": "youtube:yo23489853",
    "engagement": 4,
-   "narrative_id": 4,
+   "narrative_id": 5,
    "coordinated_group": null
   },
   {
@@ -18135,7 +19664,7 @@
    "lang": null,
    "account": "telegram:te65590800",
    "engagement": 4,
-   "narrative_id": 5,
+   "narrative_id": 6,
    "coordinated_group": null
   },
   {
@@ -18163,7 +19692,7 @@
    "lang": null,
    "account": "telegram:te77447155",
    "engagement": 16,
-   "narrative_id": 4,
+   "narrative_id": 5,
    "coordinated_group": null
   },
   {
@@ -18191,7 +19720,7 @@
    "lang": null,
    "account": "x:x48401154",
    "engagement": 9,
-   "narrative_id": 1,
+   "narrative_id": 2,
    "coordinated_group": null
   },
   {
@@ -18219,7 +19748,7 @@
    "lang": null,
    "account": "youtube:yo62780072",
    "engagement": 1,
-   "narrative_id": 1,
+   "narrative_id": 2,
    "coordinated_group": null
   },
   {
@@ -18252,7 +19781,7 @@
    "lang": null,
    "account": "x:x24549543",
    "engagement": 3,
-   "narrative_id": 2,
+   "narrative_id": 3,
    "coordinated_group": null
   },
   {
@@ -18280,7 +19809,7 @@
    "lang": null,
    "account": "youtube:yo74759996",
    "engagement": 1,
-   "narrative_id": 5,
+   "narrative_id": 6,
    "coordinated_group": null
   },
   {
@@ -18308,7 +19837,7 @@
    "lang": null,
    "account": "x:x53188224",
    "engagement": 6,
-   "narrative_id": 3,
+   "narrative_id": 4,
    "coordinated_group": null
   },
   {
@@ -18336,7 +19865,7 @@
    "lang": null,
    "account": "x:x28639738",
    "engagement": 0,
-   "narrative_id": 3,
+   "narrative_id": 4,
    "coordinated_group": null
   },
   {
@@ -18364,7 +19893,7 @@
    "lang": null,
    "account": "x:x71315464",
    "engagement": 9,
-   "narrative_id": 2,
+   "narrative_id": 3,
    "coordinated_group": null
   },
   {
@@ -18392,7 +19921,7 @@
    "lang": null,
    "account": "telegram:te13808225",
    "engagement": 14,
-   "narrative_id": 1,
+   "narrative_id": 2,
    "coordinated_group": null
   },
   {
@@ -18420,7 +19949,7 @@
    "lang": null,
    "account": "youtube:yo32885741",
    "engagement": 7,
-   "narrative_id": 1,
+   "narrative_id": 2,
    "coordinated_group": null
   },
   {
@@ -18448,7 +19977,7 @@
    "lang": null,
    "account": "telegram:te13808225",
    "engagement": 8,
-   "narrative_id": 2,
+   "narrative_id": 3,
    "coordinated_group": null
   },
   {
@@ -18476,7 +20005,7 @@
    "lang": null,
    "account": "telegram:te26941092",
    "engagement": 2,
-   "narrative_id": 1,
+   "narrative_id": 2,
    "coordinated_group": null
   },
   {
@@ -18504,7 +20033,7 @@
    "lang": null,
    "account": "telegram:te22309586",
    "engagement": 24,
-   "narrative_id": 4,
+   "narrative_id": 5,
    "coordinated_group": null
   },
   {
@@ -18532,7 +20061,7 @@
    "lang": null,
    "account": "x:x22257687",
    "engagement": 9,
-   "narrative_id": 2,
+   "narrative_id": 3,
    "coordinated_group": null
   },
   {
@@ -18560,7 +20089,7 @@
    "lang": null,
    "account": "youtube:yo21087928",
    "engagement": 1,
-   "narrative_id": 4,
+   "narrative_id": 5,
    "coordinated_group": null
   },
   {
@@ -18588,7 +20117,7 @@
    "lang": null,
    "account": "youtube:yo32885741",
    "engagement": 4,
-   "narrative_id": 1,
+   "narrative_id": 2,
    "coordinated_group": null
   },
   {
@@ -18616,7 +20145,7 @@
    "lang": null,
    "account": "x:x78131950",
    "engagement": 14,
-   "narrative_id": 1,
+   "narrative_id": 2,
    "coordinated_group": null
   },
   {
@@ -18644,7 +20173,7 @@
    "lang": null,
    "account": "youtube:yo54559574",
    "engagement": 13,
-   "narrative_id": 1,
+   "narrative_id": 2,
    "coordinated_group": null
   },
   {
@@ -18672,7 +20201,7 @@
    "lang": null,
    "account": "x:x23556182",
    "engagement": 7,
-   "narrative_id": 2,
+   "narrative_id": 3,
    "coordinated_group": null
   },
   {
@@ -18700,7 +20229,7 @@
    "lang": null,
    "account": "x:x71315464",
    "engagement": 0,
-   "narrative_id": 5,
+   "narrative_id": 6,
    "coordinated_group": null
   },
   {
@@ -18728,7 +20257,7 @@
    "lang": null,
    "account": "x:x68065043",
    "engagement": 23,
-   "narrative_id": 1,
+   "narrative_id": 2,
    "coordinated_group": null
   },
   {
@@ -18761,7 +20290,7 @@
    "lang": null,
    "account": "x:x92228802",
    "engagement": 0,
-   "narrative_id": 2,
+   "narrative_id": 3,
    "coordinated_group": null
   },
   {
@@ -18789,7 +20318,7 @@
    "lang": null,
    "account": "x:x71070189",
    "engagement": 4,
-   "narrative_id": 4,
+   "narrative_id": 5,
    "coordinated_group": null
   },
   {
@@ -18822,7 +20351,7 @@
    "lang": null,
    "account": "telegram:te75181765",
    "engagement": 2,
-   "narrative_id": 1,
+   "narrative_id": 2,
    "coordinated_group": null
   },
   {
@@ -18850,7 +20379,7 @@
    "lang": null,
    "account": "x:x63100814",
    "engagement": 1,
-   "narrative_id": 4,
+   "narrative_id": 5,
    "coordinated_group": null
   },
   {
@@ -18878,7 +20407,7 @@
    "lang": null,
    "account": "x:x42138745",
    "engagement": 7,
-   "narrative_id": 1,
+   "narrative_id": 2,
    "coordinated_group": null
   },
   {
@@ -18911,8 +20440,8 @@
    "lang": null,
    "account": "x:x67329147",
    "engagement": 577,
-   "narrative_id": 8,
-   "coordinated_group": null
+   "narrative_id": 9,
+   "coordinated_group": "G3"
   },
   {
    "id": "711",
@@ -18944,8 +20473,8 @@
    "lang": null,
    "account": "x:x24782157",
    "engagement": 892,
-   "narrative_id": 8,
-   "coordinated_group": null
+   "narrative_id": 9,
+   "coordinated_group": "G3"
   },
   {
    "id": "712",
@@ -18977,8 +20506,8 @@
    "lang": null,
    "account": "telegram:te92637421",
    "engagement": 918,
-   "narrative_id": 8,
-   "coordinated_group": null
+   "narrative_id": 9,
+   "coordinated_group": "G3"
   },
   {
    "id": "710",
@@ -19010,8 +20539,8 @@
    "lang": null,
    "account": "telegram:te61639439",
    "engagement": 589,
-   "narrative_id": 8,
-   "coordinated_group": null
+   "narrative_id": 9,
+   "coordinated_group": "G3"
   },
   {
    "id": "708",
@@ -19043,8 +20572,8 @@
    "lang": null,
    "account": "x:x29036775",
    "engagement": 960,
-   "narrative_id": 8,
-   "coordinated_group": null
+   "narrative_id": 9,
+   "coordinated_group": "G3"
   },
   {
    "id": "192",
@@ -19071,7 +20600,7 @@
    "lang": null,
    "account": "youtube:yo99501846",
    "engagement": 15,
-   "narrative_id": 2,
+   "narrative_id": 3,
    "coordinated_group": null
   },
   {
@@ -19099,7 +20628,7 @@
    "lang": null,
    "account": "telegram:te61344226",
    "engagement": 7,
-   "narrative_id": 2,
+   "narrative_id": 3,
    "coordinated_group": null
   },
   {
@@ -19127,7 +20656,7 @@
    "lang": null,
    "account": "x:x37730181",
    "engagement": 0,
-   "narrative_id": 0,
+   "narrative_id": 1,
    "coordinated_group": "G1"
   },
   {
@@ -19160,7 +20689,7 @@
    "lang": null,
    "account": "x:x32143753",
    "engagement": 0,
-   "narrative_id": 0,
+   "narrative_id": 1,
    "coordinated_group": "G1"
   },
   {
@@ -19188,7 +20717,7 @@
    "lang": null,
    "account": "x:x30302410",
    "engagement": 1,
-   "narrative_id": 0,
+   "narrative_id": 1,
    "coordinated_group": "G1"
   },
   {
@@ -19216,7 +20745,7 @@
    "lang": null,
    "account": "x:x85102924",
    "engagement": 10,
-   "narrative_id": 0,
+   "narrative_id": 1,
    "coordinated_group": "G1"
   },
   {
@@ -19244,7 +20773,7 @@
    "lang": null,
    "account": "x:x16108500",
    "engagement": 3,
-   "narrative_id": 0,
+   "narrative_id": 1,
    "coordinated_group": "G1"
   },
   {
@@ -19272,7 +20801,7 @@
    "lang": null,
    "account": "x:x95450010",
    "engagement": 1,
-   "narrative_id": 0,
+   "narrative_id": 1,
    "coordinated_group": "G1"
   },
   {
@@ -19300,7 +20829,7 @@
    "lang": null,
    "account": "x:x53385340",
    "engagement": 7,
-   "narrative_id": 0,
+   "narrative_id": 1,
    "coordinated_group": "G1"
   },
   {
@@ -19333,7 +20862,7 @@
    "lang": null,
    "account": "x:x41606345",
    "engagement": 6,
-   "narrative_id": 0,
+   "narrative_id": 1,
    "coordinated_group": "G1"
   },
   {
@@ -19366,7 +20895,7 @@
    "lang": null,
    "account": "x:x88235926",
    "engagement": 5,
-   "narrative_id": 0,
+   "narrative_id": 1,
    "coordinated_group": "G1"
   },
   {
@@ -19394,7 +20923,7 @@
    "lang": null,
    "account": "x:x75793759",
    "engagement": 1,
-   "narrative_id": 2,
+   "narrative_id": 3,
    "coordinated_group": null
   },
   {
@@ -19422,7 +20951,7 @@
    "lang": null,
    "account": "x:x54676053",
    "engagement": 3,
-   "narrative_id": 0,
+   "narrative_id": 1,
    "coordinated_group": "G1"
   },
   {
@@ -19450,7 +20979,7 @@
    "lang": null,
    "account": "x:x19805359",
    "engagement": 12,
-   "narrative_id": 0,
+   "narrative_id": 1,
    "coordinated_group": "G1"
   },
   {
@@ -19483,7 +21012,7 @@
    "lang": null,
    "account": "x:x95450010",
    "engagement": 7,
-   "narrative_id": 0,
+   "narrative_id": 1,
    "coordinated_group": "G1"
   },
   {
@@ -19516,7 +21045,7 @@
    "lang": null,
    "account": "x:x77611740",
    "engagement": 2,
-   "narrative_id": 0,
+   "narrative_id": 1,
    "coordinated_group": "G1"
   },
   {
@@ -19544,7 +21073,7 @@
    "lang": null,
    "account": "x:x61471888",
    "engagement": 8,
-   "narrative_id": 0,
+   "narrative_id": 1,
    "coordinated_group": "G1"
   },
   {
@@ -19572,7 +21101,7 @@
    "lang": null,
    "account": "x:x30302410",
    "engagement": 8,
-   "narrative_id": 0,
+   "narrative_id": 1,
    "coordinated_group": "G1"
   },
   {
@@ -19600,7 +21129,7 @@
    "lang": null,
    "account": "x:x91386202",
    "engagement": 6,
-   "narrative_id": 0,
+   "narrative_id": 1,
    "coordinated_group": "G1"
   },
   {
@@ -19628,7 +21157,7 @@
    "lang": null,
    "account": "x:x32143753",
    "engagement": 5,
-   "narrative_id": 0,
+   "narrative_id": 1,
    "coordinated_group": "G1"
   },
   {
@@ -19656,7 +21185,7 @@
    "lang": null,
    "account": "x:x16108500",
    "engagement": 4,
-   "narrative_id": 0,
+   "narrative_id": 1,
    "coordinated_group": "G1"
   },
   {
@@ -19684,7 +21213,7 @@
    "lang": null,
    "account": "x:x37730181",
    "engagement": 2,
-   "narrative_id": 0,
+   "narrative_id": 1,
    "coordinated_group": "G1"
   },
   {
@@ -19712,7 +21241,7 @@
    "lang": null,
    "account": "x:x79386899",
    "engagement": 1,
-   "narrative_id": 0,
+   "narrative_id": 1,
    "coordinated_group": "G1"
   },
   {
@@ -19745,7 +21274,7 @@
    "lang": null,
    "account": "x:x53385340",
    "engagement": 2,
-   "narrative_id": 0,
+   "narrative_id": 1,
    "coordinated_group": "G1"
   },
   {
@@ -19778,7 +21307,7 @@
    "lang": null,
    "account": "x:x77611740",
    "engagement": 6,
-   "narrative_id": 0,
+   "narrative_id": 1,
    "coordinated_group": "G1"
   },
   {
@@ -19806,7 +21335,7 @@
    "lang": null,
    "account": "x:x30302410",
    "engagement": 0,
-   "narrative_id": 0,
+   "narrative_id": 1,
    "coordinated_group": "G1"
   },
   {
@@ -19834,7 +21363,7 @@
    "lang": null,
    "account": "x:x88235926",
    "engagement": 8,
-   "narrative_id": 0,
+   "narrative_id": 1,
    "coordinated_group": "G1"
   },
   {
@@ -19862,7 +21391,7 @@
    "lang": null,
    "account": "x:x32143753",
    "engagement": 7,
-   "narrative_id": 0,
+   "narrative_id": 1,
    "coordinated_group": "G1"
   },
   {
@@ -19890,7 +21419,7 @@
    "lang": null,
    "account": "x:x71031132",
    "engagement": 2,
-   "narrative_id": 2,
+   "narrative_id": 3,
    "coordinated_group": null
   },
   {
@@ -19918,7 +21447,7 @@
    "lang": null,
    "account": "x:x18359252",
    "engagement": 2,
-   "narrative_id": 4,
+   "narrative_id": 5,
    "coordinated_group": null
   },
   {
@@ -19946,7 +21475,7 @@
    "lang": null,
    "account": "telegram:te50814428",
    "engagement": 8,
-   "narrative_id": 3,
+   "narrative_id": 4,
    "coordinated_group": null
   },
   {
@@ -19974,7 +21503,7 @@
    "lang": null,
    "account": "youtube:yo97225156",
    "engagement": 10,
-   "narrative_id": 2,
+   "narrative_id": 3,
    "coordinated_group": null
   },
   {
@@ -20007,7 +21536,7 @@
    "lang": null,
    "account": "x:x54676053",
    "engagement": 9,
-   "narrative_id": 0,
+   "narrative_id": 1,
    "coordinated_group": "G1"
   },
   {
@@ -20035,7 +21564,7 @@
    "lang": null,
    "account": "x:x41606345",
    "engagement": 2,
-   "narrative_id": 0,
+   "narrative_id": 1,
    "coordinated_group": "G1"
   },
   {
@@ -20063,7 +21592,7 @@
    "lang": null,
    "account": "x:x53385340",
    "engagement": 2,
-   "narrative_id": 0,
+   "narrative_id": 1,
    "coordinated_group": "G1"
   },
   {
@@ -20091,7 +21620,7 @@
    "lang": null,
    "account": "x:x77611740",
    "engagement": 9,
-   "narrative_id": 0,
+   "narrative_id": 1,
    "coordinated_group": "G1"
   },
   {
@@ -20119,7 +21648,7 @@
    "lang": null,
    "account": "x:x79386899",
    "engagement": 7,
-   "narrative_id": 0,
+   "narrative_id": 1,
    "coordinated_group": "G1"
   },
   {
@@ -20152,7 +21681,7 @@
    "lang": null,
    "account": "x:x16108500",
    "engagement": 11,
-   "narrative_id": 0,
+   "narrative_id": 1,
    "coordinated_group": "G1"
   },
   {
@@ -20180,7 +21709,7 @@
    "lang": null,
    "account": "telegram:te12515446",
    "engagement": 2,
-   "narrative_id": 1,
+   "narrative_id": 2,
    "coordinated_group": null
   },
   {
@@ -20208,7 +21737,7 @@
    "lang": null,
    "account": "x:x19939096",
    "engagement": 2,
-   "narrative_id": 3,
+   "narrative_id": 4,
    "coordinated_group": null
   },
   {
@@ -20236,7 +21765,7 @@
    "lang": null,
    "account": "x:x16792127",
    "engagement": 9,
-   "narrative_id": 3,
+   "narrative_id": 4,
    "coordinated_group": null
   },
   {
@@ -20264,7 +21793,7 @@
    "lang": null,
    "account": "x:x32143753",
    "engagement": 5,
-   "narrative_id": 0,
+   "narrative_id": 1,
    "coordinated_group": "G1"
   },
   {
@@ -20292,7 +21821,7 @@
    "lang": null,
    "account": "x:x85102924",
    "engagement": 7,
-   "narrative_id": 0,
+   "narrative_id": 1,
    "coordinated_group": "G1"
   },
   {
@@ -20320,7 +21849,7 @@
    "lang": null,
    "account": "x:x41606345",
    "engagement": 0,
-   "narrative_id": 0,
+   "narrative_id": 1,
    "coordinated_group": "G1"
   },
   {
@@ -20348,7 +21877,7 @@
    "lang": null,
    "account": "x:x64831176",
    "engagement": 2,
-   "narrative_id": 0,
+   "narrative_id": 1,
    "coordinated_group": "G1"
   },
   {
@@ -20376,7 +21905,7 @@
    "lang": null,
    "account": "x:x91386202",
    "engagement": 3,
-   "narrative_id": 0,
+   "narrative_id": 1,
    "coordinated_group": "G1"
   },
   {
@@ -20409,7 +21938,7 @@
    "lang": null,
    "account": "x:x30302410",
    "engagement": 1,
-   "narrative_id": 0,
+   "narrative_id": 1,
    "coordinated_group": "G1"
   },
   {
@@ -20437,7 +21966,7 @@
    "lang": null,
    "account": "x:x95450010",
    "engagement": 1,
-   "narrative_id": 0,
+   "narrative_id": 1,
    "coordinated_group": "G1"
   },
   {
@@ -20465,7 +21994,7 @@
    "lang": null,
    "account": "x:x97011385",
    "engagement": 8,
-   "narrative_id": 1,
+   "narrative_id": 2,
    "coordinated_group": null
   },
   {
@@ -20493,7 +22022,7 @@
    "lang": null,
    "account": "x:x69476001",
    "engagement": 0,
-   "narrative_id": 5,
+   "narrative_id": 6,
    "coordinated_group": null
   },
   {
@@ -20521,7 +22050,7 @@
    "lang": null,
    "account": "youtube:yo68646621",
    "engagement": 10,
-   "narrative_id": 1,
+   "narrative_id": 2,
    "coordinated_group": null
   },
   {
@@ -20549,7 +22078,7 @@
    "lang": null,
    "account": "telegram:te10744212",
    "engagement": 1,
-   "narrative_id": 3,
+   "narrative_id": 4,
    "coordinated_group": null
   },
   {
@@ -20577,7 +22106,7 @@
    "lang": null,
    "account": "x:x98575748",
    "engagement": 0,
-   "narrative_id": 4,
+   "narrative_id": 5,
    "coordinated_group": null
   },
   {
@@ -20605,7 +22134,7 @@
    "lang": null,
    "account": "telegram:te86593187",
    "engagement": 3,
-   "narrative_id": 1,
+   "narrative_id": 2,
    "coordinated_group": null
   },
   {
@@ -20633,7 +22162,7 @@
    "lang": null,
    "account": "telegram:te62868861",
    "engagement": 3,
-   "narrative_id": 4,
+   "narrative_id": 5,
    "coordinated_group": null
   },
   {
@@ -20661,7 +22190,7 @@
    "lang": null,
    "account": "x:x79030673",
    "engagement": 18,
-   "narrative_id": 7,
+   "narrative_id": 8,
    "coordinated_group": "G2"
   },
   {
@@ -20689,7 +22218,7 @@
    "lang": null,
    "account": "x:x15646068",
    "engagement": 12,
-   "narrative_id": 1,
+   "narrative_id": 2,
    "coordinated_group": null
   },
   {
@@ -20717,7 +22246,7 @@
    "lang": null,
    "account": "x:x34985664",
    "engagement": 27,
-   "narrative_id": 7,
+   "narrative_id": 8,
    "coordinated_group": "G2"
   },
   {
@@ -20745,7 +22274,7 @@
    "lang": null,
    "account": "x:x75419352",
    "engagement": 16,
-   "narrative_id": 7,
+   "narrative_id": 8,
    "coordinated_group": "G2"
   },
   {
@@ -20773,7 +22302,7 @@
    "lang": null,
    "account": "x:x34985664",
    "engagement": 0,
-   "narrative_id": 7,
+   "narrative_id": 8,
    "coordinated_group": "G2"
   },
   {
@@ -20801,7 +22330,7 @@
    "lang": null,
    "account": "x:x67491018",
    "engagement": 6,
-   "narrative_id": 7,
+   "narrative_id": 8,
    "coordinated_group": "G2"
   },
   {
@@ -20829,7 +22358,7 @@
    "lang": null,
    "account": "x:x67821509",
    "engagement": 5,
-   "narrative_id": 10,
+   "narrative_id": 11,
    "coordinated_group": "G2"
   },
   {
@@ -20857,7 +22386,7 @@
    "lang": null,
    "account": "x:x73176107",
    "engagement": 0,
-   "narrative_id": 7,
+   "narrative_id": 8,
    "coordinated_group": "G2"
   },
   {
@@ -20885,7 +22414,7 @@
    "lang": null,
    "account": "x:x25458308",
    "engagement": 2,
-   "narrative_id": 3,
+   "narrative_id": 4,
    "coordinated_group": null
   },
   {
@@ -20913,7 +22442,7 @@
    "lang": null,
    "account": "x:x73176107",
    "engagement": 0,
-   "narrative_id": 10,
+   "narrative_id": 11,
    "coordinated_group": "G2"
   },
   {
@@ -20941,7 +22470,7 @@
    "lang": null,
    "account": "youtube:yo25015458",
    "engagement": 1,
-   "narrative_id": 2,
+   "narrative_id": 3,
    "coordinated_group": null
   },
   {
@@ -20969,7 +22498,7 @@
    "lang": null,
    "account": "x:x67491018",
    "engagement": 0,
-   "narrative_id": 7,
+   "narrative_id": 8,
    "coordinated_group": "G2"
   },
   {
@@ -20997,7 +22526,7 @@
    "lang": null,
    "account": "x:x67821509",
    "engagement": 0,
-   "narrative_id": 7,
+   "narrative_id": 8,
    "coordinated_group": "G2"
   },
   {
@@ -21025,7 +22554,7 @@
    "lang": null,
    "account": "x:x75419352",
    "engagement": 0,
-   "narrative_id": 7,
+   "narrative_id": 8,
    "coordinated_group": "G2"
   },
   {
@@ -21053,7 +22582,7 @@
    "lang": null,
    "account": "telegram:te81182864",
    "engagement": 14,
-   "narrative_id": 9,
+   "narrative_id": 10,
    "coordinated_group": null
   },
   {
@@ -21081,7 +22610,7 @@
    "lang": null,
    "account": "x:x34985664",
    "engagement": 0,
-   "narrative_id": 10,
+   "narrative_id": 11,
    "coordinated_group": "G2"
   },
   {
@@ -21109,7 +22638,7 @@
    "lang": null,
    "account": "x:x67491018",
    "engagement": 0,
-   "narrative_id": 10,
+   "narrative_id": 11,
    "coordinated_group": "G2"
   },
   {
@@ -21137,7 +22666,7 @@
    "lang": null,
    "account": "x:x41895531",
    "engagement": 3,
-   "narrative_id": 5,
+   "narrative_id": 6,
    "coordinated_group": null
   },
   {
@@ -21165,7 +22694,7 @@
    "lang": null,
    "account": "x:x73013961",
    "engagement": 0,
-   "narrative_id": 5,
+   "narrative_id": 6,
    "coordinated_group": null
   },
   {
@@ -21193,7 +22722,7 @@
    "lang": null,
    "account": "x:x64547971",
    "engagement": 3,
-   "narrative_id": 1,
+   "narrative_id": 2,
    "coordinated_group": null
   },
   {
@@ -21221,7 +22750,7 @@
    "lang": null,
    "account": "telegram:te98707076",
    "engagement": 1,
-   "narrative_id": 5,
+   "narrative_id": 6,
    "coordinated_group": null
   },
   {
@@ -21249,7 +22778,7 @@
    "lang": null,
    "account": "telegram:te41510328",
    "engagement": 11,
-   "narrative_id": 5,
+   "narrative_id": 6,
    "coordinated_group": null
   },
   {
@@ -21277,7 +22806,7 @@
    "lang": null,
    "account": "x:x90092958",
    "engagement": 12,
-   "narrative_id": 4,
+   "narrative_id": 5,
    "coordinated_group": null
   },
   {
@@ -21305,7 +22834,7 @@
    "lang": null,
    "account": "x:x63100814",
    "engagement": 2,
-   "narrative_id": 1,
+   "narrative_id": 2,
    "coordinated_group": null
   },
   {
@@ -21333,7 +22862,7 @@
    "lang": null,
    "account": "x:x46702849",
    "engagement": 9,
-   "narrative_id": 3,
+   "narrative_id": 4,
    "coordinated_group": null
   },
   {
@@ -21366,7 +22895,7 @@
    "lang": null,
    "account": "telegram:te63747791",
    "engagement": 1,
-   "narrative_id": 4,
+   "narrative_id": 5,
    "coordinated_group": null
   },
   {
@@ -21394,7 +22923,7 @@
    "lang": null,
    "account": "telegram:te45002007",
    "engagement": 8,
-   "narrative_id": 4,
+   "narrative_id": 5,
    "coordinated_group": null
   },
   {
@@ -21422,7 +22951,7 @@
    "lang": null,
    "account": "x:x56354851",
    "engagement": 3,
-   "narrative_id": 1,
+   "narrative_id": 2,
    "coordinated_group": null
   },
   {
@@ -21450,7 +22979,7 @@
    "lang": null,
    "account": "x:x97226012",
    "engagement": 3,
-   "narrative_id": 1,
+   "narrative_id": 2,
    "coordinated_group": null
   },
   {
@@ -21478,7 +23007,7 @@
    "lang": null,
    "account": "telegram:te55490631",
    "engagement": 13,
-   "narrative_id": 1,
+   "narrative_id": 2,
    "coordinated_group": null
   },
   {
@@ -21506,7 +23035,7 @@
    "lang": null,
    "account": "youtube:yo53106399",
    "engagement": 2,
-   "narrative_id": 2,
+   "narrative_id": 3,
    "coordinated_group": null
   },
   {
@@ -21534,7 +23063,7 @@
    "lang": null,
    "account": "x:x19067690",
    "engagement": 0,
-   "narrative_id": 1,
+   "narrative_id": 2,
    "coordinated_group": null
   },
   {
@@ -21562,7 +23091,7 @@
    "lang": null,
    "account": "x:x49711319",
    "engagement": 1,
-   "narrative_id": 9,
+   "narrative_id": 10,
    "coordinated_group": null
   },
   {
@@ -21595,7 +23124,7 @@
    "lang": null,
    "account": "x:x80723898",
    "engagement": 11,
-   "narrative_id": 2,
+   "narrative_id": 3,
    "coordinated_group": null
   },
   {
@@ -21623,7 +23152,7 @@
    "lang": null,
    "account": "x:x83226170",
    "engagement": 16,
-   "narrative_id": 5,
+   "narrative_id": 6,
    "coordinated_group": null
   },
   {
@@ -21651,7 +23180,7 @@
    "lang": null,
    "account": "telegram:te87337818",
    "engagement": 21,
-   "narrative_id": 3,
+   "narrative_id": 4,
    "coordinated_group": null
   },
   {
@@ -21679,7 +23208,7 @@
    "lang": null,
    "account": "youtube:yo54024257",
    "engagement": 13,
-   "narrative_id": 2,
+   "narrative_id": 3,
    "coordinated_group": null
   },
   {
@@ -21707,7 +23236,7 @@
    "lang": null,
    "account": "telegram:te83284724",
    "engagement": 3,
-   "narrative_id": 5,
+   "narrative_id": 6,
    "coordinated_group": null
   },
   {
@@ -21735,7 +23264,7 @@
    "lang": null,
    "account": "x:x64547971",
    "engagement": 8,
-   "narrative_id": 5,
+   "narrative_id": 6,
    "coordinated_group": null
   },
   {
@@ -21763,7 +23292,7 @@
    "lang": null,
    "account": "telegram:te55490631",
    "engagement": 7,
-   "narrative_id": 3,
+   "narrative_id": 4,
    "coordinated_group": null
   },
   {
@@ -21791,7 +23320,7 @@
    "lang": null,
    "account": "telegram:te73655158",
    "engagement": 13,
-   "narrative_id": 1,
+   "narrative_id": 2,
    "coordinated_group": null
   },
   {
@@ -21819,7 +23348,7 @@
    "lang": null,
    "account": "x:x25898299",
    "engagement": 13,
-   "narrative_id": 3,
+   "narrative_id": 4,
    "coordinated_group": null
   },
   {
@@ -21847,7 +23376,7 @@
    "lang": null,
    "account": "telegram:te53622663",
    "engagement": 2,
-   "narrative_id": 4,
+   "narrative_id": 5,
    "coordinated_group": null
   },
   {
@@ -21875,7 +23404,7 @@
    "lang": null,
    "account": "telegram:te47111151",
    "engagement": 6,
-   "narrative_id": 1,
+   "narrative_id": 2,
    "coordinated_group": null
   },
   {
@@ -21903,7 +23432,7 @@
    "lang": null,
    "account": "x:x92134318",
    "engagement": 8,
-   "narrative_id": 2,
+   "narrative_id": 3,
    "coordinated_group": null
   },
   {
@@ -21931,7 +23460,7 @@
    "lang": null,
    "account": "x:x93851247",
    "engagement": 0,
-   "narrative_id": 1,
+   "narrative_id": 2,
    "coordinated_group": null
   },
   {
@@ -21959,7 +23488,7 @@
    "lang": null,
    "account": "x:x88461803",
    "engagement": 5,
-   "narrative_id": 3,
+   "narrative_id": 4,
    "coordinated_group": null
   },
   {
@@ -21987,7 +23516,7 @@
    "lang": null,
    "account": "x:x71070189",
    "engagement": 2,
-   "narrative_id": 2,
+   "narrative_id": 3,
    "coordinated_group": null
   },
   {
@@ -22015,7 +23544,7 @@
    "lang": null,
    "account": "telegram:te31473054",
    "engagement": 8,
-   "narrative_id": 2,
+   "narrative_id": 3,
    "coordinated_group": null
   },
   {
@@ -22043,7 +23572,7 @@
    "lang": null,
    "account": "telegram:te85663295",
    "engagement": 1,
-   "narrative_id": 2,
+   "narrative_id": 3,
    "coordinated_group": null
   },
   {
@@ -22071,7 +23600,7 @@
    "lang": null,
    "account": "telegram:te20896797",
    "engagement": 0,
-   "narrative_id": 1,
+   "narrative_id": 2,
    "coordinated_group": null
   },
   {
@@ -22099,7 +23628,7 @@
    "lang": null,
    "account": "x:x51471222",
    "engagement": 6,
-   "narrative_id": 2,
+   "narrative_id": 3,
    "coordinated_group": null
   },
   {
@@ -22127,7 +23656,7 @@
    "lang": null,
    "account": "youtube:yo67805802",
    "engagement": 1,
-   "narrative_id": 1,
+   "narrative_id": 2,
    "coordinated_group": null
   },
   {
@@ -22155,7 +23684,7 @@
    "lang": null,
    "account": "x:x61030579",
    "engagement": 0,
-   "narrative_id": 1,
+   "narrative_id": 2,
    "coordinated_group": null
   },
   {
@@ -22183,7 +23712,7 @@
    "lang": null,
    "account": "x:x46468984",
    "engagement": 2,
-   "narrative_id": 3,
+   "narrative_id": 4,
    "coordinated_group": null
   },
   {
@@ -22211,7 +23740,7 @@
    "lang": null,
    "account": "x:x25228493",
    "engagement": 0,
-   "narrative_id": 1,
+   "narrative_id": 2,
    "coordinated_group": null
   },
   {
@@ -22239,7 +23768,7 @@
    "lang": null,
    "account": "x:x99889098",
    "engagement": 0,
-   "narrative_id": 4,
+   "narrative_id": 5,
    "coordinated_group": null
   },
   {
@@ -22267,7 +23796,7 @@
    "lang": null,
    "account": "youtube:yo65692629",
    "engagement": 2,
-   "narrative_id": 1,
+   "narrative_id": 2,
    "coordinated_group": null
   },
   {
@@ -22295,7 +23824,7 @@
    "lang": null,
    "account": "x:x38351344",
    "engagement": 4,
-   "narrative_id": 1,
+   "narrative_id": 2,
    "coordinated_group": null
   },
   {
@@ -22323,7 +23852,7 @@
    "lang": null,
    "account": "youtube:yo23903144",
    "engagement": 0,
-   "narrative_id": 1,
+   "narrative_id": 2,
    "coordinated_group": null
   },
   {
@@ -22351,7 +23880,7 @@
    "lang": null,
    "account": "telegram:te74180488",
    "engagement": 15,
-   "narrative_id": 4,
+   "narrative_id": 5,
    "coordinated_group": null
   },
   {
@@ -22384,7 +23913,7 @@
    "lang": null,
    "account": "x:x61030579",
    "engagement": 1,
-   "narrative_id": 2,
+   "narrative_id": 3,
    "coordinated_group": null
   },
   {
@@ -22412,7 +23941,7 @@
    "lang": null,
    "account": "x:x18620650",
    "engagement": 18,
-   "narrative_id": 5,
+   "narrative_id": 6,
    "coordinated_group": null
   },
   {
@@ -22440,7 +23969,7 @@
    "lang": null,
    "account": "x:x88961459",
    "engagement": 1,
-   "narrative_id": 2,
+   "narrative_id": 3,
    "coordinated_group": null
   },
   {
@@ -22468,7 +23997,7 @@
    "lang": null,
    "account": "x:x75419352",
    "engagement": 23,
-   "narrative_id": 7,
+   "narrative_id": 8,
    "coordinated_group": "G2"
   },
   {
@@ -22501,8 +24030,8 @@
    "lang": null,
    "account": "x:x24782157",
    "engagement": 1046,
-   "narrative_id": 8,
-   "coordinated_group": null
+   "narrative_id": 9,
+   "coordinated_group": "G3"
   },
   {
    "id": "665",
@@ -22529,7 +24058,7 @@
    "lang": null,
    "account": "x:x67821509",
    "engagement": 15,
-   "narrative_id": 7,
+   "narrative_id": 8,
    "coordinated_group": "G2"
   },
   {
@@ -22557,7 +24086,7 @@
    "lang": null,
    "account": "x:x73176107",
    "engagement": 17,
-   "narrative_id": 10,
+   "narrative_id": 11,
    "coordinated_group": "G2"
   },
   {
@@ -22590,8 +24119,8 @@
    "lang": null,
    "account": "telegram:te61639439",
    "engagement": 400,
-   "narrative_id": 8,
-   "coordinated_group": null
+   "narrative_id": 9,
+   "coordinated_group": "G3"
   },
   {
    "id": "717",
@@ -22623,8 +24152,8 @@
    "lang": null,
    "account": "telegram:te92637421",
    "engagement": 1069,
-   "narrative_id": 8,
-   "coordinated_group": null
+   "narrative_id": 9,
+   "coordinated_group": "G3"
   },
   {
    "id": "714",
@@ -22656,8 +24185,8 @@
    "lang": null,
    "account": "x:x67329147",
    "engagement": 239,
-   "narrative_id": 8,
-   "coordinated_group": null
+   "narrative_id": 9,
+   "coordinated_group": "G3"
   },
   {
    "id": "668",
@@ -22684,7 +24213,7 @@
    "lang": null,
    "account": "x:x34985664",
    "engagement": 36,
-   "narrative_id": 10,
+   "narrative_id": 11,
    "coordinated_group": "G2"
   },
   {
@@ -22712,7 +24241,7 @@
    "lang": null,
    "account": "x:x79030673",
    "engagement": 42,
-   "narrative_id": 7,
+   "narrative_id": 8,
    "coordinated_group": "G2"
   },
   {
@@ -22745,8 +24274,8 @@
    "lang": null,
    "account": "x:x29036775",
    "engagement": 136,
-   "narrative_id": 8,
-   "coordinated_group": null
+   "narrative_id": 9,
+   "coordinated_group": "G3"
   },
   {
    "id": "689",
@@ -22773,7 +24302,7 @@
    "lang": null,
    "account": "x:x79030673",
    "engagement": 0,
-   "narrative_id": 7,
+   "narrative_id": 8,
    "coordinated_group": "G2"
   },
   {
@@ -22801,7 +24330,7 @@
    "lang": null,
    "account": "x:x75419352",
    "engagement": 0,
-   "narrative_id": 10,
+   "narrative_id": 11,
    "coordinated_group": "G2"
   },
   {
@@ -22829,7 +24358,7 @@
    "lang": null,
    "account": "x:x34985664",
    "engagement": 0,
-   "narrative_id": 7,
+   "narrative_id": 8,
    "coordinated_group": "G2"
   },
   {
@@ -22862,7 +24391,7 @@
    "lang": null,
    "account": "telegram:te34391257",
    "engagement": 5,
-   "narrative_id": 1,
+   "narrative_id": 2,
    "coordinated_group": null
   },
   {
@@ -22890,7 +24419,7 @@
    "lang": null,
    "account": "telegram:te53622663",
    "engagement": 5,
-   "narrative_id": 4,
+   "narrative_id": 5,
    "coordinated_group": null
   },
   {
@@ -22918,7 +24447,7 @@
    "lang": null,
    "account": "telegram:te81555103",
    "engagement": 8,
-   "narrative_id": 1,
+   "narrative_id": 2,
    "coordinated_group": null
   },
   {
@@ -22951,7 +24480,7 @@
    "lang": null,
    "account": "youtube:yo23903144",
    "engagement": 3,
-   "narrative_id": 1,
+   "narrative_id": 2,
    "coordinated_group": null
   },
   {
@@ -22979,7 +24508,7 @@
    "lang": null,
    "account": "telegram:te35511941",
    "engagement": 0,
-   "narrative_id": 1,
+   "narrative_id": 2,
    "coordinated_group": null
   },
   {
@@ -23007,7 +24536,7 @@
    "lang": null,
    "account": "telegram:te12515446",
    "engagement": 28,
-   "narrative_id": 2,
+   "narrative_id": 3,
    "coordinated_group": null
   },
   {
@@ -23035,7 +24564,7 @@
    "lang": null,
    "account": "x:x87446468",
    "engagement": 1,
-   "narrative_id": 4,
+   "narrative_id": 5,
    "coordinated_group": null
   },
   {
@@ -23068,7 +24597,7 @@
    "lang": null,
    "account": "youtube:yo21087928",
    "engagement": 5,
-   "narrative_id": 2,
+   "narrative_id": 3,
    "coordinated_group": null
   },
   {
@@ -23096,7 +24625,7 @@
    "lang": null,
    "account": "x:x36040410",
    "engagement": 6,
-   "narrative_id": 1,
+   "narrative_id": 2,
    "coordinated_group": null
   },
   {
@@ -23124,7 +24653,7 @@
    "lang": null,
    "account": "telegram:te73655158",
    "engagement": 4,
-   "narrative_id": 1,
+   "narrative_id": 2,
    "coordinated_group": null
   },
   {
@@ -23152,7 +24681,7 @@
    "lang": null,
    "account": "x:x19209801",
    "engagement": 20,
-   "narrative_id": 5,
+   "narrative_id": 6,
    "coordinated_group": null
   },
   {
@@ -23180,7 +24709,7 @@
    "lang": null,
    "account": "x:x48735464",
    "engagement": 2,
-   "narrative_id": 1,
+   "narrative_id": 2,
    "coordinated_group": null
   },
   {
@@ -23208,7 +24737,7 @@
    "lang": null,
    "account": "telegram:te81016525",
    "engagement": 5,
-   "narrative_id": 2,
+   "narrative_id": 3,
    "coordinated_group": null
   },
   {
@@ -23236,7 +24765,7 @@
    "lang": null,
    "account": "telegram:te57319709",
    "engagement": 1,
-   "narrative_id": 5,
+   "narrative_id": 6,
    "coordinated_group": null
   },
   {
@@ -23264,7 +24793,7 @@
    "lang": null,
    "account": "x:x90197611",
    "engagement": 0,
-   "narrative_id": 3,
+   "narrative_id": 4,
    "coordinated_group": null
   },
   {
@@ -23292,7 +24821,7 @@
    "lang": null,
    "account": "x:x90092958",
    "engagement": 1,
-   "narrative_id": 3,
+   "narrative_id": 4,
    "coordinated_group": null
   },
   {
@@ -23320,7 +24849,7 @@
    "lang": null,
    "account": "telegram:te41510328",
    "engagement": 0,
-   "narrative_id": 1,
+   "narrative_id": 2,
    "coordinated_group": null
   },
   {
@@ -23348,7 +24877,7 @@
    "lang": null,
    "account": "x:x14380847",
    "engagement": 10,
-   "narrative_id": 2,
+   "narrative_id": 3,
    "coordinated_group": null
   },
   {
@@ -23381,7 +24910,7 @@
    "lang": null,
    "account": "x:x63423225",
    "engagement": 0,
-   "narrative_id": 3,
+   "narrative_id": 4,
    "coordinated_group": null
   },
   {
@@ -23409,7 +24938,7 @@
    "lang": null,
    "account": "x:x78131950",
    "engagement": 1,
-   "narrative_id": 2,
+   "narrative_id": 3,
    "coordinated_group": null
   },
   {
@@ -23437,7 +24966,7 @@
    "lang": null,
    "account": "x:x99889098",
    "engagement": 8,
-   "narrative_id": 3,
+   "narrative_id": 4,
    "coordinated_group": null
   },
   {
@@ -23465,7 +24994,7 @@
    "lang": null,
    "account": "x:x20555833",
    "engagement": 2,
-   "narrative_id": 1,
+   "narrative_id": 2,
    "coordinated_group": null
   },
   {
@@ -23493,7 +25022,7 @@
    "lang": null,
    "account": "x:x99903592",
    "engagement": 5,
-   "narrative_id": 1,
+   "narrative_id": 2,
    "coordinated_group": null
   },
   {
@@ -23521,7 +25050,7 @@
    "lang": null,
    "account": "x:x97011385",
    "engagement": 0,
-   "narrative_id": 1,
+   "narrative_id": 2,
    "coordinated_group": null
   },
   {
@@ -23549,7 +25078,7 @@
    "lang": null,
    "account": "x:x90092958",
    "engagement": 0,
-   "narrative_id": 5,
+   "narrative_id": 6,
    "coordinated_group": null
   },
   {
@@ -23577,7 +25106,7 @@
    "lang": null,
    "account": "x:x49682169",
    "engagement": 23,
-   "narrative_id": 1,
+   "narrative_id": 2,
    "coordinated_group": null
   },
   {
@@ -23605,7 +25134,7 @@
    "lang": null,
    "account": "x:x94982908",
    "engagement": 20,
-   "narrative_id": 2,
+   "narrative_id": 3,
    "coordinated_group": null
   },
   {
@@ -23633,7 +25162,7 @@
    "lang": null,
    "account": "x:x24716857",
    "engagement": 0,
-   "narrative_id": 5,
+   "narrative_id": 6,
    "coordinated_group": null
   },
   {
@@ -23661,7 +25190,7 @@
    "lang": null,
    "account": "youtube:yo74759996",
    "engagement": 0,
-   "narrative_id": 1,
+   "narrative_id": 2,
    "coordinated_group": null
   },
   {
@@ -23689,7 +25218,7 @@
    "lang": null,
    "account": "x:x73360324",
    "engagement": 12,
-   "narrative_id": 1,
+   "narrative_id": 2,
    "coordinated_group": null
   },
   {
@@ -23717,7 +25246,7 @@
    "lang": null,
    "account": "x:x29090631",
    "engagement": 0,
-   "narrative_id": 1,
+   "narrative_id": 2,
    "coordinated_group": null
   },
   {
@@ -23745,7 +25274,7 @@
    "lang": null,
    "account": "telegram:te92666356",
    "engagement": 8,
-   "narrative_id": 1,
+   "narrative_id": 2,
    "coordinated_group": null
   },
   {
@@ -23773,7 +25302,7 @@
    "lang": null,
    "account": "youtube:yo73083727",
    "engagement": 1,
-   "narrative_id": 4,
+   "narrative_id": 5,
    "coordinated_group": null
   },
   {
@@ -23801,7 +25330,7 @@
    "lang": null,
    "account": "youtube:yo25805613",
    "engagement": 6,
-   "narrative_id": 5,
+   "narrative_id": 6,
    "coordinated_group": null
   },
   {
@@ -23829,7 +25358,7 @@
    "lang": null,
    "account": "x:x34985664",
    "engagement": 43,
-   "narrative_id": 7,
+   "narrative_id": 8,
    "coordinated_group": "G2"
   },
   {
@@ -23857,7 +25386,7 @@
    "lang": null,
    "account": "x:x67491018",
    "engagement": 16,
-   "narrative_id": 7,
+   "narrative_id": 8,
    "coordinated_group": "G2"
   },
   {
@@ -23885,7 +25414,7 @@
    "lang": null,
    "account": "x:x79030673",
    "engagement": 20,
-   "narrative_id": 7,
+   "narrative_id": 8,
    "coordinated_group": "G2"
   },
   {
@@ -23913,7 +25442,7 @@
    "lang": null,
    "account": "x:x67821509",
    "engagement": 20,
-   "narrative_id": 10,
+   "narrative_id": 11,
    "coordinated_group": "G2"
   },
   {
@@ -23941,7 +25470,7 @@
    "lang": null,
    "account": "x:x73176107",
    "engagement": 22,
-   "narrative_id": 7,
+   "narrative_id": 8,
    "coordinated_group": "G2"
   },
   {
@@ -23969,7 +25498,7 @@
    "lang": null,
    "account": "x:x73176107",
    "engagement": 0,
-   "narrative_id": 10,
+   "narrative_id": 11,
    "coordinated_group": "G2"
   },
   {
@@ -23997,7 +25526,7 @@
    "lang": null,
    "account": "x:x73176107",
    "engagement": 0,
-   "narrative_id": 7,
+   "narrative_id": 8,
    "coordinated_group": "G2"
   },
   {
@@ -24025,7 +25554,7 @@
    "lang": null,
    "account": "x:x67821509",
    "engagement": 0,
-   "narrative_id": 7,
+   "narrative_id": 8,
    "coordinated_group": "G2"
   },
   {
@@ -24053,7 +25582,7 @@
    "lang": null,
    "account": "x:x67821509",
    "engagement": 0,
-   "narrative_id": 7,
+   "narrative_id": 8,
    "coordinated_group": "G2"
   },
   {
@@ -24081,7 +25610,7 @@
    "lang": null,
    "account": "x:x79030673",
    "engagement": 0,
-   "narrative_id": 7,
+   "narrative_id": 8,
    "coordinated_group": "G2"
   },
   {
@@ -24109,7 +25638,7 @@
    "lang": null,
    "account": "x:x67821509",
    "engagement": 0,
-   "narrative_id": 7,
+   "narrative_id": 8,
    "coordinated_group": "G2"
   },
   {
@@ -24137,7 +25666,7 @@
    "lang": null,
    "account": "x:x67491018",
    "engagement": 0,
-   "narrative_id": 7,
+   "narrative_id": 8,
    "coordinated_group": "G2"
   },
   {
@@ -24165,7 +25694,7 @@
    "lang": null,
    "account": "telegram:te35511941",
    "engagement": 7,
-   "narrative_id": 4,
+   "narrative_id": 5,
    "coordinated_group": null
   },
   {
@@ -24193,7 +25722,7 @@
    "lang": null,
    "account": "x:x18815720",
    "engagement": 8,
-   "narrative_id": 1,
+   "narrative_id": 2,
    "coordinated_group": null
   },
   {
@@ -24221,7 +25750,7 @@
    "lang": null,
    "account": "x:x13079321",
    "engagement": 3,
-   "narrative_id": 12,
+   "narrative_id": 13,
    "coordinated_group": null
   },
   {
@@ -24249,7 +25778,7 @@
    "lang": null,
    "account": "x:x52974720",
    "engagement": 0,
-   "narrative_id": 12,
+   "narrative_id": 13,
    "coordinated_group": null
   },
   {
@@ -24277,7 +25806,7 @@
    "lang": null,
    "account": "x:x54318698",
    "engagement": 1,
-   "narrative_id": 5,
+   "narrative_id": 6,
    "coordinated_group": null
   },
   {
@@ -24305,7 +25834,7 @@
    "lang": null,
    "account": "telegram:te39219319",
    "engagement": 3,
-   "narrative_id": 1,
+   "narrative_id": 2,
    "coordinated_group": null
   },
   {
@@ -24333,7 +25862,7 @@
    "lang": null,
    "account": "telegram:te70858653",
    "engagement": 1,
-   "narrative_id": 4,
+   "narrative_id": 5,
    "coordinated_group": null
   },
   {
@@ -24361,7 +25890,7 @@
    "lang": null,
    "account": "youtube:yo58537831",
    "engagement": 33,
-   "narrative_id": 3,
+   "narrative_id": 4,
    "coordinated_group": null
   },
   {
@@ -24389,7 +25918,7 @@
    "lang": null,
    "account": "youtube:yo74759996",
    "engagement": 1,
-   "narrative_id": 1,
+   "narrative_id": 2,
    "coordinated_group": null
   },
   {
@@ -24422,7 +25951,7 @@
    "lang": null,
    "account": "youtube:yo48851599",
    "engagement": 2,
-   "narrative_id": 5,
+   "narrative_id": 6,
    "coordinated_group": null
   },
   {
@@ -24450,7 +25979,7 @@
    "lang": null,
    "account": "telegram:te65590800",
    "engagement": 2,
-   "narrative_id": 1,
+   "narrative_id": 2,
    "coordinated_group": null
   },
   {
@@ -24478,7 +26007,7 @@
    "lang": null,
    "account": "telegram:te93893865",
    "engagement": 13,
-   "narrative_id": 3,
+   "narrative_id": 4,
    "coordinated_group": null
   },
   {
@@ -24506,7 +26035,7 @@
    "lang": null,
    "account": "telegram:te65590800",
    "engagement": 10,
-   "narrative_id": 2,
+   "narrative_id": 3,
    "coordinated_group": null
   },
   {
@@ -24534,7 +26063,7 @@
    "lang": null,
    "account": "x:x17507864",
    "engagement": 0,
-   "narrative_id": 1,
+   "narrative_id": 2,
    "coordinated_group": null
   },
   {
@@ -24562,7 +26091,7 @@
    "lang": null,
    "account": "youtube:yo21087928",
    "engagement": 7,
-   "narrative_id": 3,
+   "narrative_id": 4,
    "coordinated_group": null
   },
   {
@@ -24590,7 +26119,7 @@
    "lang": null,
    "account": "telegram:te31473054",
    "engagement": 5,
-   "narrative_id": 3,
+   "narrative_id": 4,
    "coordinated_group": null
   },
   {
@@ -24618,7 +26147,7 @@
    "lang": null,
    "account": "youtube:yo57553014",
    "engagement": 21,
-   "narrative_id": 3,
+   "narrative_id": 4,
    "coordinated_group": null
   },
   {
@@ -24646,7 +26175,7 @@
    "lang": null,
    "account": "x:x52974720",
    "engagement": 3,
-   "narrative_id": 11,
+   "narrative_id": 12,
    "coordinated_group": null
   },
   {
@@ -24674,7 +26203,7 @@
    "lang": null,
    "account": "x:x13079321",
    "engagement": 0,
-   "narrative_id": 11,
+   "narrative_id": 12,
    "coordinated_group": null
   },
   {
@@ -24702,7 +26231,7 @@
    "lang": null,
    "account": "telegram:te51971886",
    "engagement": 0,
-   "narrative_id": 1,
+   "narrative_id": 2,
    "coordinated_group": null
   },
   {
@@ -24730,7 +26259,7 @@
    "lang": null,
    "account": "telegram:te43046464",
    "engagement": 1,
-   "narrative_id": 5,
+   "narrative_id": 6,
    "coordinated_group": null
   },
   {
@@ -24758,7 +26287,7 @@
    "lang": null,
    "account": "x:x75419352",
    "engagement": 45,
-   "narrative_id": 7,
+   "narrative_id": 8,
    "coordinated_group": "G2"
   },
   {
@@ -24786,7 +26315,7 @@
    "lang": null,
    "account": "x:x73176107",
    "engagement": 9,
-   "narrative_id": 7,
+   "narrative_id": 8,
    "coordinated_group": "G2"
   },
   {
@@ -24814,7 +26343,7 @@
    "lang": null,
    "account": "x:x79030673",
    "engagement": 11,
-   "narrative_id": 7,
+   "narrative_id": 8,
    "coordinated_group": "G2"
   },
   {
@@ -24842,7 +26371,7 @@
    "lang": null,
    "account": "x:x67491018",
    "engagement": 19,
-   "narrative_id": 7,
+   "narrative_id": 8,
    "coordinated_group": "G2"
   },
   {
@@ -24870,7 +26399,7 @@
    "lang": null,
    "account": "x:x67821509",
    "engagement": 24,
-   "narrative_id": 7,
+   "narrative_id": 8,
    "coordinated_group": "G2"
   },
   {
@@ -24898,7 +26427,7 @@
    "lang": null,
    "account": "x:x67491018",
    "engagement": 0,
-   "narrative_id": 7,
+   "narrative_id": 8,
    "coordinated_group": "G2"
   },
   {
@@ -24926,7 +26455,7 @@
    "lang": null,
    "account": "x:x75419352",
    "engagement": 0,
-   "narrative_id": 7,
+   "narrative_id": 8,
    "coordinated_group": "G2"
   },
   {
@@ -24954,7 +26483,7 @@
    "lang": null,
    "account": "x:x34985664",
    "engagement": 0,
-   "narrative_id": 7,
+   "narrative_id": 8,
    "coordinated_group": "G2"
   },
   {
@@ -24982,7 +26511,7 @@
    "lang": null,
    "account": "x:x75419352",
    "engagement": 0,
-   "narrative_id": 7,
+   "narrative_id": 8,
    "coordinated_group": "G2"
   },
   {
@@ -25010,7 +26539,7 @@
    "lang": null,
    "account": "x:x79030673",
    "engagement": 0,
-   "narrative_id": 7,
+   "narrative_id": 8,
    "coordinated_group": "G2"
   },
   {
@@ -25038,7 +26567,7 @@
    "lang": null,
    "account": "x:x79030673",
    "engagement": 0,
-   "narrative_id": 7,
+   "narrative_id": 8,
    "coordinated_group": "G2"
   },
   {
@@ -25066,7 +26595,7 @@
    "lang": null,
    "account": "youtube:yo87342561",
    "engagement": 0,
-   "narrative_id": 1,
+   "narrative_id": 2,
    "coordinated_group": null
   },
   {
@@ -25099,7 +26628,7 @@
    "lang": null,
    "account": "telegram:te74287863",
    "engagement": 3,
-   "narrative_id": 2,
+   "narrative_id": 3,
    "coordinated_group": null
   },
   {
@@ -25127,7 +26656,7 @@
    "lang": null,
    "account": "telegram:te15291208",
    "engagement": 1,
-   "narrative_id": 2,
+   "narrative_id": 3,
    "coordinated_group": null
   },
   {
@@ -25155,7 +26684,7 @@
    "lang": null,
    "account": "x:x65625330",
    "engagement": 2,
-   "narrative_id": 2,
+   "narrative_id": 3,
    "coordinated_group": null
   },
   {
@@ -25183,7 +26712,7 @@
    "lang": null,
    "account": "x:x11250299",
    "engagement": 2,
-   "narrative_id": 3,
+   "narrative_id": 4,
    "coordinated_group": null
   },
   {
@@ -25211,7 +26740,7 @@
    "lang": null,
    "account": "x:x16927215",
    "engagement": 1,
-   "narrative_id": 5,
+   "narrative_id": 6,
    "coordinated_group": null
   },
   {
@@ -25244,7 +26773,7 @@
    "lang": null,
    "account": "x:x45186708",
    "engagement": 1,
-   "narrative_id": 4,
+   "narrative_id": 5,
    "coordinated_group": null
   },
   {
@@ -25272,7 +26801,7 @@
    "lang": null,
    "account": "x:x28639738",
    "engagement": 1,
-   "narrative_id": 5,
+   "narrative_id": 6,
    "coordinated_group": null
   },
   {
@@ -25300,7 +26829,7 @@
    "lang": null,
    "account": "x:x96213226",
    "engagement": 2,
-   "narrative_id": 1,
+   "narrative_id": 2,
    "coordinated_group": null
   },
   {
@@ -25328,7 +26857,7 @@
    "lang": null,
    "account": "telegram:te85776373",
    "engagement": 1,
-   "narrative_id": 5,
+   "narrative_id": 6,
    "coordinated_group": null
   },
   {
@@ -25356,7 +26885,7 @@
    "lang": null,
    "account": "youtube:yo91721371",
    "engagement": 5,
-   "narrative_id": 1,
+   "narrative_id": 2,
    "coordinated_group": null
   },
   {
@@ -25384,7 +26913,7 @@
    "lang": null,
    "account": "youtube:yo23489853",
    "engagement": 16,
-   "narrative_id": 1,
+   "narrative_id": 2,
    "coordinated_group": null
   },
   {
@@ -25412,7 +26941,7 @@
    "lang": null,
    "account": "telegram:te45002007",
    "engagement": 3,
-   "narrative_id": 1,
+   "narrative_id": 2,
    "coordinated_group": null
   },
   {
@@ -25440,7 +26969,7 @@
    "lang": null,
    "account": "x:x63238057",
    "engagement": 1,
-   "narrative_id": 1,
+   "narrative_id": 2,
    "coordinated_group": null
   },
   {
@@ -25468,7 +26997,7 @@
    "lang": null,
    "account": "x:x64547971",
    "engagement": 3,
-   "narrative_id": 3,
+   "narrative_id": 4,
    "coordinated_group": null
   },
   {
@@ -25496,7 +27025,7 @@
    "lang": null,
    "account": "telegram:te98707076",
    "engagement": 6,
-   "narrative_id": 1,
+   "narrative_id": 2,
    "coordinated_group": null
   },
   {
@@ -25524,7 +27053,7 @@
    "lang": null,
    "account": "x:x97735896",
    "engagement": 0,
-   "narrative_id": 5,
+   "narrative_id": 6,
    "coordinated_group": null
   },
   {
@@ -25552,7 +27081,7 @@
    "lang": null,
    "account": "x:x94982908",
    "engagement": 0,
-   "narrative_id": 1,
+   "narrative_id": 2,
    "coordinated_group": null
   },
   {
@@ -25585,7 +27114,7 @@
    "lang": null,
    "account": "youtube:yo87342561",
    "engagement": 18,
-   "narrative_id": 1,
+   "narrative_id": 2,
    "coordinated_group": null
   },
   {
@@ -25613,7 +27142,7 @@
    "lang": null,
    "account": "x:x51662236",
    "engagement": 16,
-   "narrative_id": 5,
+   "narrative_id": 6,
    "coordinated_group": null
   },
   {
@@ -25641,7 +27170,7 @@
    "lang": null,
    "account": "x:x51663795",
    "engagement": 3,
-   "narrative_id": 4,
+   "narrative_id": 5,
    "coordinated_group": null
   },
   {
@@ -25669,7 +27198,7 @@
    "lang": null,
    "account": "x:x98575748",
    "engagement": 6,
-   "narrative_id": 2,
+   "narrative_id": 3,
    "coordinated_group": null
   },
   {
@@ -25697,7 +27226,7 @@
    "lang": null,
    "account": "youtube:yo12550658",
    "engagement": 21,
-   "narrative_id": 1,
+   "narrative_id": 2,
    "coordinated_group": null
   },
   {
@@ -25725,7 +27254,7 @@
    "lang": null,
    "account": "x:x52752377",
    "engagement": 7,
-   "narrative_id": 9,
+   "narrative_id": 10,
    "coordinated_group": null
   },
   {
@@ -25753,7 +27282,7 @@
    "lang": null,
    "account": "x:x14994527",
    "engagement": 5,
-   "narrative_id": 1,
+   "narrative_id": 2,
    "coordinated_group": null
   },
   {
@@ -25781,7 +27310,7 @@
    "lang": null,
    "account": "telegram:te24749927",
    "engagement": 12,
-   "narrative_id": 2,
+   "narrative_id": 3,
    "coordinated_group": null
   },
   {
@@ -25809,7 +27338,7 @@
    "lang": null,
    "account": "x:x21631697",
    "engagement": 1,
-   "narrative_id": 2,
+   "narrative_id": 3,
    "coordinated_group": null
   },
   {
@@ -25837,7 +27366,7 @@
    "lang": null,
    "account": "x:x25304396",
    "engagement": 14,
-   "narrative_id": 1,
+   "narrative_id": 2,
    "coordinated_group": null
   },
   {
@@ -25865,7 +27394,7 @@
    "lang": null,
    "account": "youtube:yo63339667",
    "engagement": 14,
-   "narrative_id": 1,
+   "narrative_id": 2,
    "coordinated_group": null
   },
   {
@@ -25898,7 +27427,7 @@
    "lang": null,
    "account": "x:x24716857",
    "engagement": 0,
-   "narrative_id": 1,
+   "narrative_id": 2,
    "coordinated_group": null
   },
   {
@@ -25926,7 +27455,7 @@
    "lang": null,
    "account": "telegram:te96031876",
    "engagement": 3,
-   "narrative_id": 4,
+   "narrative_id": 5,
    "coordinated_group": null
   },
   {
@@ -25959,7 +27488,7 @@
    "lang": null,
    "account": "x:x56354851",
    "engagement": 1,
-   "narrative_id": 1,
+   "narrative_id": 2,
    "coordinated_group": null
   },
   {
@@ -25987,7 +27516,7 @@
    "lang": null,
    "account": "youtube:yo94457912",
    "engagement": 16,
-   "narrative_id": 1,
+   "narrative_id": 2,
    "coordinated_group": null
   },
   {
@@ -26015,7 +27544,7 @@
    "lang": null,
    "account": "x:x40547349",
    "engagement": 0,
-   "narrative_id": 1,
+   "narrative_id": 2,
    "coordinated_group": null
   },
   {
@@ -26043,7 +27572,7 @@
    "lang": null,
    "account": "youtube:yo44489940",
    "engagement": 0,
-   "narrative_id": 3,
+   "narrative_id": 4,
    "coordinated_group": null
   },
   {
@@ -26071,7 +27600,7 @@
    "lang": null,
    "account": "x:x49700543",
    "engagement": 5,
-   "narrative_id": 2,
+   "narrative_id": 3,
    "coordinated_group": null
   },
   {
@@ -26099,7 +27628,7 @@
    "lang": null,
    "account": "x:x71031132",
    "engagement": 6,
-   "narrative_id": 2,
+   "narrative_id": 3,
    "coordinated_group": null
   },
   {
@@ -26127,7 +27656,7 @@
    "lang": null,
    "account": "telegram:te33496796",
    "engagement": 4,
-   "narrative_id": 2,
+   "narrative_id": 3,
    "coordinated_group": null
   },
   {
@@ -26155,7 +27684,7 @@
    "lang": null,
    "account": "telegram:te85776373",
    "engagement": 3,
-   "narrative_id": 3,
+   "narrative_id": 4,
    "coordinated_group": null
   },
   {
@@ -26183,7 +27712,7 @@
    "lang": null,
    "account": "x:x83226170",
    "engagement": 8,
-   "narrative_id": 3,
+   "narrative_id": 4,
    "coordinated_group": null
   },
   {
@@ -26211,7 +27740,7 @@
    "lang": null,
    "account": "youtube:yo40262109",
    "engagement": 12,
-   "narrative_id": 1,
+   "narrative_id": 2,
    "coordinated_group": null
   },
   {
@@ -26239,7 +27768,7 @@
    "lang": null,
    "account": "telegram:te54250344",
    "engagement": 3,
-   "narrative_id": 2,
+   "narrative_id": 3,
    "coordinated_group": null
   },
   {
@@ -26267,7 +27796,7 @@
    "lang": null,
    "account": "x:x82503409",
    "engagement": 11,
-   "narrative_id": 1,
+   "narrative_id": 2,
    "coordinated_group": null
   },
   {
@@ -26300,7 +27829,7 @@
    "lang": null,
    "account": "x:x82769008",
    "engagement": 1,
-   "narrative_id": 1,
+   "narrative_id": 2,
    "coordinated_group": null
   },
   {
@@ -26328,7 +27857,7 @@
    "lang": null,
    "account": "x:x11250299",
    "engagement": 1,
-   "narrative_id": 3,
+   "narrative_id": 4,
    "coordinated_group": null
   },
   {
@@ -26356,7 +27885,7 @@
    "lang": null,
    "account": "x:x92134318",
    "engagement": 11,
-   "narrative_id": 1,
+   "narrative_id": 2,
    "coordinated_group": null
   },
   {
@@ -26384,7 +27913,7 @@
    "lang": null,
    "account": "telegram:te86593187",
    "engagement": 13,
-   "narrative_id": 3,
+   "narrative_id": 4,
    "coordinated_group": null
   },
   {
@@ -26412,7 +27941,7 @@
    "lang": null,
    "account": "x:x16927215",
    "engagement": 10,
-   "narrative_id": 1,
+   "narrative_id": 2,
    "coordinated_group": null
   },
   {
@@ -26445,7 +27974,7 @@
    "lang": null,
    "account": "x:x92228802",
    "engagement": 0,
-   "narrative_id": 1,
+   "narrative_id": 2,
    "coordinated_group": null
   },
   {
@@ -26473,7 +28002,7 @@
    "lang": null,
    "account": "youtube:yo63339667",
    "engagement": 4,
-   "narrative_id": 4,
+   "narrative_id": 5,
    "coordinated_group": null
   },
   {
@@ -26501,7 +28030,7 @@
    "lang": null,
    "account": "youtube:yo25372341",
    "engagement": 0,
-   "narrative_id": 2,
+   "narrative_id": 3,
    "coordinated_group": null
   },
   {
@@ -26529,7 +28058,7 @@
    "lang": null,
    "account": "x:x82286705",
    "engagement": 5,
-   "narrative_id": 3,
+   "narrative_id": 4,
    "coordinated_group": null
   },
   {
@@ -26557,7 +28086,7 @@
    "lang": null,
    "account": "youtube:yo74251933",
    "engagement": 2,
-   "narrative_id": 1,
+   "narrative_id": 2,
    "coordinated_group": null
   },
   {
@@ -26585,7 +28114,7 @@
    "lang": null,
    "account": "telegram:te81621574",
    "engagement": 10,
-   "narrative_id": 1,
+   "narrative_id": 2,
    "coordinated_group": null
   },
   {
@@ -26613,7 +28142,7 @@
    "lang": null,
    "account": "x:x41645597",
    "engagement": 0,
-   "narrative_id": 1,
+   "narrative_id": 2,
    "coordinated_group": null
   },
   {
@@ -26641,7 +28170,7 @@
    "lang": null,
    "account": "x:x13079321",
    "engagement": 3,
-   "narrative_id": 12,
+   "narrative_id": 13,
    "coordinated_group": null
   },
   {
@@ -26669,7 +28198,7 @@
    "lang": null,
    "account": "x:x52974720",
    "engagement": 0,
-   "narrative_id": 12,
+   "narrative_id": 13,
    "coordinated_group": null
   },
   {
@@ -26697,7 +28226,7 @@
    "lang": null,
    "account": "x:x93926371",
    "engagement": 5,
-   "narrative_id": 1,
+   "narrative_id": 2,
    "coordinated_group": null
   },
   {
@@ -26725,7 +28254,7 @@
    "lang": null,
    "account": "telegram:te81688860",
    "engagement": 1,
-   "narrative_id": 2,
+   "narrative_id": 3,
    "coordinated_group": null
   },
   {
@@ -26753,7 +28282,7 @@
    "lang": null,
    "account": "x:x29602406",
    "engagement": 9,
-   "narrative_id": 5,
+   "narrative_id": 6,
    "coordinated_group": null
   },
   {
@@ -26781,7 +28310,7 @@
    "lang": null,
    "account": "youtube:yo87342561",
    "engagement": 22,
-   "narrative_id": 3,
+   "narrative_id": 4,
    "coordinated_group": null
   },
   {
@@ -26809,7 +28338,7 @@
    "lang": null,
    "account": "youtube:yo82909480",
    "engagement": 2,
-   "narrative_id": 4,
+   "narrative_id": 5,
    "coordinated_group": null
   },
   {
@@ -26837,7 +28366,7 @@
    "lang": null,
    "account": "telegram:te83284724",
    "engagement": 8,
-   "narrative_id": 2,
+   "narrative_id": 3,
    "coordinated_group": null
   },
   {
@@ -26865,7 +28394,7 @@
    "lang": null,
    "account": "x:x90197611",
    "engagement": 2,
-   "narrative_id": 3,
+   "narrative_id": 4,
    "coordinated_group": null
   },
   {
@@ -26893,7 +28422,7 @@
    "lang": null,
    "account": "telegram:te77853916",
    "engagement": 1,
-   "narrative_id": 2,
+   "narrative_id": 3,
    "coordinated_group": null
   },
   {
@@ -26926,7 +28455,7 @@
    "lang": null,
    "account": "telegram:te63143336",
    "engagement": 3,
-   "narrative_id": 3,
+   "narrative_id": 4,
    "coordinated_group": null
   },
   {
@@ -26959,7 +28488,7 @@
    "lang": null,
    "account": "telegram:te25060409",
    "engagement": 10,
-   "narrative_id": 9,
+   "narrative_id": 10,
    "coordinated_group": null
   },
   {
@@ -26987,7 +28516,7 @@
    "lang": null,
    "account": "x:x11250299",
    "engagement": 14,
-   "narrative_id": 1,
+   "narrative_id": 2,
    "coordinated_group": null
   },
   {
@@ -27015,7 +28544,7 @@
    "lang": null,
    "account": "x:x95585469",
    "engagement": 30,
-   "narrative_id": 4,
+   "narrative_id": 5,
    "coordinated_group": null
   },
   {
@@ -27043,7 +28572,7 @@
    "lang": null,
    "account": "x:x25228493",
    "engagement": 0,
-   "narrative_id": 1,
+   "narrative_id": 2,
    "coordinated_group": null
   },
   {
@@ -27076,7 +28605,7 @@
    "lang": null,
    "account": "telegram:te31473054",
    "engagement": 10,
-   "narrative_id": 5,
+   "narrative_id": 6,
    "coordinated_group": null
   },
   {
@@ -27104,7 +28633,7 @@
    "lang": null,
    "account": "youtube:yo40354559",
    "engagement": 3,
-   "narrative_id": 2,
+   "narrative_id": 3,
    "coordinated_group": null
   },
   {
@@ -27132,7 +28661,7 @@
    "lang": null,
    "account": "x:x19067690",
    "engagement": 0,
-   "narrative_id": 1,
+   "narrative_id": 2,
    "coordinated_group": null
   },
   {
@@ -27160,7 +28689,7 @@
    "lang": null,
    "account": "x:x56354851",
    "engagement": 4,
-   "narrative_id": 2,
+   "narrative_id": 3,
    "coordinated_group": null
   },
   {
@@ -27193,7 +28722,7 @@
    "lang": null,
    "account": "telegram:te63747791",
    "engagement": 2,
-   "narrative_id": 1,
+   "narrative_id": 2,
    "coordinated_group": null
   },
   {
@@ -27226,7 +28755,7 @@
    "lang": null,
    "account": "x:x88961459",
    "engagement": 2,
-   "narrative_id": 2,
+   "narrative_id": 3,
    "coordinated_group": null
   },
   {
@@ -27254,7 +28783,7 @@
    "lang": null,
    "account": "x:x42138745",
    "engagement": 13,
-   "narrative_id": 1,
+   "narrative_id": 2,
    "coordinated_group": null
   },
   {
@@ -27282,7 +28811,7 @@
    "lang": null,
    "account": "x:x46468984",
    "engagement": 1,
-   "narrative_id": 1,
+   "narrative_id": 2,
    "coordinated_group": null
   },
   {
@@ -27310,7 +28839,7 @@
    "lang": null,
    "account": "x:x99903592",
    "engagement": 36,
-   "narrative_id": 5,
+   "narrative_id": 6,
    "coordinated_group": null
   },
   {
@@ -27343,7 +28872,7 @@
    "lang": null,
    "account": "telegram:te83284724",
    "engagement": 3,
-   "narrative_id": 3,
+   "narrative_id": 4,
    "coordinated_group": null
   },
   {
@@ -27371,7 +28900,7 @@
    "lang": null,
    "account": "x:x81690398",
    "engagement": 14,
-   "narrative_id": 1,
+   "narrative_id": 2,
    "coordinated_group": null
   },
   {
@@ -27399,7 +28928,7 @@
    "lang": null,
    "account": "telegram:te71265269",
    "engagement": 10,
-   "narrative_id": 5,
+   "narrative_id": 6,
    "coordinated_group": null
   },
   {
@@ -27427,7 +28956,7 @@
    "lang": null,
    "account": "x:x88393811",
    "engagement": 2,
-   "narrative_id": 1,
+   "narrative_id": 2,
    "coordinated_group": null
   },
   {
@@ -27455,7 +28984,7 @@
    "lang": null,
    "account": "x:x58678896",
    "engagement": 20,
-   "narrative_id": 5,
+   "narrative_id": 6,
    "coordinated_group": null
   },
   {
@@ -27488,7 +29017,7 @@
    "lang": null,
    "account": "telegram:te77447155",
    "engagement": 10,
-   "narrative_id": 2,
+   "narrative_id": 3,
    "coordinated_group": null
   },
   {
@@ -27516,7 +29045,7 @@
    "lang": null,
    "account": "youtube:yo21318464",
    "engagement": 19,
-   "narrative_id": 3,
+   "narrative_id": 4,
    "coordinated_group": null
   },
   {
@@ -27544,7 +29073,7 @@
    "lang": null,
    "account": "telegram:te83197857",
    "engagement": 7,
-   "narrative_id": 3,
+   "narrative_id": 4,
    "coordinated_group": null
   }
  ]

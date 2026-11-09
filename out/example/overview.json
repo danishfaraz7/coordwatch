@@ -1,0 +1,737 @@
+{
+  "days": [
+    {
+      "date": "2026-10-01",
+      "total": 11,
+      "by_platform": {
+        "telegram": 3,
+        "x": 7,
+        "youtube": 1
+      },
+      "by_term": {
+        "acme bank": 11
+      }
+    },
+    {
+      "date": "2026-10-02",
+      "total": 15,
+      "by_platform": {
+        "telegram": 4,
+        "x": 8,
+        "youtube": 3
+      },
+      "by_term": {
+        "acme bank": 15
+      }
+    },
+    {
+      "date": "2026-10-03",
+      "total": 20,
+      "by_platform": {
+        "telegram": 8,
+        "x": 11,
+        "youtube": 1
+      },
+      "by_term": {
+        "acme bank": 20
+      }
+    },
+    {
+      "date": "2026-10-04",
+      "total": 124,
+      "by_platform": {
+        "telegram": 53,
+        "x": 67,
+        "youtube": 4
+      },
+      "by_term": {
+        "acme bank": 124
+      }
+    },
+    {
+      "date": "2026-10-05",
+      "total": 227,
+      "by_platform": {
+        "telegram": 69,
+        "x": 121,
+        "youtube": 37
+      },
+      "by_term": {
+        "acme bank": 227
+      }
+    },
+    {
+      "date": "2026-10-06",
+      "total": 140,
+      "by_platform": {
+        "telegram": 30,
+        "x": 97,
+        "youtube": 13
+      },
+      "by_term": {
+        "acme bank": 140
+      }
+    },
+    {
+      "date": "2026-10-07",
+      "total": 55,
+      "by_platform": {
+        "telegram": 12,
+        "x": 37,
+        "youtube": 6
+      },
+      "by_term": {
+        "acme bank": 55
+      }
+    },
+    {
+      "date": "2026-10-08",
+      "total": 31,
+      "by_platform": {
+        "telegram": 7,
+        "x": 18,
+        "youtube": 6
+      },
+      "by_term": {
+        "acme bank": 31
+      }
+    },
+    {
+      "date": "2026-10-09",
+      "total": 30,
+      "by_platform": {
+        "telegram": 7,
+        "x": 19,
+        "youtube": 4
+      },
+      "by_term": {
+        "acme bank": 30
+      }
+    },
+    {
+      "date": "2026-10-10",
+      "total": 14,
+      "by_platform": {
+        "telegram": 2,
+        "x": 10,
+        "youtube": 2
+      },
+      "by_term": {
+        "acme bank": 14
+      }
+    },
+    {
+      "date": "2026-10-11",
+      "total": 17,
+      "by_platform": {
+        "telegram": 4,
+        "x": 9,
+        "youtube": 4
+      },
+      "by_term": {
+        "acme bank": 17
+      }
+    },
+    {
+      "date": "2026-10-12",
+      "total": 18,
+      "by_platform": {
+        "telegram": 3,
+        "x": 10,
+        "youtube": 5
+      },
+      "by_term": {
+        "acme bank": 18
+      }
+    },
+    {
+      "date": "2026-10-13",
+      "total": 14,
+      "by_platform": {
+        "telegram": 6,
+        "x": 7,
+        "youtube": 1
+      },
+      "by_term": {
+        "acme bank": 14
+      }
+    },
+    {
+      "date": "2026-10-14",
+      "total": 11,
+      "by_platform": {
+        "telegram": 4,
+        "x": 6,
+        "youtube": 1
+      },
+      "by_term": {
+        "acme bank": 11
+      }
+    }
+  ],
+  "terms": [
+    {
+      "term": "acme bank",
+      "kind": "phrase",
+      "posts": 727,
+      "share": 1.0,
+      "accounts": 271,
+      "by_platform": {
+        "telegram": 212,
+        "x": 427,
+        "youtube": 88
+      },
+      "by_day": {
+        "2026-10-01": 11,
+        "2026-10-02": 15,
+        "2026-10-03": 20,
+        "2026-10-04": 124,
+        "2026-10-05": 227,
+        "2026-10-06": 140,
+        "2026-10-07": 55,
+        "2026-10-08": 31,
+        "2026-10-09": 30,
+        "2026-10-10": 14,
+        "2026-10-11": 17,
+        "2026-10-12": 18,
+        "2026-10-13": 14,
+        "2026-10-14": 11
+      },
+      "first": "2026-10-01T01:15:43+00:00",
+      "last": "2026-10-14T23:30:56+00:00"
+    }
+  ],
+  "narratives": [
+    {
+      "id": 1,
+      "label": "insolvent / withdraw / savings / too",
+      "posts": 233,
+      "by_day": {
+        "2026-10-01": 0,
+        "2026-10-02": 0,
+        "2026-10-03": 0,
+        "2026-10-04": 111,
+        "2026-10-05": 84,
+        "2026-10-06": 38,
+        "2026-10-07": 0,
+        "2026-10-08": 0,
+        "2026-10-09": 0,
+        "2026-10-10": 0,
+        "2026-10-11": 0,
+        "2026-10-12": 0,
+        "2026-10-13": 0,
+        "2026-10-14": 0
+      },
+      "by_term": {
+        "acme bank": 233
+      },
+      "by_platform": {
+        "telegram": 78,
+        "x": 143,
+        "youtube": 12
+      }
+    },
+    {
+      "id": 2,
+      "label": "again / fix / please / transfers",
+      "posts": 148,
+      "by_day": {
+        "2026-10-01": 3,
+        "2026-10-02": 6,
+        "2026-10-03": 6,
+        "2026-10-04": 5,
+        "2026-10-05": 39,
+        "2026-10-06": 26,
+        "2026-10-07": 20,
+        "2026-10-08": 7,
+        "2026-10-09": 6,
+        "2026-10-10": 6,
+        "2026-10-11": 9,
+        "2026-10-12": 7,
+        "2026-10-13": 4,
+        "2026-10-14": 4
+      },
+      "by_term": {
+        "acme bank": 148
+      },
+      "by_platform": {
+        "x": 79,
+        "telegram": 40,
+        "youtube": 29
+      }
+    },
+    {
+      "id": 3,
+      "label": "fees / charges / any / hidden",
+      "posts": 76,
+      "by_day": {
+        "2026-10-01": 2,
+        "2026-10-02": 4,
+        "2026-10-03": 5,
+        "2026-10-04": 2,
+        "2026-10-05": 16,
+        "2026-10-06": 20,
+        "2026-10-07": 8,
+        "2026-10-08": 1,
+        "2026-10-09": 3,
+        "2026-10-10": 3,
+        "2026-10-11": 4,
+        "2026-10-12": 2,
+        "2026-10-13": 5,
+        "2026-10-14": 1
+      },
+      "by_term": {
+        "acme bank": 76
+      },
+      "by_platform": {
+        "telegram": 24,
+        "x": 38,
+        "youtube": 14
+      }
+    },
+    {
+      "id": 4,
+      "label": "fair / advisor / answered / within",
+      "posts": 57,
+      "by_day": {
+        "2026-10-01": 2,
+        "2026-10-02": 2,
+        "2026-10-03": 4,
+        "2026-10-04": 2,
+        "2026-10-05": 11,
+        "2026-10-06": 12,
+        "2026-10-07": 5,
+        "2026-10-08": 3,
+        "2026-10-09": 3,
+        "2026-10-10": 1,
+        "2026-10-11": 3,
+        "2026-10-12": 4,
+        "2026-10-13": 2,
+        "2026-10-14": 3
+      },
+      "by_term": {
+        "acme bank": 57
+      },
+      "by_platform": {
+        "youtube": 10,
+        "x": 32,
+        "telegram": 15
+      }
+    },
+    {
+      "id": 5,
+      "label": "trouble / rumours / outage / evidence",
+      "posts": 50,
+      "by_day": {
+        "2026-10-01": 4,
+        "2026-10-02": 3,
+        "2026-10-03": 2,
+        "2026-10-04": 1,
+        "2026-10-05": 14,
+        "2026-10-06": 13,
+        "2026-10-07": 4,
+        "2026-10-08": 3,
+        "2026-10-09": 1,
+        "2026-10-10": 1,
+        "2026-10-11": 1,
+        "2026-10-12": 2,
+        "2026-10-13": 1,
+        "2026-10-14": 0
+      },
+      "by_term": {
+        "acme bank": 50
+      },
+      "by_platform": {
+        "x": 24,
+        "telegram": 18,
+        "youtube": 8
+      }
+    },
+    {
+      "id": 6,
+      "label": "after / disruption / worth / reading",
+      "posts": 43,
+      "by_day": {
+        "2026-10-01": 0,
+        "2026-10-02": 0,
+        "2026-10-03": 0,
+        "2026-10-04": 0,
+        "2026-10-05": 13,
+        "2026-10-06": 11,
+        "2026-10-07": 5,
+        "2026-10-08": 3,
+        "2026-10-09": 4,
+        "2026-10-10": 2,
+        "2026-10-11": 0,
+        "2026-10-12": 1,
+        "2026-10-13": 1,
+        "2026-10-14": 3
+      },
+      "by_term": {
+        "acme bank": 43
+      },
+      "by_platform": {
+        "telegram": 13,
+        "x": 25,
+        "youtube": 5
+      }
+    },
+    {
+      "id": 7,
+      "label": "rip / gone / lunch / never",
+      "posts": 40,
+      "by_day": {
+        "2026-10-01": 0,
+        "2026-10-02": 0,
+        "2026-10-03": 0,
+        "2026-10-04": 0,
+        "2026-10-05": 40,
+        "2026-10-06": 0,
+        "2026-10-07": 0,
+        "2026-10-08": 0,
+        "2026-10-09": 0,
+        "2026-10-10": 0,
+        "2026-10-11": 0,
+        "2026-10-12": 0,
+        "2026-10-13": 0,
+        "2026-10-14": 0
+      },
+      "by_term": {
+        "acme bank": 40
+      },
+      "by_platform": {
+        "youtube": 9,
+        "telegram": 14,
+        "x": 17
+      }
+    },
+    {
+      "id": 8,
+      "label": "country / several / members / man",
+      "posts": 35,
+      "by_day": {
+        "2026-10-01": 0,
+        "2026-10-02": 0,
+        "2026-10-03": 0,
+        "2026-10-04": 0,
+        "2026-10-05": 0,
+        "2026-10-06": 9,
+        "2026-10-07": 5,
+        "2026-10-08": 10,
+        "2026-10-09": 11,
+        "2026-10-10": 0,
+        "2026-10-11": 0,
+        "2026-10-12": 0,
+        "2026-10-13": 0,
+        "2026-10-14": 0
+      },
+      "by_term": {
+        "acme bank": 35
+      },
+      "by_platform": {
+        "x": 35
+      }
+    },
+    {
+      "id": 9,
+      "label": "confirms / systems / protected / deposits",
+      "posts": 15,
+      "by_day": {
+        "2026-10-01": 0,
+        "2026-10-02": 0,
+        "2026-10-03": 0,
+        "2026-10-04": 0,
+        "2026-10-05": 5,
+        "2026-10-06": 5,
+        "2026-10-07": 5,
+        "2026-10-08": 0,
+        "2026-10-09": 0,
+        "2026-10-10": 0,
+        "2026-10-11": 0,
+        "2026-10-12": 0,
+        "2026-10-13": 0,
+        "2026-10-14": 0
+      },
+      "by_term": {
+        "acme bank": 15
+      },
+      "by_platform": {
+        "x": 9,
+        "telegram": 6
+      }
+    },
+    {
+      "id": 10,
+      "label": "overreacting / fundamentals / fine / look",
+      "posts": 9,
+      "by_day": {
+        "2026-10-01": 0,
+        "2026-10-02": 0,
+        "2026-10-03": 1,
+        "2026-10-04": 1,
+        "2026-10-05": 3,
+        "2026-10-06": 2,
+        "2026-10-07": 0,
+        "2026-10-08": 0,
+        "2026-10-09": 0,
+        "2026-10-10": 1,
+        "2026-10-11": 0,
+        "2026-10-12": 0,
+        "2026-10-13": 1,
+        "2026-10-14": 0
+      },
+      "by_term": {
+        "acme bank": 9
+      },
+      "by_platform": {
+        "x": 4,
+        "youtube": 1,
+        "telegram": 4
+      }
+    },
+    {
+      "id": 11,
+      "label": "abroad / boarded / flight / coming",
+      "posts": 9,
+      "by_day": {
+        "2026-10-01": 0,
+        "2026-10-02": 0,
+        "2026-10-03": 0,
+        "2026-10-04": 0,
+        "2026-10-05": 0,
+        "2026-10-06": 4,
+        "2026-10-07": 3,
+        "2026-10-08": 2,
+        "2026-10-09": 0,
+        "2026-10-10": 0,
+        "2026-10-11": 0,
+        "2026-10-12": 0,
+        "2026-10-13": 0,
+        "2026-10-14": 0
+      },
+      "by_term": {
+        "acme bank": 9
+      },
+      "by_platform": {
+        "x": 9
+      }
+    },
+    {
+      "id": 12,
+      "label": "quarterly / results / looks / fine",
+      "posts": 6,
+      "by_day": {
+        "2026-10-01": 0,
+        "2026-10-02": 0,
+        "2026-10-03": 2,
+        "2026-10-04": 0,
+        "2026-10-05": 2,
+        "2026-10-06": 0,
+        "2026-10-07": 0,
+        "2026-10-08": 0,
+        "2026-10-09": 2,
+        "2026-10-10": 0,
+        "2026-10-11": 0,
+        "2026-10-12": 0,
+        "2026-10-13": 0,
+        "2026-10-14": 0
+      },
+      "by_term": {
+        "acme bank": 6
+      },
+      "by_platform": {
+        "x": 6
+      }
+    },
+    {
+      "id": 13,
+      "label": "finally / fixed / problem / update",
+      "posts": 6,
+      "by_day": {
+        "2026-10-01": 0,
+        "2026-10-02": 0,
+        "2026-10-03": 0,
+        "2026-10-04": 2,
+        "2026-10-05": 0,
+        "2026-10-06": 0,
+        "2026-10-07": 0,
+        "2026-10-08": 2,
+        "2026-10-09": 0,
+        "2026-10-10": 0,
+        "2026-10-11": 0,
+        "2026-10-12": 2,
+        "2026-10-13": 0,
+        "2026-10-14": 0
+      },
+      "by_term": {
+        "acme bank": 6
+      },
+      "by_platform": {
+        "x": 6
+      }
+    }
+  ],
+  "platforms": [
+    "telegram",
+    "x",
+    "youtube"
+  ],
+  "plain": {
+    "summary": [
+      "We looked at 'Acme Bank' from 2026-10-01 to 2026-10-14 on Telegram, X, YouTube.",
+      "We found 727 posts written by 271 different accounts.",
+      "The busiest day was 2026-10-05 with 227 posts.",
+      "“acme bank” (phrase) was mentioned in 727 posts (100% of everything) by 271 accounts.",
+      "People are talking about 13 main things. The biggest is “insolvent / withdraw / savings / too”, with 233 posts.",
+      "We found 3 group(s) of accounts that seem to work together. Together they wrote about 40% of all the posts."
+    ],
+    "narratives": [
+      {
+        "id": 1,
+        "label": "insolvent / withdraw / savings / too",
+        "text": "233 posts from 28 accounts talk about: insolvent, withdraw, savings, too, late. Mostly on X and Telegram. It was loudest on 2026-10-04. 100% of these posts come from accounts that seem to work together."
+      },
+      {
+        "id": 2,
+        "label": "again / fix / please / transfers",
+        "text": "148 posts from 122 accounts talk about: again, fix, please, transfers, website. Mostly on X and Telegram. It was loudest on 2026-10-05. It looks like normal people talking."
+      },
+      {
+        "id": 3,
+        "label": "fees / charges / any / hidden",
+        "text": "76 posts from 71 accounts talk about: fees, charges, any, hidden, insane. Mostly on X and Telegram. It was loudest on 2026-10-06. It looks like normal people talking."
+      },
+      {
+        "id": 4,
+        "label": "fair / advisor / answered / within",
+        "text": "57 posts from 50 accounts talk about: fair, advisor, answered, within, minutes. Mostly on X and Telegram. It was loudest on 2026-10-06. It looks like normal people talking."
+      },
+      {
+        "id": 5,
+        "label": "trouble / rumours / outage / evidence",
+        "text": "50 posts from 47 accounts talk about: trouble, rumours, outage, evidence, either. Mostly on X and Telegram. It was loudest on 2026-10-05. It looks like normal people talking."
+      },
+      {
+        "id": 6,
+        "label": "after / disruption / worth / reading",
+        "text": "43 posts from 43 accounts talk about: after, disruption, worth, reading, full. Mostly on X and Telegram. It was loudest on 2026-10-05. It looks like normal people talking."
+      },
+      {
+        "id": 7,
+        "label": "rip / gone / lunch / never",
+        "text": "40 posts from 40 accounts talk about: rip, gone, lunch, never, press. Mostly on X and Telegram. It was loudest on 2026-10-05. It looks like normal people talking."
+      },
+      {
+        "id": 8,
+        "label": "country / several / members / man",
+        "text": "35 posts from 6 accounts talk about: country, several, members, man, running. Mostly on X. It was loudest on 2026-10-09. 100% of these posts come from accounts that seem to work together."
+      },
+      {
+        "id": 9,
+        "label": "confirms / systems / protected / deposits",
+        "text": "15 posts from 5 accounts talk about: confirms, systems, protected, deposits, restored. Mostly on X and Telegram. It was loudest on 2026-10-05. 100% of these posts come from accounts that seem to work together."
+      },
+      {
+        "id": 10,
+        "label": "overreacting / fundamentals / fine / look",
+        "text": "9 posts from 9 accounts talk about: overreacting, fundamentals, fine, look, analysts. Mostly on X and Telegram. It was loudest on 2026-10-05. It looks like normal people talking."
+      },
+      {
+        "id": 11,
+        "label": "abroad / boarded / flight / coming",
+        "text": "9 posts from 5 accounts talk about: abroad, boarded, flight, coming, board. Mostly on X. It was loudest on 2026-10-06. 100% of these posts come from accounts that seem to work together."
+      },
+      {
+        "id": 12,
+        "label": "quarterly / results / looks / fine",
+        "text": "6 posts from 2 accounts talk about: quarterly, results, looks, fine. Mostly on X. It was loudest on 2026-10-03. It looks like normal people talking."
+      },
+      {
+        "id": 13,
+        "label": "finally / fixed / problem / update",
+        "text": "6 posts from 2 accounts talk about: finally, fixed, problem, update, mobile. Mostly on X. It was loudest on 2026-10-04. It looks like normal people talking."
+      }
+    ],
+    "groups": [
+      {
+        "id": "G1",
+        "text": "Group G1 has 28 accounts that seem to work together. Why we think so: they posted the same or almost the same words; their accounts were made around the same time; they posted within minutes of each other; they keep sharing and boosting each other's posts. This is a clue, not proof: real friends or fans can also look alike."
+      },
+      {
+        "id": "G2",
+        "text": "Group G2 has 6 accounts that seem to work together. Why we think so: they keep sharing and boosting each other's posts; they posted within minutes of each other. This is a clue, not proof: real friends or fans can also look alike."
+      },
+      {
+        "id": "G3",
+        "text": "Group G3 has 5 accounts that seem to work together. Why we think so: they posted the same or almost the same words; they posted within minutes of each other. This is a clue, not proof: real friends or fans can also look alike."
+      }
+    ],
+    "origins": [
+      {
+        "narrative_id": 1,
+        "label": "insolvent / withdraw / savings / too",
+        "text": "It first showed up on Telegram at 04 Oct 08:03 UTC, posted by “truth_finance_06”. After that it reached X about 38 minutes later, then YouTube about 26 hours later. The first wave of posts came from group G1, which suggests it was pushed on purpose."
+      },
+      {
+        "narrative_id": 2,
+        "label": "again / fix / please / transfers",
+        "text": "It first showed up on X at 01 Oct 03:11 UTC, posted by “user_056_tom”. After that it reached Telegram about 3 minutes later, then YouTube about 23 hours later. The first posts look like ordinary users."
+      },
+      {
+        "narrative_id": 3,
+        "label": "fees / charges / any / hidden",
+        "text": "It first showed up on Telegram at 01 Oct 01:53 UTC, posted by “user_228_jo”. After that it reached X about 19 hours later, then YouTube about 30 hours later. The first posts look like ordinary users."
+      },
+      {
+        "narrative_id": 4,
+        "label": "fair / advisor / answered / within",
+        "text": "It first showed up on YouTube at 01 Oct 16:48 UTC, posted by “user_021_raj”. After that it reached X about 3 hours later, then Telegram about 2 days later. The first posts look like ordinary users."
+      },
+      {
+        "narrative_id": 5,
+        "label": "trouble / rumours / outage / evidence",
+        "text": "It first showed up on X at 01 Oct 01:15 UTC, posted by “user_133_ana”. After that it reached Telegram about 21 hours later, then YouTube about 3 days later. The first posts look like ordinary users."
+      },
+      {
+        "narrative_id": 6,
+        "label": "after / disruption / worth / reading",
+        "text": "It first showed up on Telegram at 05 Oct 01:46 UTC, posted by “user_003_sam”. After that it reached X about 2 hours later, then YouTube about 8 hours later. The first posts look like ordinary users."
+      },
+      {
+        "narrative_id": 7,
+        "label": "rip / gone / lunch / never",
+        "text": "It first showed up on YouTube at 05 Oct 14:01 UTC, posted by “user_145_tom”. After that it reached Telegram about 5 minutes later, then X about 6 minutes later. The first posts look like ordinary users."
+      },
+      {
+        "narrative_id": 8,
+        "label": "country / several / members / man",
+        "text": "It first showed up on X at 06 Oct 14:00 UTC, posted by “insider_leaks_2”. It stayed on that one platform. The first wave of posts came from group G2, which suggests it was pushed on purpose."
+      },
+      {
+        "narrative_id": 9,
+        "label": "confirms / systems / protected / deposits",
+        "text": "It first showed up on X at 05 Oct 18:01 UTC, posted by “newswire_daily”. After that it reached Telegram about 1 minutes later. The first wave of posts came from group G3, which suggests it was pushed on purpose."
+      },
+      {
+        "narrative_id": 10,
+        "label": "overreacting / fundamentals / fine / look",
+        "text": "It first showed up on X at 03 Oct 18:30 UTC, posted by “user_106_sam”. After that it reached YouTube about 26 hours later, then Telegram about 30 hours later. The first posts look like ordinary users."
+      },
+      {
+        "narrative_id": 11,
+        "label": "abroad / boarded / flight / coming",
+        "text": "It first showed up on X at 06 Oct 14:04 UTC, posted by “insider_leaks_1”. It stayed on that one platform. The first wave of posts came from group G2, which suggests it was pushed on purpose."
+      },
+      {
+        "narrative_id": 12,
+        "label": "quarterly / results / looks / fine",
+        "text": "It first showed up on X at 03 Oct 15:15 UTC, posted by “fan_one”. It stayed on that one platform. The first posts look like ordinary users."
+      },
+      {
+        "narrative_id": 13,
+        "label": "finally / fixed / problem / update",
+        "text": "It first showed up on X at 04 Oct 00:08 UTC, posted by “fan_two”. It stayed on that one platform. The first posts look like ordinary users."
+      }
+    ]
+  }
+}

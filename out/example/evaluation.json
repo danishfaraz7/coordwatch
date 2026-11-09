@@ -34,11 +34,17 @@
   },
   "labelled_posts_left_unclustered": 0
  },
- "precision": 1.0,
+ "precision": 0.872,
  "recall": 1.0,
- "f1": 1.0,
+ "f1": 0.932,
  "true_positives": 34,
- "false_positives": [],
+ "false_positives": [
+  "telegram:te61639439",
+  "telegram:te92637421",
+  "x:x24782157",
+  "x:x29036775",
+  "x:x67329147"
+ ],
  "false_negatives": [],
  "per_campaign": {
   "coordinated_A": {
@@ -54,7 +60,7 @@
  },
  "decoys": {
   "decoy_newswire": {
-   "wrongly_flagged": 0,
+   "wrongly_flagged": 5,
    "total": 5
   },
   "decoy_meme": {
@@ -66,5 +72,5 @@
    "total": 2
   }
  },
- "n_groups": 2
+ "n_groups": 3
 }

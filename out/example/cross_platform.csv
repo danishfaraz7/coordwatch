@@ -1,0 +1,10 @@
+narrative_id,label,posts,by_platform,first_platform,then,lag_hours_to_next
+1,insolvent / withdraw / savings / too,233,"{""telegram"": 78, ""x"": 143, ""youtube"": 12}",telegram,x,0.6
+2,again / fix / please / transfers,148,"{""x"": 79, ""telegram"": 40, ""youtube"": 29}",x,telegram > youtube,0.1
+3,fees / charges / any / hidden,76,"{""telegram"": 24, ""x"": 38, ""youtube"": 14}",telegram,x > youtube,18.9
+4,fair / advisor / answered / within,57,"{""youtube"": 10, ""x"": 32, ""telegram"": 15}",youtube,x > telegram,3.3
+5,trouble / rumours / outage / evidence,50,"{""x"": 24, ""telegram"": 18, ""youtube"": 8}",x,telegram > youtube,21.4
+6,after / disruption / worth / reading,43,"{""telegram"": 13, ""x"": 25, ""youtube"": 5}",telegram,x > youtube,2.4
+7,rip / gone / lunch / never,40,"{""youtube"": 9, ""telegram"": 14, ""x"": 17}",youtube,telegram > x,0.1
+9,confirms / systems / protected / deposits,15,"{""x"": 9, ""telegram"": 6}",x,telegram,0.0
+10,overreacting / fundamentals / fine / look,9,"{""x"": 4, ""youtube"": 1, ""telegram"": 4}",x,telegram,29.9

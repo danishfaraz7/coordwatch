@@ -20,7 +20,7 @@ Findings are leads for a human analyst, not attribution. Coordination is not the
 6. [Reading the results](#6-reading-the-results)
 7. [Run logs and debugging](#7-run-logs-and-debugging)
 8. [Troubleshooting](#8-troubleshooting) · [Supported systems](#supported-systems)
-9. [Command line](#9-command-line-works-offline-1-second) · 10. Architecture · 11. Methodology · 12. Rate limits · 13. AI use · 14. Accuracy · 15. Limitations · 16. Layout
+9. [Command line](#9-command-line-works-offline-1-second) · 10. Architecture · 11. Methodology · 12. Rate limits · 13. AI use · 14. Accuracy · 15. Limitations · 16. Layout · [17. Feature guide](#17-feature-guide-what-the-app-does-beyond-the-brief)
 
 ---------------------------------------------------------------------------------------------------
 
@@ -35,7 +35,11 @@ Findings are leads for a human analyst, not attribution. Coordination is not the
 | **Cross-platform correlation** | narratives that live on several platforms and which one led, hourly/daily volume correlation with lead/lag, Telegram posts that link to the collected YouTube videos, near-identical text across platforms, shared URLs/hashtags, and a plain-English summary | `cross_platform.csv`, `cross_platform_summary.txt`, report tile, app overview panel |
 | **Exports and dashboard** | JSON and CSV files, a single offline HTML report, and an interactive web app ("constellation": the topic is the core, narratives orbit it, coordinated groups are linked orbs, a time scrubber replays the spread) | run folder / **Export** menu |
 | **Web discovery** (optional) | a free DuckDuckGo sweep that finds Telegram channels and web mentions, and the earliest dated mention | report "Web discovery" tile |
-| **Run logs** | a secret-free log of every run (what you searched, which route produced the data, errors) that you can export for a date range | Settings → Run logs |
+| **Report builder** | pick one, several or all stories, optionally add one AI summary of exactly those stories (with numbered, linked references), as a web page or PDF | Download Results → "Build your own report" |
+| **Executive PDF** | a 2–3 page plain-words report for managers | `executive_report.pdf` |
+| **Search Everything** | plain-language search over one run or all saved runs ("most liked youtube posts", "who posted first", "telegram 7 nov") | sidebar → Search Everything |
+| **What's trending** | suggested search terms and hashtags for your dates (open web, X, YouTube, Telegram), with Add to search / Copy | home page, under the topic box |
+| **Run logs and activity log** | a secret-free log of every run (what you searched, which route produced the data, errors) **and** of every lookup made afterwards (searches, AI questions, trending, downloads), exportable for a date range | Settings → Run logs |
 
 The core analysis uses only the Python standard library, so it installs and runs anywhere.
 
@@ -87,7 +91,7 @@ python -m coordwatch web                                  # -> http://localhost:
 Click **Demo** in the app (or `python -m coordwatch run --topic "Acme Bank" --since 2026-10-01 --until 2026-10-14 --source demo --out out/demo`).
 The demo uses a synthetic dataset with planted ground truth, so you can see every output before connecting anything.
 
-Run the tests (optional): `python -m pytest -q` (pytest is in requirements.txt) from the repository folder (140 tests; the browser tests need `playwright install chromium` and skip themselves without it).
+Run the tests (optional): `python -m pytest -q` (pytest is in requirements.txt) from the repository folder (145 tests; the browser tests need `playwright install chromium` and skip themselves without it).
 
 ### Where keys are stored
 Settings (the gear icon) saves keys to `~/.coordwatch/credentials.json`, outside the repository, and never sends them back to the browser. Environment variables win over saved values,
@@ -206,7 +210,7 @@ In **GitHub Codespaces** the easiest way is *GitHub → Settings → Codespaces 
 
 ## 4. Optional: AI answers
 
-The dock in the app answers questions about a finished run using local rules, with **no AI model**. You can additionally enable AI answers (off by default). Pick **one** provider:
+The dock in the app answers questions about a finished run using local rules, with **no AI model**. AI is optional and used only when you click an AI button or tick **AI answers**. With nothing configured, the AI buttons use the free, no-login **Pollinations** service (a compact summary of the run is sent, never all posts; it may be wrong and free services can be slow). AI answers cite numbered source posts like [1], with a References list that links to each post. To use your own provider instead, pick **one**:
 
 | Provider | Free? | Where to get the key |
 |---|---|---|
@@ -259,7 +263,8 @@ Terms are alternatives: a post matches if it contains **any** term. Separate ter
 
 Every run, successful, failed or aborted, writes `run_log.txt`. It records the topic, dates, platforms, depth, channels, which credentials are *set* (never their values), the route that produced each platform's data,
 errors, counts and a timestamped timeline. In the app: **Copy run log** on the progress card, **Export → run_log.txt** after a run, or **⚙ Settings → Run logs** to export or copy the logs of every run in a from/to date range as one file.
-Share these when something looks wrong. They contain no secrets, but they do contain your search topic.
+Everything done *after* a run is recorded too, in `~/.coordwatch/activity.jsonl`, and is appended to the same export: searches (what was typed, how it was understood, how many hits), AI questions (question, provider, model, timing, success or error, the answer), trending lookups, report builds, downloads, settings changes (key **names** only) and run start/abort.
+Share these when something looks wrong. They contain no secrets, but they do contain what you searched for and asked.
 
 ## 8. Troubleshooting
 
@@ -413,7 +418,7 @@ No third-party analysis libraries: MinHash-LSH, TF-IDF, union-find, dHash are ~1
      Narratives were over-fragmented (37 clusters for 9 topics) → threshold sweep.
   3. **Stress test** (10 seeds × 5 scenarios) exposed two real defects: creation-time coincidence among *old* accounts created false groups
      (fixed with the "fresh account" condition), and paraphrase-ring recall of 0.5–0.67 (improved by same-narrative short-window synchrony).
-  4. 95 unit tests, including adversarial cases (default avatars, XSS in scraped text, 403 not retried, cache correctness).
+  4. 145 tests, including adversarial cases (default avatars, XSS in scraped text, 403 not retried, cache correctness).
   5. API parsers are tested against payloads shaped like the documented responses – **not against live APIs** (no keys in this repo's CI).
      Treat the live collectors as unverified until you run them with your keys. The free routes (yt-dlp, t.me/s, X browser, DuckDuckGo) are likewise tested only on recorded-shape fixtures and a fake search backend - smoke-test each once on a real machine before the demo.
 * **Caveat I want to be explicit about:** I iterated thresholds against my own generator, so the numbers below show the *method's behaviour*, not real-world accuracy.
@@ -441,6 +446,9 @@ paraphrasing + mutual-reshare ring; decoys = 5 verified newswire outlets, 40-use
 * Not tested and *would* defeat it: paraphrased **and** low-and-slow campaigns, LLM-rewritten text, human-run "coordinated" groups, and cross-platform identity linking beyond identical usernames.
 
 ## 15. Limitations & assumptions
+* **Telegram free-text search needs a Telegram Premium account.** Without it, hashtag search, channel-directory matching and global search still work, so counts lean on hashtags and named channels. Public-web discovery (DuckDuckGo) can return nothing from some networks.
+* **YouTube without an API key** is usually blocked on cloud/datacentre IPs (Codespaces); use the free `YOUTUBE_API_KEY`. The API route searches only the top videos per day and reads top-level comments.
+* **Trending suggestions** are best-effort and depend on public pages (Google Trends/News, GDELT, trends24, yt-dlp); each source fails on its own with a note. **AI summaries** from the free service are unverified: use the numbered references to check them.
 * **Not attribution.** Coordination ≠ inauthenticity: fandoms, newsrooms, PR teams, activist campaigns and plain virality produce the same signals. Output = leads for a human analyst.
 * Earliest post in *my collected data* ≠ true origin: deleted/suspended accounts, API recency windows (X recent search = 7 days), search ranking limits, and Telegram only seeing channels you list all bias "first".
 * Telegram exposes no account-creation date or avatar via the API → those signals unavailable. X avatar hashing needs Pillow + an extra download per account.
@@ -452,15 +460,19 @@ paraphrasing + mutual-reshare ring; decoys = 5 verified newswire outlets, 40-use
 
 ## 16. Layout
 ```
-coordwatch/            package (web/ (server + constellation UI), collect.py, secrets_store.py, collectors/ (incl. youtube_ytdlp, telegram_web, x_browser), discovery.py, narratives.py, coordination.py, origin.py, pipeline.py, report.py, export.py, evaluate.py, cli.py)
-tests/                 95 unit tests (unittest; pytest also works)
+coordwatch/            package: web/ (server + map UI), collect.py, collectors/ (youtube, telegram, x, yt-dlp, web previews), discovery.py, narratives.py, coordination.py, origin.py,
+                       crossplatform.py, overview.py, pipeline.py, subset.py (report for chosen stories), report.py (HTML), pdfreport.py, export.py, search.py (plain-language search),
+                       trending.py, ai.py (providers, sources/references), activity.py (activity log), runlog.py, evaluate.py, cli.py
+tests/                 about 145 tests (pytest): unit, web API, and Playwright browser tests (UI tests skip if Chromium is not installed)
 scripts/stress.py      multi-seed accuracy + ablation table
 sample_data/           synthetic posts + ground truth JSON (importable via --source file)
 out/example/           pre-generated report, JSON and CSVs
 ```
 
+## 17. Feature guide: what the app does beyond the brief
+
 ### Made for non-technical readers
-Plain menu names with tooltips (Summary, Map, What People Say, Accounts Working Together, Where It Started, Download Results), a one-sentence "short answer" on the Summary, big "what to look at next" buttons, jargon-free reasons, a plain-named Download screen covering every export, and a 4-step Help page.
+Plain menu names with tooltips (Summary, Map, What People Say, Working Together, Where It Started, Download Results), a one-sentence "short answer" on the Summary, big "what to look at next" buttons, jargon-free reasons, a plain-named Download screen covering every export, and a 4-step Help page.
 
 ### What's trending
 Under the topic box, **See what's trending** lists suggested terms for your dates from the open internet (Google Trends, Google News, GDELT), YouTube (popular videos about the top topics, via yt-dlp) and Telegram (the public channels you list). Each term has **Add to search** and **Copy**. Free, no keys; each source fails on its own with a plain note. `GET /api/trending?since=&until=&channels=`.
@@ -475,7 +487,7 @@ Under the topic box, **See what's trending** lists suggested terms for your date
 Stories are numbered from 1 (Story 1 = the biggest). A topic with several plain terms (`Nvidia, Jensen Huang, Chinese spy`) is searched term by term **and** all together (one extra combined query for YouTube, Telegram and X), and the Summary lists an *all terms together* row (posts that mention every term). The AI summary buttons are one click with no pop-ups; if no AI is configured they use the free no-login Pollinations service. Only a compact summary of the run is sent, and the box says so.
 
 
-## Activity log, references and map upgrade
+### Activity log, references, map and report builder
 - **Activity log**: every search, AI summary, trending lookup, download, settings change (key names only, never values) and run is written to `~/.coordwatch/activity.jsonl` and appended to Settings → Run logs, so one export shows what ran and what was looked up afterwards.
 - **References**: AI answers cite numbered source posts like [1]; a References list under the answer links to each post.
 - **Map**: platform-mix ring on every story, radar pulses, richer hover cards, a headline-insights strip, and an animated side panel (count-up tiles, platform donut, area chart with peak marker, most active accounts).

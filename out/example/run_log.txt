@@ -1,0 +1,28 @@
+coordwatch run log
+============================================================
+status      : DONE
+started     : 2026-11-09 20:01 UTC    duration: 0s
+version     : coordwatch 0.1.0 (git 853021e)  python 3.13.18  Linux
+
+REQUEST
+------------------------------------------------------------
+topic       : Acme Bank
+date range  : 2026-10-01 00:00 UTC -> 2026-10-14 23:59 UTC
+platforms   : (none - demo/file only)
+depth/limit : standard / 1000 posts per platform
+tg channels : (none given)
+mode        : DEMO (synthetic data)
+credentials : X_BEARER_TOKEN: not set; YOUTUBE_API_KEY: not set; TELEGRAM_API_ID: not set; TELEGRAM_API_HASH: not set; X_COOKIES_FILE: not set; Telegram login: not done
+
+OUTCOME
+------------------------------------------------------------
+posts       : 727 from 271 accounts  (per platform: telegram 212, x 427, youtube 88)
+narratives  : 13
+coordinated : 3 group(s), 39 accounts, 40% of posts
+  G1 [high 0.885] 28 accounts: 28/28 accounts posted near-identical text (3 distinct copy-pasted message(s), Jaccard ≥ 0.7) | 688 post-pairs with similar content within 5 min of each other (median lag 86s)
+  G2 [medium 0.794] 6 accounts: 7 post-pairs with similar content within 5 min of each other (median lag 63s) | 19 reshares between members of the group (mutual amplification)
+  G3 [medium 0.728] 5 accounts: 5/5 accounts posted near-identical text (1 distinct copy-pasted message(s), Jaccard ≥ 0.7) | 30 post-pairs with similar content within 5 min of each other (median lag 58s)
+
+COLLECTOR NOTES (which route produced the data, what was skipped or blocked, limitations)
+------------------------------------------------------------
+- DEMO MODE: synthetic data with a planted ground truth - not real social-media content.
