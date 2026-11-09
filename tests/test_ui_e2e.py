@@ -588,6 +588,22 @@ class UiTests(unittest.TestCase):
         self.assertTrue(focused)
         self.assertClean()
 
+    def test_31_report_builder_picks_stories(self):
+        pg = self.open(); self.run_demo(pg, "exports")
+        self.assertTrue(pg.is_visible("#rb-go"))
+        pg.check("input[name=rb-mode][value=pick]")
+        pg.click("#rb-none")
+        pg.click("#rb-go")
+        self.assertIn("at least one story", pg.inner_text("#rb-out"))
+        boxes = pg.query_selector_all(".rb-cb")
+        boxes[0].check(); boxes[1].check()
+        self.assertEqual(pg.inner_text("#rb-count").strip(), "2 selected")
+        pg.click("#rb-go")
+        pg.wait_for_selector("#rb-out a[download]", timeout=20000)
+        self.assertIn("report_stories-", pg.get_attribute("#rb-out a[download]", "download"))
+        self.assertTrue(pg.is_visible("#rb-ai"))
+        self.assertClean()
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -379,6 +379,54 @@ class Handler(BaseHTTPRequestHandler):
                 return self._send(200, f.read_bytes(), DOWNLOADS[m.group(2)], {"Content-Disposition": disp})
         self._json(404, {"error": "not found"})
 
+    def _build_report(self, job_id: str, body: dict):
+        """Report for the stories the person picked (one, several or all), optionally with ONE AI summary of exactly those stories."""
+        from ..subset import subset
+        from ..report import render
+        res = self._result_for(job_id)
+        if not res:
+            return self._json(404, {"error": "No finished run to build a report from."})
+        stories = body.get("stories", "all")
+        fmt = body.get("format", "html")
+        if fmt not in ("html", "pdf"):
+            raise ValueError("Choose a web page or a PDF.")
+        try:
+            sub = res if stories == "all" else subset(res, [int(x) for x in stories])
+        except (TypeError, ValueError) as e:
+            raise ValueError(str(e) or "Pick at least one story.")
+        sel = sub["meta"].get("selection")
+        ai_block = None
+        t0 = time.time()
+        if body.get("ai"):
+            names = ", ".join(f"Story {n['id']}" for n in sub["narratives"] if n["id"] >= 0)
+            q = ("Write ONE short summary (at most 6 plain sentences, very simple words) covering all of these stories together (" + names +
+                 "): what people are saying, how they connect, which platform and account started them, and whether any accounts seem to act together. "
+                 "Say that coordination is a clue, not proof. Cite sources like [1].")
+            try:
+                if not ai.current_config()["ready"]:
+                    S.save({"AI_PROVIDER": "pollinations", "AI_MODEL": "", "AI_BASE_URL": ""})
+                cfg = ai.current_config()
+                srcs = ai.build_sources(sub)
+                text, model = ai.answer(q, ai.build_context(sub), cfg)
+                ai_block = {"text": re.sub(r"\bnarrative\s*#\s*(\d+)", r"Story \1", re.sub(r"</?data>", "", text)).strip(), "model": model, "sources": ai.cited(text, srcs)}
+            except (ai.AIError, Exception) as e:       # the report is still produced; the reason is written into it
+                ai_block = {"error": str(e)[:300]}
+        activity.record("report", run=job_id, stories=(sel or {}).get("stories", "all"), format=fmt, ai=bool(body.get("ai")),
+                        ai_ok=bool(ai_block and not ai_block.get("error")) if body.get("ai") else None, ai_error=(ai_block or {}).get("error"), seconds=round(time.time() - t0, 1),
+                        summary=(ai_block or {}).get("text"))
+        tag = "all-stories" if not sel else "stories-" + "-".join(str(i) for i in sel["stories"][:6])
+        if fmt == "pdf":
+            from ..pdfreport import available, build as build_pdf
+            if not available():
+                return self._json(501, {"error": "The PDF needs the free reportlab package. Run: pip install reportlab  (then restart the app and try again)."})
+            import tempfile
+            with tempfile.TemporaryDirectory() as d:
+                f = Path(d) / "r.pdf"
+                build_pdf(sub, str(f), ai_block)
+                data = f.read_bytes()
+            return self._send(200, data, "application/pdf", {"Content-Disposition": f'attachment; filename="report_{tag}.pdf"'})
+        return self._send(200, render(sub, ai=ai_block).encode("utf-8"), "text/html; charset=utf-8", {"Content-Disposition": f'inline; filename="report_{tag}.html"'})
+
     def do_POST(self):
         if not self._guard(True):
             return
@@ -455,6 +503,9 @@ class Handler(BaseHTTPRequestHandler):
                                 seconds=round(time.time() - t0, 1), context_chars=len(str(ctx)), answer_chars=len(text), answer=text)
                 refs = ai.cited(text, ai.build_sources(job.result))
                 return self._json(200, {"answer": text, "model": model, "sources": refs})
+            m = re.fullmatch(r"/api/jobs/([a-f0-9]+)/report", url.path)
+            if m:
+                return self._build_report(m.group(1), json.loads(self._body(20_000) or b"{}"))
             if url.path == "/api/run":
                 params = parse_run(json.loads(self._body(100_000) or b"{}"))
                 job = Job(params)

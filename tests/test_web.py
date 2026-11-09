@@ -279,3 +279,24 @@ class TestActivityLog(unittest.TestCase):
                 self.assertIn("boom", txt)
             finally:
                 os.environ.pop("COORDWATCH_HOME", None)
+
+
+class TestSubset(unittest.TestCase):
+    def test_subset_keeps_story_numbers_and_recomputes_counts(self):
+        from coordwatch.collectors import demo
+        from coordwatch.config import Config
+        from coordwatch.pipeline import analyse
+        from coordwatch.subset import subset
+        from coordwatch.report import render
+        res = analyse(demo.generate(42)[0], "Acme Bank", None, None, None, Config(), topic_filter=False)
+        ids = [n["id"] for n in res["narratives"] if n["id"] >= 0][:2]
+        sub = subset(res, ids)
+        self.assertEqual(sorted({r["narrative_id"] for r in sub["posts"]}), sorted(ids))
+        self.assertEqual(sub["meta"]["n_narratives"], 2)
+        self.assertEqual(sub["meta"]["selection"]["stories"], sorted(ids))
+        self.assertLess(sub["meta"]["n_posts"], res["meta"]["n_posts"])
+        html = render(sub, ai={"text": "They agree [1].", "model": "m", "sources": [{"n": 1, "platform": "x", "account": "a", "at": "2026-10-01T00:00", "story": ids[0], "text": "t", "url": "https://e.com"}]})
+        self.assertIn("AI summary of the selected stories", html)
+        self.assertIn("<sup>[1]</sup>", html)
+        with self.assertRaises(ValueError):
+            subset(res, [9999])

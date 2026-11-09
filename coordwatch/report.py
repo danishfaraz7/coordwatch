@@ -2,6 +2,8 @@
 Every scraped string is HTML-escaped - posts are untrusted input."""
 from __future__ import annotations
 
+import re
+
 import math
 import random
 from html import escape as e
@@ -153,7 +155,7 @@ def bubble_map(nars: List[dict], w=640, h=470) -> str:
         o.append(f'<g class=bub data-n="{n["id"]}" tabindex=0 role=button aria-label="{e(title)}"><title>{e(title)}</title>'
                  f'<circle cx={x:.1f} cy={y:.1f} r={r:.1f} fill="{col}" opacity=".28" filter="url(#bglow)"/>'
                  f'<circle cx={x:.1f} cy={y:.1f} r={r:.1f} fill="{col}" fill-opacity=".16" stroke="{col}" stroke-width="1.5"/>'
-                 f'<text x={x:.1f} y={y - (4 if r > 38 else -4):.1f} text-anchor=middle class=bub-id style="font-size:{min(26, 11 + r / 5):.0f}px">#{n["id"]}</text>')
+                 f'<text x={x:.1f} y={y - (4 if r > 38 else -4):.1f} text-anchor=middle class=bub-id style="font-size:{min(26, 11 + r / 5):.0f}px">{n["id"]}</text>')
         if r > 38 and kw:
             o.append(f'<text x={x:.1f} y={y + 14:.1f} text-anchor=middle class=bub-kw>{e(" · ".join(kw))[:int(r / 3.2)]}</text>')
         o.append("</g>")
@@ -318,8 +320,8 @@ function cnt(el){var t=+el.dataset.count,s=performance.now();function f(n){var p
 if(!matchMedia('(prefers-reduced-motion: reduce)').matches)document.querySelectorAll('[data-count]').forEach(cnt);
 var f=document.getElementById('f'),rows=document.querySelectorAll('#posts tbody tr'),cur=null,cnt_el=document.getElementById('shown');
 function apply(){var q=f.value.toLowerCase(),n=0;rows.forEach(function(r){var ok=(!cur||r.dataset.n===cur)&&r.textContent.toLowerCase().indexOf(q)>=0;r.style.display=ok?'':'none';if(ok)n++});cnt_el.textContent=n;
-document.querySelectorAll('[data-n].bub,[data-n].nrow').forEach(function(b){b.classList.toggle('sel',b.dataset.n===cur)});document.getElementById('clr').style.display=cur?'':'none';document.getElementById('cur').textContent=cur?'narrative #'+cur:'';var pm=document.getElementById('pickmsg');if(pm)pm.innerHTML=cur?'<b>Narrative #'+cur+' selected.</b> '+n+' of its posts are listed in the Posts table. <a href="#posts-tile" style="color:inherit;text-decoration:underline">Jump to the posts ↓</a> · <a href="#" id=pclr style="color:inherit;text-decoration:underline">Clear</a>':'';var pc=document.getElementById('pclr');if(pc)pc.onclick=function(ev){ev.preventDefault();cur=null;apply()}}
-window.pick=function(n){cur=(cur===n)?null:n;apply();};
+document.querySelectorAll('[data-n].bub,[data-n].nrow').forEach(function(b){b.classList.toggle('sel',b.dataset.n===cur)});document.getElementById('clr').style.display=cur?'':'none';document.getElementById('cur').textContent=cur?'Story '+cur:'';var pm=document.getElementById('pickmsg');if(pm)pm.innerHTML=cur?'<b>Story '+cur+' selected.</b> Scrolling to its '+n+' posts. <a href="#" id=pclr style="color:inherit;text-decoration:underline">Clear</a>':'';var pc=document.getElementById('pclr');if(pc)pc.onclick=function(ev){ev.preventDefault();cur=null;apply()}}
+window.pick=function(n){cur=(cur===n)?null:n;apply();if(cur){var t=document.getElementById('posts-tile');if(t)t.scrollIntoView({behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth',block:'start'})}};
 document.querySelectorAll('[data-n].bub,[data-n].nrow').forEach(function(b){b.addEventListener('click',function(){pick(b.dataset.n)});b.addEventListener('keydown',function(ev){if(ev.key==='Enter')pick(b.dataset.n)})});
 apply();f.addEventListener('input',apply);document.getElementById('clr').addEventListener('click',function(){cur=null;apply()});
 })();
@@ -349,7 +351,7 @@ def overview_blocks(result: dict) -> dict:
     nrows = "".join(f"<tr><td style='white-space:nowrap'>Story {n['id']}: {e(n['label'])}</td><td><b>{n['posts']:,}</b></td>" +
                     "".join(f"<td style='text-align:center;background:rgba(90,200,250,{0.08 + 0.7 * n['by_day'].get(d['date'], 0) / nmax if n['by_day'].get(d['date'], 0) else 0:.2f})'>{n['by_day'].get(d['date'], 0) or ''}</td>" for d in days) +
                     "".join(f"<td>{n['by_term'].get(t['term'], 0):,}</td>" for t in terms) + "</tr>" for n in ov["narratives"])
-    top.append("<div class='tile s12'><h2>What is being said, day by day and term by term</h2><ul>" + "".join(f"<li><b>#{n['id']}</b> {e(n['text'])}</li>" for n in pl["narratives"]) +
+    top.append("<div class='tile s12'><h2>What is being said, day by day and term by term</h2><ul>" + "".join(f"<li><b>Story {n['id']}</b> {e(n['text'])}</li>" for n in pl["narratives"]) +
                "</ul><p class=sub>Posts per narrative on each date, then per search term.</p><div class=tbl><table><thead><tr><th>Narrative</th><th>Posts</th>" +
                "".join(f"<th>{e(d['date'][5:])}</th>" for d in days) + "".join(f"<th>“{e(t['term'])}”</th>" for t in terms) + f"</tr></thead><tbody>{nrows}</tbody></table></div></div>")
     groups = ("<div class='tile s12'><h2>Groups in simple words</h2><ul>" + ("".join(f"<li>{e(g['text'])}</li>" for g in pl["groups"]) or "<li>No group of accounts met the evidence thresholds.</li>") + "</ul></div>")
@@ -357,7 +359,21 @@ def overview_blocks(result: dict) -> dict:
     return {"top": "".join(top), "groups": groups, "origins": origins}
 
 
-def render(result: dict, max_posts: int = 400) -> str:
+def ai_tile(ai: dict) -> str:
+    """One AI summary box (with numbered references) for the report; ai = {text, model, sources} or {error}."""
+    if not ai:
+        return ""
+    if ai.get('error'):
+        return f"<div class='tile s12'><h2>AI summary</h2><p class=sub>Not added: {e(ai['error'])}</p></div>"
+    body = e(ai['text']).replace('\n', '<br>')
+    body = re.sub(r'\[(\d{1,2})\]', r'<sup>[\1]</sup>', body)
+    refs = ''.join(f"<li value={x['n']}><b>{e(x['platform'])}</b> · {e(x['account'])} · <span class=muted>{e(x['at'].replace('T', ' '))} UTC · Story {x['story']}</span><br>" +
+                   (f"<a href='{e(x['url'])}' target=_blank rel=noopener>{e(x['text'])} ↗</a>" if str(x.get('url', '')).startswith('http') else e(x['text'])) + '</li>' for x in ai.get('sources', []))
+    return (f"<div class='tile s12'><h2>✦ AI summary of the selected stories</h2><p class=sub>AI-generated by {e(ai.get('model', ''))} from a summary of these stories. It may be wrong; check the references.</p>"
+            f"<p>{body}</p>" + (f"<h2 style='margin-top:14px'>References</h2><ol>{refs}</ol>" if refs else '') + '</div>')
+
+
+def render(result: dict, max_posts: int = 400, ai: dict = None) -> str:
     m = result["meta"]
     nars, posts, groups, origins = result["narratives"], result["posts"], result["coordinated_groups"], result["origins"]
     plat_counts: Dict[str, int] = {}
@@ -370,7 +386,11 @@ def render(result: dict, max_posts: int = 400) -> str:
              f"<h1><span>{e(m['topic'])}</span></h1><div class=chips><span class=chip>{e((m['since'] or '')[:10])} → {e((m['until'] or '')[:10])}</span>"
              + "".join(f"<span class=chip style='border-color:{color(p)}66;color:{color(p)}'>{e(p)}</span>" for p in m["platforms"])
              + f"<span class=chip>generated {e(m['generated_at'][:16].replace('T', ' '))} UTC</span></div>")
+    sel = m.get("selection")
     h.append("</section><div class=bento>")
+    if sel:
+        h.append(f"<div class='tile s12'><h2>Selected stories</h2><p>This report covers {len(sel['stories'])} of {sel['of']} stories: " + ", ".join(f"Story {i}" for i in sel['stories']) + ".</p></div>")
+    h.append(ai_tile(ai))
 
     ovb = overview_blocks(result)
     # --- stat tiles

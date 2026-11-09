@@ -479,3 +479,5 @@ Stories are numbered from 1 (Story 1 = the biggest). A topic with several plain 
 - **Activity log**: every search, AI summary, trending lookup, download, settings change (key names only, never values) and run is written to `~/.coordwatch/activity.jsonl` and appended to Settings → Run logs, so one export shows what ran and what was looked up afterwards.
 - **References**: AI answers cite numbered source posts like [1]; a References list under the answer links to each post.
 - **Map**: platform-mix ring on every story, radar pulses, richer hover cards, a headline-insights strip, and an animated side panel (count-up tiles, platform donut, area chart with peak marker, most active accounts).
+- **Report builder** (Download Results): choose one, several or all stories, optionally add ONE AI summary of exactly those stories (with numbered references), and get a web page or PDF built fresh from the current code. Story numbers are kept as in the app.
+- Report bubbles: clicking one filters the post table and scrolls to it.

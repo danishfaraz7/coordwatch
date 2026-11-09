@@ -422,3 +422,15 @@ body:not([data-view=graph]) #insights{display:none}
 .lb{display:grid;grid-template-columns:minmax(0,1.1fr) 1fr 26px;gap:8px;align-items:center;font-size:12px;margin:5px 0}.lb span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .lb-b{height:6px;border-radius:6px;background:#ffffff12;overflow:hidden}.lb-b i{display:block;height:100%;border-radius:6px;transform-origin:left;animation:grow .9s cubic-bezier(.3,.8,.3,1) both}@keyframes grow{from{transform:scaleX(0)}}.lb em{font-style:normal;color:var(--mut);text-align:right}
 @media(prefers-reduced-motion:reduce){.ins,#panel.pop>*,.dn-arc,.area-reveal,.lb-b i,.tile-glow,.peak{animation:none!important}.dn-arc{stroke-dasharray:var(--len) var(--gap)}}
+
+.rb h3{margin:4px 0 10px}.rb-modes{display:flex;gap:18px;flex-wrap:wrap;margin-bottom:8px}.rb-modes label,.rb-ai,.rb-row{cursor:pointer}
+.rb-list{max-height:260px;overflow:auto;border:1px solid var(--line);border-radius:12px;padding:8px;margin:8px 0;display:grid;gap:4px;background:#00000026}
+.rb-tools{display:flex;gap:8px;align-items:center;margin-bottom:4px}
+.rb-row{display:flex;gap:10px;align-items:flex-start;padding:7px 8px;border-radius:9px}.rb-row:hover{background:#ffffff0d}.rb-row small{display:block;color:var(--mut)}
+.rb-ai{display:flex;gap:10px;align-items:flex-start;margin:10px 0;padding:10px 12px;border:1px dashed #9fe8ff66;border-radius:12px;background:#9fe8ff0d}.rb-ai small{display:block;color:var(--mut)}
+.rb-row2{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-top:6px}.rb-row2 select{background:#0b1b31;color:var(--tx);border:1px solid var(--line);border-radius:8px;padding:7px 8px}
+#rb-out{margin-top:10px;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.rb label,.rb-row span{font-size:14px;line-height:1.35}.rb-row small,.rb-ai small{font-size:12px}
+.rb button.xp-go{background:linear-gradient(135deg,#7c5cff,#4de0d0);color:#fff;border:0;border-radius:10px;padding:10px 20px;font-size:14px;font-weight:700;cursor:pointer;box-shadow:0 6px 20px #7c5cff44}
+.rb button.xp-go:disabled{opacity:.6;cursor:wait}.rb button.xp-go:hover:not(:disabled){filter:brightness(1.1)}
+.rb input[type=checkbox],.rb input[type=radio]{accent-color:#7c5cff;width:16px;height:16px;margin-top:2px}

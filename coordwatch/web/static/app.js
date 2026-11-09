@@ -1119,9 +1119,42 @@ function wireSearch() {
   f.onsubmit = e => { e.preventDefault(); run(); };
   if (lastSearch.q) run();
 }
+function reportBuilder() {
+  const ns = st.res.narratives.filter(n => n.id >= 0).sort((a, b) => b.posts - a.posts);
+  if (!ns.length) return '';
+  return '<div class="analysis-card xp-card wide rb"><small>BUILD YOUR OWN REPORT</small><h3>Choose what goes in the report</h3>' +
+    '<div class="rb-modes" role="radiogroup" aria-label="Which stories"><label><input type="radio" name="rb-mode" value="all" checked> All stories (' + ns.length + ')</label><label><input type="radio" name="rb-mode" value="pick"> Only the ones I choose</label></div>' +
+    '<div id="rb-list" class="rb-list hidden"><div class="rb-tools"><button type="button" class="chip-btn" id="rb-all">Select all</button><button type="button" class="chip-btn" id="rb-none">Clear</button><span class="mut small" id="rb-count"></span></div>' +
+    ns.map(n => '<label class="rb-row"><input type="checkbox" class="rb-cb" value="' + n.id + '"><span><b>Story ' + n.id + '</b> · ' + esc(title(n.label)) + '<small>' + n.posts + ' posts · ' + n.accounts + ' accounts' + ((n.coordinated_post_share || 0) > 0 ? ' · ' + Math.round(n.coordinated_post_share * 100) + '% coordinated' : '') + '</small></span></label>').join('') + '</div>' +
+    '<label class="rb-ai"><input type="checkbox" id="rb-ai"> <span>✦ Add <b>one AI summary</b> of the stories I picked <small>(a short summary is sent to a free AI service; the report shows its sources)</small></span></label>' +
+    '<div class="rb-row2"><label>Format <select id="rb-fmt"><option value="html">Web page (best for reading and sharing)</option><option value="pdf">PDF (for managers)</option></select></label><button type="button" class="xp-go" id="rb-go">Build report</button></div>' +
+    '<div id="rb-out" class="mut small" role="status"></div></div>';
+}
+function wireReportBuilder() {
+  const go = $('#rb-go'); if (!go) return;
+  const cbs = () => [...document.querySelectorAll('.rb-cb')], mode = () => document.querySelector('input[name=rb-mode]:checked').value;
+  const count = () => { const n = cbs().filter(c => c.checked).length; $('#rb-count').textContent = n + ' selected'; };
+  document.querySelectorAll('input[name=rb-mode]').forEach(r => r.onchange = () => { $('#rb-list').classList.toggle('hidden', mode() !== 'pick'); count(); });
+  cbs().forEach(c => c.onchange = count);
+  $('#rb-all').onclick = () => { cbs().forEach(c => c.checked = true); count(); };
+  $('#rb-none').onclick = () => { cbs().forEach(c => c.checked = false); count(); };
+  go.onclick = async () => {
+    const out = $('#rb-out'), picked = cbs().filter(c => c.checked).map(c => +c.value), fmt = $('#rb-fmt').value, ai = $('#rb-ai').checked;
+    if (mode() === 'pick' && !picked.length) { out.textContent = 'Tick at least one story first.'; return; }
+    go.disabled = true; out.textContent = ai ? '✦ Building the report and asking the AI… free services can take up to a minute.' : 'Building the report…';
+    try {
+      const r = await fetch('/api/jobs/' + st.jobId + '/report', {method: 'POST', headers: {'X-Coordwatch': '1', 'Content-Type': 'application/json'}, body: JSON.stringify({stories: mode() === 'all' ? 'all' : picked, ai, format: fmt})});
+      if (!r.ok) { const j = await r.json().catch(() => ({})); throw new Error(j.error || r.statusText); }
+      const blob = await r.blob(), u = URL.createObjectURL(blob), name = 'report_' + (mode() === 'all' ? 'all-stories' : 'stories-' + picked.slice(0, 6).join('-')) + '.' + fmt;
+      out.innerHTML = '✔ Ready: ' + (fmt === 'html' ? '<a class="xp-go" href="' + u + '" target="_blank" rel="noopener">Open report ↗</a> ' : '') + '<a class="xp-go" href="' + u + '" download="' + name + '">⭳ Save ' + esc(name) + '</a>' + (ai ? ' <span class="mut">If the AI could not answer, the report says so where the summary would be.</span>' : '');
+    } catch (e) { out.textContent = 'Could not build the report: ' + e.message; }
+    go.disabled = false;
+  };
+  count();
+}
 function exportCards() {
   if (!st.jobId || !st.res) return '<div class="analysis-card xp-card wide"><h3>Nothing to download yet</h3><p>Run a search first (Start a New Search), then come back here.</p></div>';
-  return '<div class="xp-head wide"><h3>Pick a file to save</h3><p>Not sure? Click the first one. It opens in your browser and you can print or share it.</p></div>' +
+  return reportBuilder() + '<div class="xp-head wide"><h3>Or pick a ready-made file to save</h3><p>Not sure? Click the first one. It opens in your browser and you can print or share it.</p></div>' +
     FILES.map(([f, t, d], i) => '<div class="analysis-card xp-card' + (i === 0 ? ' wide' : '') + '"><h3>' + t + '</h3><p>' + d + '</p><a class="xp-go" href="/api/jobs/' + st.jobId + '/download/' + f + '"' + (f === 'report.html' ? ' target="_blank" rel="noopener"' : '') + '>' + (f === 'report.html' ? 'Open report ↗' : '⭳ Download') + ' <small>' + f + '</small></a></div>').join('');
 }
 function guideCards() {
@@ -1182,7 +1215,7 @@ function renderAnalysisCards(kind){
   if(kind==='groups')html+=groupCards();
   if(kind==='spread')html+=spreadCards();
   html+='</section>';let old=$('#analysis-cards');if(old)old.remove();$('#app-main').appendChild(document.createRange().createContextualFragment(html));
-  wireSearch();
+  wireSearch(); wireReportBuilder();
    const sum=$('#ai-sum'); if(sum) sum.onclick=aiSummary;
    $('#analysis-cards').querySelectorAll('[data-go]').forEach(b=>b.onclick=()=>setScreen(b.dataset.go));
    $('#analysis-cards').querySelectorAll('[data-nmode]').forEach(b=>b.onclick=()=>{narMode=b.dataset.nmode;renderAnalysisCards('narratives');});
