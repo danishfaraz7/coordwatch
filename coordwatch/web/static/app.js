@@ -814,22 +814,24 @@ function mountWizardInputs(step) {
 function setScreen(screen) {
   const priorCards=$('#analysis-cards'); if(priorCards) priorCards.remove();
   activeScreen=screen;
-  const analysis=['graph','narratives','groups','spread','posts','exports','guide'].includes(screen);
+  const analysis=['graph','narratives','groups','spread','cross','posts','exports','guide'].includes(screen);
   document.body.dataset.view=screen; setTimeout(syncChrome,0); document.body.classList.toggle('analysis',analysis&&!!st.res);
   document.querySelectorAll('.side-link[data-screen]').forEach(b=>b.classList.toggle('active',b.dataset.screen===screen));
   document.querySelectorAll('.app-screen').forEach(x=>x.classList.add('hidden'));
   $('#analysis-header').classList.add('hidden');
   $('#app-topbar').classList.remove('hidden');
-  $('#crumb-main').textContent=screen==='wizard'?'New Investigation':screen==='home'?'Home':title(screen);
+  $('#crumb-main').textContent=screen==='wizard'?'New Investigation':screen==='home'?'Home':title(screen==='landing'?'Welcome':screen);
   $('#crumb-sub').textContent=screen==='home'?'': ' / coordwatch';
   $('#app-shell').classList.remove('analysis-mode');
-  if(screen==='home'){
+  if(screen==='landing'){
+    $('#landing-view').classList.remove('hidden');
+  } else if(screen==='home'){
     $('#home-view').classList.remove('hidden'); mountHomeInputs();
   } else if(screen==='wizard'){
     $('#wizard-view').classList.remove('hidden'); showWizardStep(1);
   } else if(screen==='investigations'){
     $('#investigations-view').classList.remove('hidden'); renderInvestigationList();
-  } else if(['graph','narratives','groups','spread','posts','exports','guide'].includes(screen)){
+  } else if(['graph','narratives','groups','spread','cross','posts','exports','guide'].includes(screen)){
     if(!st.res){setScreen('wizard');return;}
     showAnalysisScreen(screen);
   }
@@ -872,20 +874,53 @@ function showAnalysisScreen(screen){
   if(screen!=='posts') $('#drawer').classList.add('hidden');
   $('#notes').classList.add('hidden');
   document.querySelectorAll('[data-analysis]').forEach(b=>b.classList.toggle('active',b.dataset.analysis===screen||(b.dataset.analysis==='timeline'&&screen==='spread')));$('#app-topbar').classList.add('hidden');$('#analysis-header').classList.remove('hidden');
-  $('#analysis-title').textContent=({graph:'Constellation',narratives:'Discussion themes',groups:'Accounts acting together',spread:'How the discussion spread',posts:'Posts Explorer',exports:'Exports',guide:'Help & Guide'})[screen]||'Investigation';
-  $('#analysis-subtitle').textContent=({graph:'Explore the relationships between the topic, narratives and account groups.',narratives:'Select a theme to inspect its posts, accounts and timeline.',groups:'Review the signals behind accounts grouped together.',spread:'Earliest observed posts and cross-platform movement.',posts:'Search and filter the collected evidence.',exports:'Download the data and reports from this investigation.',guide:'Understand the graph and what the evidence can tell you.'})[screen]||'';
+  $('#analysis-title').textContent=({graph:'Constellation',narratives:'Discussion themes',groups:'Accounts acting together',spread:'How the discussion spread',cross:'Cross-platform map',posts:'Posts Explorer',exports:'Exports',guide:'Help & Guide'})[screen]||'Investigation';
+  $('#analysis-subtitle').textContent=({cross:'Which Telegram posts and YouTube videos belong to the same discussion, and who moved first.',graph:'Explore the relationships between the topic, narratives and account groups.',narratives:'Select a theme to inspect its posts, accounts and timeline.',groups:'Review the signals behind accounts grouped together.',spread:'Earliest observed posts and cross-platform movement.',posts:'Search and filter the collected evidence.',exports:'Download the data and reports from this investigation.',guide:'Understand the graph and what the evidence can tell you.'})[screen]||'';
   $('#app-main').classList.add('analysis-active');
   if(screen==='graph'){const stale=$('#analysis-cards');if(stale)stale.remove();['#drawer','#notes'].forEach(s=>$(s).classList.add('hidden'));$('#panel').classList.toggle('hidden',!st.selected);$('#graph-tools').classList.remove('hidden');}
   if(screen==='posts'){openPosts('');}
   if(screen==='narratives')renderAnalysisCards('narratives');
   if(screen==='groups')renderAnalysisCards('groups');
   if(screen==='spread')renderAnalysisCards('spread');
+  if(screen==='cross')renderAnalysisCards('cross');
   $('#exp-menu').classList.toggle('hidden',screen!=='exports');
   if(screen==='guide'){$('#graph-help').classList.remove('hidden');}
 }
 document.querySelectorAll('[data-analysis]').forEach(b=>b.addEventListener('click',()=>setScreen(b.dataset.analysis==='timeline'?'spread':b.dataset.analysis)));
+// Telegram <-> YouTube mapping: per discussion theme, the first post on each platform, plus Telegram posts that link to collected videos
+function crossCards() {
+  const res = st.res, c = res.cross_platform || {}, posts = res.posts || [];
+  const snip = (t, n) => { t = (t || '').replace(/\s+/g, ' ').trim(); return esc(t.slice(0, n)) + (t.length > n ? '…' : ''); };
+  const earliest = arr => arr.reduce((a, b) => a && a.created_at <= b.created_at ? a : b, null);
+  const side = (lab, p) => '<div class="xp-side"><b>' + lab + '</b>' + (p ? '<small>' + esc(p.author_name || p.account) + ' · ' + esc(fmtDT(p.created_at)) + ' UTC</small><p>' + snip(p.text, 150) + '</p>' + (p.url ? '<a href="' + esc(p.url) + '" target="_blank" rel="noopener">Open post ↗</a>' : '') : '<p>No post</p>') + '</div>';
+  const hours = h => Math.abs(h) < 1 ? Math.round(Math.abs(h) * 60) + ' min' : Math.abs(h) < 48 ? (Math.round(Math.abs(h) * 10) / 10) + ' h' : (Math.round(Math.abs(h) / 2.4) / 10) + ' days';
+  let html = '';
+  const has = {youtube: 0, telegram: 0}; posts.forEach(p => { if (p.platform in has) has[p.platform]++; });
+  html += '<div class="analysis-card xp-card wide"><small>SUMMARY</small><h3>YouTube ' + has.youtube.toLocaleString() + ' posts · Telegram ' + has.telegram.toLocaleString() + ' posts</h3>' + ((c.summary || []).map(x => '<p>' + esc(x) + '</p>').join('') || '<p>Run a search with both YouTube and Telegram selected to compare them.</p>') + '</div>';
+  if (!has.youtube || !has.telegram) return html + '<div class="analysis-card xp-card wide"><h3>Both platforms are needed</h3><p>This run has no ' + (!has.youtube ? 'YouTube' : 'Telegram') + ' posts, so there is nothing to map. Check Settings → Run logs to see why that platform returned nothing.</p></div>';
+  const rows = [];
+  res.narratives.filter(n => n.id >= 0).forEach(n => {
+    const yt = posts.filter(p => p.narrative_id === n.id && p.platform === 'youtube'), tg = posts.filter(p => p.narrative_id === n.id && p.platform === 'telegram');
+    if (yt.length && tg.length) rows.push({n, yt, tg, a: earliest(yt), b: earliest(tg)});
+  });
+  rows.sort((x, y) => Math.min(y.yt.length, y.tg.length) - Math.min(x.yt.length, x.tg.length) || (y.yt.length + y.tg.length) - (x.yt.length + x.tg.length));
+  html += '<div class="xp-head wide"><h3>Same discussion on both platforms (' + rows.length + ')</h3><p>Each card is one discussion theme that appears on YouTube and Telegram, with the earliest post from each.</p></div>';
+  html += rows.slice(0, 40).map(r => {
+    const lag = (new Date(r.b.created_at) - new Date(r.a.created_at)) / 36e5, first = lag >= 0 ? 'YouTube' : 'Telegram';
+    return '<div class="analysis-card xp-card wide"><small>THEME #' + r.n.id + '</small><h3>' + esc(title(r.n.label)) + '</h3><p>' + r.yt.length + ' YouTube · ' + r.tg.length + ' Telegram · <b>' + first + ' first</b>, the other followed ' + hours(lag) + ' later</p>' +
+      '<div class="xp-pair">' + side('YouTube · first', r.a) + '<span class="xp-arrow">' + (lag >= 0 ? '→' : '←') + '</span>' + side('Telegram · first', r.b) + '</div><button class="xp-go" data-nar="' + r.n.id + '">Inspect theme in the constellation →</button></div>';
+  }).join('') || '<div class="analysis-card xp-card wide"><p>No discussion theme contains both YouTube and Telegram posts yet.</p></div>';
+  const links = c.youtube_links_in_telegram || [];
+  html += '<div class="xp-head wide"><h3>Telegram posts that link to collected YouTube videos (' + links.length + ')</h3><p>The strongest tie between the two platforms: a Telegram post that shares one of the videos found in this run.</p></div>';
+  html += links.slice(0, 30).map(l => '<div class="analysis-card xp-card"><small>TELEGRAM → YOUTUBE</small><h3>' + esc(l.telegram_account) + '</h3><p>Shared the video ' + hours(l.telegram_after_video_hours) + (l.telegram_after_video_hours >= 0 ? ' after it was uploaded' : ' before the upload time we recorded') + '.</p><p>' + (l.telegram_post ? '<a href="' + esc(l.telegram_post) + '" target="_blank" rel="noopener">Telegram post ↗</a> · ' : '') + '<a href="' + esc(l.video_url) + '" target="_blank" rel="noopener">YouTube video ↗</a></p></div>').join('') || '<div class="analysis-card xp-card wide"><p>None found. Telegram posts here do not contain links to the YouTube videos collected.</p></div>';
+  const tags = (c.shared_hashtags || []).slice(0, 12), copies = (c.cross_platform_copies || []).slice(0, 6);
+  if (tags.length) html += '<div class="analysis-card xp-card"><small>SHARED HASHTAGS</small><h3>Used on both platforms</h3><p>' + tags.map(t => esc('#' + String(t.tag).replace(/^#/, '')) + ' (' + t.posts + ')').join(' · ') + '</p></div>';
+  if (copies.length) html += '<div class="analysis-card xp-card"><small>COPIED TEXT</small><h3>Near-identical posts across platforms</h3><p>' + copies.map(x => x.posts + ' posts on ' + x.platforms.map(p => LABEL[p] || p).join(' + ')).map(esc).join(' · ') + '</p></div>';
+  return html;
+}
 function renderAnalysisCards(kind){
   let html='<section id="analysis-cards" class="analysis-cards">';
+  if(kind==='cross')html+=crossCards();
   if(kind==='narratives')html+=st.res.narratives.filter(n=>n.id>=0).map(n=>'<button class="analysis-card" data-nar="'+n.id+'"><small>DISCUSSION THEME #'+n.id+'</small><h3>'+esc(title(n.label))+'</h3><p>'+n.posts+' posts · '+n.accounts+' accounts · '+Math.round((n.coordinated_post_share||0)*100)+'% from flagged accounts</p><span>Inspect evidence →</span></button>').join('');
   if(kind==='groups')html+=st.res.coordinated_groups.map(g=>'<button class="analysis-card" data-grp="'+esc(g.id)+'"><small>GROUP '+esc(g.id)+'</small><h3>'+g.size+' accounts · '+esc(g.confidence)+' confidence</h3><p>'+esc(g.reasons.slice(0,2).join(' · '))+'</p><span>Inspect signals →</span></button>').join('')||'<p>No account groups met the current evidence thresholds.</p>';
   if(kind==='spread')html+=st.res.origins.map(o=>'<button class="analysis-card" data-nar="'+o.narrative_id+'"><small>THEME #'+o.narrative_id+'</small><h3>'+esc(o.label)+'</h3><p>First observed: '+esc(o.first_post.platform)+' · '+esc(fmtDT(o.first_post.at))+' UTC</p><p>'+esc(o.verdict)+'</p><span>Inspect timeline →</span></button>').join('');
@@ -934,6 +969,10 @@ addEventListener('resize', () => { if (sbChosen === null) setSidebar(innerWidth 
   catch (e) { $('#boot') && $('#boot').remove(); document.body.insertAdjacentHTML('beforeend', `<div class="glass" style="position:fixed;top:40%;left:30%;padding:20px;z-index:200">Cannot reach the coordwatch server: ${esc(e.message)}</div>`); return; }
   renderChips(); autoValidate(); await refreshRuns();
   await booting; setIdle(true);
+  let landed = null; try { landed = localStorage.getItem('cw.landed'); } catch (e) { /* ignore */ }
+  if (!landed && !runs.length) setScreen('landing');                       // first launch: show the welcome page once
+  const leave = demo => { try { localStorage.setItem('cw.landed', '1'); } catch (e) { /* ignore */ } setScreen('home'); if (demo) $('#home-demo').click(); };
+  $('#landing-go').onclick = () => leave(false); $('#landing-demo').onclick = () => leave(true);
 })();
 window.__cw = st;   // handy for debugging in the browser console
 })();

@@ -72,6 +72,9 @@ class UiTests(unittest.TestCase):
         pg.wait_for_selector("#home-demo", state="attached")
         pg.keyboard.press("Space")                                   # skip the boot animation
         pg.wait_for_selector("#boot", state="detached", timeout=15000)
+        pg.wait_for_selector("#landing-view:not(.hidden), #home-view:not(.hidden)", timeout=15000)
+        if pg.is_visible("#landing-view"):                                       # first launch shows the welcome page once
+            pg.click("#landing-go")
         pg.wait_for_selector("#home-view:not(.hidden) #since", timeout=15000)
         return pg
 
@@ -341,6 +344,48 @@ class UiTests(unittest.TestCase):
             self._assert_no_overlaps(pg, [("#panel", "#analysis-header"), ("#panel", "#graph-tools"), ("#panel", "#dock"), ("#panel", "#legend")] + ([("#panel", "#app-sidebar")] if w > 720 else []), label + " panel")
             self.assertClean()
             self.ctx.close()
+
+    def test_17_timeline_scrubber_is_visible_and_usable_on_the_graph(self):
+        for w, h in ((1920, 1080), (1440, 900), (1366, 768), (1280, 600), (1024, 768), (768, 1024)):
+            pg = self.open(w, h)
+            self.run_demo(pg)
+            r = pg.evaluate(JS_RECTS, ["#tl"])["#tl"]
+            self.assertIsNotNone(r, f"{w}x{h}: the timeline bar on the left has disappeared")
+            self.assertGreaterEqual(r[3] - r[1], 150, f"{w}x{h}: timeline is too short to use {r}")
+            self.assertTrue(pg.is_visible("#tl-ticks"))
+            self.ctx.close()
+
+    def test_18_cross_platform_map_pairs_telegram_and_youtube_posts(self):
+        pg = self.open()
+        self.run_demo(pg)
+        pg.click("[data-screen=cross]")
+        pg.wait_for_selector("#analysis-cards .xp-card")
+        text = pg.inner_text("#analysis-cards")
+        self.assertIn("Same discussion on both platforms", text)
+        self.assertIn("YouTube", text)
+        self.assertIn("Telegram", text)
+        self.assertGreater(pg.locator("#analysis-cards .xp-pair").count(), 0)          # demo data has both platforms
+        pg.locator("#analysis-cards .xp-go").first.click()                              # jumps to the theme in the constellation
+        pg.wait_for_selector("#panel:not(.hidden)")
+        self.assertEqual(pg.evaluate("document.body.dataset.view"), "graph")
+        self.assertClean()
+
+    def test_19_welcome_page_shows_once(self):
+        ctx = _BROWSER.new_context(viewport={"width": 1280, "height": 800})
+        self.addCleanup(ctx.close)
+        pg = ctx.new_page()
+        pg.goto(self.url)
+        pg.keyboard.press("Space")
+        pg.wait_for_selector("#boot", state="detached", timeout=15000)
+        if pg.is_visible("#landing-view"):
+            self.assertIn("Discover how conversations", pg.inner_text("#landing-view"))
+            pg.click("#landing-go")
+        pg.wait_for_selector("#home-view:not(.hidden)")
+        pg.reload()
+        pg.keyboard.press("Space")
+        pg.wait_for_selector("#boot", state="detached", timeout=15000)
+        pg.wait_for_selector("#home-view:not(.hidden)")                                  # not shown again
+        self.assertFalse(pg.is_visible("#landing-view"))
 
     def test_15_keyboard_access(self):
         pg = self.open()

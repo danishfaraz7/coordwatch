@@ -234,6 +234,8 @@ Terms are alternatives: a post matches if it contains **any** term. Separate ter
 ## 6. Reading the results
 
 * **Constellation (app):** gold beams are narratives (thickness = volume, red = pushed by coordinated accounts), purple orbs are coordinated groups, dots are accounts coloured by platform. Click anything for origin, hops between platforms and evidence. The time scrubber replays the spread.
+* **Cross-Platform (app):** maps YouTube and Telegram posts onto each other: for every discussion theme found on both platforms it shows the earliest post from each side and who moved first, and it lists Telegram posts that link to YouTube videos collected in the same run.
+* **Menu and layout:** the left menu can be minimised with the ‹ button (remembered), the timeline bar on the left of the Constellation scrubs the date range, and the Legend button opens the colour key. Past investigations are listed on Home and reopen from disk after a restart. The layout adapts from phones to ultrawide screens.
 * **Report (`report.html`):** one offline file with a streamgraph of volume per platform, a clickable narrative bubble map, per-group link graphs with signal-strength bars and evidence, a spread map per narrative (for example `telegram → x +38m → youtube +26h`), the cross-platform summary, and the posts table.
 * **Exports** (all in the run folder, or the Export menu): `results.json`, `posts.csv`, `narratives.csv`, `volume_by_platform.csv`, `coordinated_groups.csv`, `origins.csv`, `cross_platform.csv`, `cross_platform_summary.txt`, `report.html`, `run_log.txt`.
 * **Confidence:** each group is rated high / medium / low from the strength and number of its signals. Treat even "high" as a lead to verify.
