@@ -87,7 +87,7 @@ python -m coordwatch web                                  # -> http://localhost:
 Click **Demo** in the app (or `python -m coordwatch run --topic "Acme Bank" --since 2026-10-01 --until 2026-10-14 --source demo --out out/demo`).
 The demo uses a synthetic dataset with planted ground truth, so you can see every output before connecting anything.
 
-Run the tests (optional): `pip install pytest && python -m pytest -q` from the repository folder (95 tests).
+Run the tests (optional): `python -m pytest -q` (pytest is in requirements.txt) from the repository folder (140 tests; the browser tests need `playwright install chromium` and skip themselves without it).
 
 ### Where keys are stored
 Settings (the gear icon) saves keys to `~/.coordwatch/credentials.json`, outside the repository, and never sends them back to the browser. Environment variables win over saved values,

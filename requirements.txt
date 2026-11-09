@@ -1,10 +1,12 @@
-# Core analysis + demo/file mode + report: NO third-party packages (stdlib only, Python 3.9+).
-# Optional, only for live collection (everything below is free):
-requests>=2.31        # X API + YouTube API collectors, Telegram web preview, avatar download
+# coordwatch: install everything once with   pip install -r requirements.txt
+# The core analysis, demo mode and HTML report need NO third-party packages (stdlib only, Python 3.9+).
+# The packages below add live collection, the PDF report and the tests. All are free.
+requests>=2.31        # YouTube/X API collectors, Telegram web preview, trending topics, AI summary, avatar download
 Pillow>=10.0          # profile-photo perceptual hashing
 telethon>=1.36        # Telegram collector (official API route)
-beautifulsoup4>=4.12  # Telegram t.me/s web-preview parser (no login needed)
-yt-dlp>=2025.1.1      # YouTube without an API key
-playwright>=1.45      # X browser-session route (then: playwright install chromium)
+beautifulsoup4>=4.12  # Telegram t.me/s web-preview parser (no login needed) and trending hashtags on Telegram
+yt-dlp>=2025.1.1      # YouTube without an API key; YouTube trending suggestions
 ddgs>=9.0             # --discover (DuckDuckGo search, no key)
-reportlab>=4.0      # executive_report.pdf (optional; without it the PDF is skipped)
+reportlab>=4.0        # executive_report.pdf (without it the PDF is skipped and the app says what to install)
+playwright>=1.45      # X browser-session route and the browser tests; afterwards run: playwright install chromium
+pytest>=8.0           # only to run the tests: python -m pytest -q
