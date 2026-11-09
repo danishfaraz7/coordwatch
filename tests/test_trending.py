@@ -16,6 +16,7 @@ def fake(url):
     if "news.google" in url: return NEWS
     if "gdelt" in url: raise OSError("blocked")
     if "t.me" in url: return TG
+    if "trends24" in url: return '<a class="trend-link" href="x">#INDvNZ</a><a class="trend-link" href="y">Kohli</a><a class="trend-link" href="z">#indvnz</a>'
     raise OSError(url)
 
 
@@ -31,24 +32,26 @@ class TrendingTests(unittest.TestCase):
         a, b = datetime(2026, 11, 6, tzinfo=timezone.utc), datetime(2026, 11, 8, tzinfo=timezone.utc)
         out = trending(a, b, "IN", ["@chan"], get=fake, yt_search=lambda term: [{"title": f"{term} highlights #INDvNZ", "view_count": 900}])
         ids = [s["id"] for s in out["sources"]]
-        self.assertEqual(ids, ["web", "youtube", "telegram"])
-        web = out["sources"][0]
+        self.assertEqual(ids, ["hashtags", "web", "x", "youtube", "telegram"])
+        self.assertIn("#indvnz", [i["term"].lower() for i in out["sources"][0]["items"]])
+        self.assertEqual(len([i for i in out["sources"][0]["items"] if i["term"].lower() == "#indvnz"]), 1)
+        web = out["sources"][1]
         self.assertEqual(web["items"][0]["term"], "India vs New Zealand")
         self.assertIn("GDELT unavailable", web["note"])
-        self.assertTrue(any("indvnz" in i["term"].lower() for i in out["sources"][1]["items"]))
-        self.assertTrue(any("indvnz" in i["term"].lower() for i in out["sources"][2]["items"]))
+        self.assertTrue(any("indvnz" in i["term"].lower() for i in out["sources"][3]["items"]))
+        self.assertTrue(any("indvnz" in i["term"].lower() for i in out["sources"][4]["items"]))
 
     def test_telegram_without_channels_explains_what_to_do(self):
         a = datetime(2026, 11, 6, tzinfo=timezone.utc)
         out = trending(a, a, "IN", [], platforms=("telegram",), get=fake)
-        self.assertEqual(out["sources"][0]["items"], [])
-        self.assertIn("channels", out["sources"][0]["note"])
+        self.assertEqual(out["sources"][1]["items"], [])
+        self.assertIn("channels", out["sources"][1]["note"])
 
     def test_youtube_failure_is_reported_not_raised(self):
         a = datetime(2026, 11, 6, tzinfo=timezone.utc)
         def boom(term): raise RuntimeError("no network")
         out = trending(a, a, "IN", [], platforms=("web", "youtube"), get=fake, yt_search=boom)
-        self.assertIn("Could not read YouTube", out["sources"][1]["note"])
+        self.assertIn("Could not read YouTube", out["sources"][2]["note"])
 
 
 if __name__ == "__main__":

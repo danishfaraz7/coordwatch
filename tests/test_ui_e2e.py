@@ -455,6 +455,7 @@ class UiTests(unittest.TestCase):
         pg = self.open()
         import json as _j
         payload = {"since": "2026-11-06", "until": "2026-11-08", "sources": [
+            {"id": "hashtags", "label": "# Hashtags", "note": "n", "items": [{"term": "#INDvNZ", "score": 3, "example": "e"}]},
             {"id": "web", "label": "Open internet", "note": "n", "items": [{"term": "India vs New Zealand", "score": 5, "example": "e"}, {"term": "#INDvNZ", "score": 3, "example": "e"}]},
             {"id": "youtube", "label": "YouTube", "note": "n", "items": [{"term": "Kohli century", "score": 2, "example": "e"}]},
             {"id": "telegram", "label": "Telegram", "note": "n", "items": []}]}
@@ -462,9 +463,11 @@ class UiTests(unittest.TestCase):
         pg.fill("#since", "2026-11-06"); pg.fill("#until", "2026-11-08")
         pg.click("#trend-go")
         pg.wait_for_selector("[data-tadd]")
+        self.assertIn("#INDvNZ", pg.inner_text("#trend-out"))                      # hashtags tab opens first
         pg.click("[data-tadd] >> nth=0")
-        pg.click("[data-tadd] >> nth=1")
-        self.assertEqual(pg.input_value("#topic"), "India vs New Zealand OR #INDvNZ")
+        pg.click("[data-tsrc=web]")
+        pg.click("[data-tadd] >> nth=0")
+        self.assertEqual(pg.input_value("#topic"), "#INDvNZ OR India vs New Zealand")
         pg.click("[data-tsrc=youtube]")
         self.assertIn("Kohli century", pg.inner_text("#trend-out"))
         pg.click("[data-tsrc=telegram]")

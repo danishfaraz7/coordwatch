@@ -49,7 +49,7 @@ def terms_from(texts: List[tuple], top: int = 12) -> List[dict]:
         if any(key != o and (key in o or o in key) for o in seen):        # drop "India" when "India vs New Zealand" is already there
             continue
         seen.append(key)
-        out.append({"term": example[key][0], "score": round(sc), "example": example[key][1]})
+        out.append({"term": example[key][0], "score": round(sc), "example": example[key][1], "kind": "hashtag" if key.startswith("#") else "phrase"})
         if len(out) >= top:
             break
     return out
@@ -64,7 +64,7 @@ def web_source(since: datetime, until: datetime, geo: str, get: Callable[[str], 
             t = (it.findtext("title") or "").strip()
             tr = (it.findtext("ht:approx_traffic", namespaces=ns) or "").replace("+", "").replace(",", "")
             if t:
-                items.append({"term": t, "score": int(tr) if tr.isdigit() else 0, "example": "Searched a lot on Google right now"})
+                items.append({"term": t, "score": int(tr) if tr.isdigit() else 0, "example": "Searched a lot on Google right now", "kind": "hashtag" if t.startswith("#") else "phrase"})
     except Exception as e:
         notes.append(f"Google Trends unavailable ({type(e).__name__})")
     heads = []
@@ -84,6 +84,33 @@ def web_source(since: datetime, until: datetime, geo: str, get: Callable[[str], 
     items += terms_from(heads, 12)
     note = "Google Trends shows today; the news terms follow your dates." + ((" " + "; ".join(notes)) if notes else "")
     return {"id": "web", "label": "Open internet", "items": items[:20], "note": note, "headlines": heads}
+
+
+def x_source(geo: str, get: Callable[[str], str]) -> dict:
+    """Hashtags and topics trending on X, from the public trends24.in page (no login). Best effort."""
+    slug = {"IN": "india", "US": "united-states", "GB": "united-kingdom", "AE": "united-arab-emirates", "PK": "pakistan", "AU": "australia"}.get(geo, "india")
+    try:
+        html = get(f"https://trends24.in/{slug}/")
+        names = re.findall(r'class="trend-link"[^>]*>([^<]{2,60})<', html)
+    except Exception as e:
+        return {"id": "x", "label": "X (Twitter)", "items": [], "note": f"Could not read X trends here ({type(e).__name__})."}
+    seen, items = set(), []
+    for n in names:
+        n = n.strip()
+        if n.lower() not in seen:
+            seen.add(n.lower()); items.append({"term": n, "score": 0, "example": "Trending on X now", "kind": "hashtag" if n.startswith("#") else "phrase"})
+        if len(items) >= 25:
+            break
+    return {"id": "x", "label": "X (Twitter)", "items": items, "note": "What is trending on X right now (today only, not your dates)."}
+
+
+def hashtag_tab(sources: List[dict]) -> dict:
+    seen, items = set(), []
+    for src in sources:
+        for i in src["items"]:
+            if i.get("kind") == "hashtag" and i["term"].lower() not in seen:
+                seen.add(i["term"].lower()); items.append({**i, "example": f"{src['label']}: {i.get('example', '')}"[:110]})
+    return {"id": "hashtags", "label": "# Hashtags", "items": items[:30], "note": "Trending hashtags from every source below, in one list."}
 
 
 def youtube_source(web_items: List[dict], search: Optional[Callable[[str], List[dict]]] = None) -> dict:
@@ -122,7 +149,7 @@ def telegram_source(channels: List[str], since: datetime, until: datetime, get: 
     return {"id": "telegram", "label": "Telegram", "items": terms_from(texts, 12), "note": note}
 
 
-def trending(since: datetime, until: datetime, geo: str = "IN", channels: Optional[List[str]] = None, platforms=("web", "youtube", "telegram"),
+def trending(since: datetime, until: datetime, geo: str = "IN", channels: Optional[List[str]] = None, platforms=("web", "x", "youtube", "telegram"),
              get: Callable[[str], str] = _get, yt_search=None) -> Dict:
     geo = (geo or "IN").upper()[:2]
     since = since if since.tzinfo else since.replace(tzinfo=timezone.utc)
@@ -132,8 +159,10 @@ def trending(since: datetime, until: datetime, geo: str = "IN", channels: Option
         web = web_source(since, until, geo, get)
         if "web" in platforms:
             srcs.append({k: v for k, v in web.items() if k != "headlines"})
+    if "x" in platforms:
+        srcs.append(x_source(geo, get))
     if "youtube" in platforms:
         srcs.append(youtube_source(web["items"], yt_search))
     if "telegram" in platforms:
         srcs.append(telegram_source(channels or [], since, until, get))
-    return {"since": since.date().isoformat(), "until": until.date().isoformat(), "sources": srcs}
+    return {"since": since.date().isoformat(), "until": until.date().isoformat(), "sources": [hashtag_tab(srcs)] + srcs}
