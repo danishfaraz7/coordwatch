@@ -153,11 +153,11 @@ class UiTests(unittest.TestCase):
         pg.wait_for_selector("#drawer:not(.hidden)")
         self.assertGreater(pg.locator("#drawer tbody tr").count(), 10)
         pg.click("[data-screen=exports]")
-        self.assertTrue(pg.is_visible("#exp-menu"))
-        for f in ("results.json", "posts.csv", "cross_platform.csv", "run_log.txt"):
-            self.assertGreater(pg.locator(f"#exp-menu a[href$='{f}']").count(), 0, f)
+        self.assertFalse(pg.is_visible("#exp-menu"))
+        for f in ("report.html", "results.json", "posts.csv", "cross_platform.csv", "run_log.txt", "daily_counts.csv", "term_mentions.csv", "narrative_by_day.csv", "narrative_by_term.csv", "plain_summary.txt", "overview.json"):
+            self.assertGreater(pg.locator(f"#analysis-cards a[href$='{f}']").count(), 0, f)
         pg.click("[data-screen=guide]")
-        self.assertTrue(pg.is_visible("#graph-help"))
+        self.assertEqual(pg.locator("#analysis-cards >> text=/^STEP/").count(), 4)
         pg.click("[data-screen=graph]")
         self.assertTrue(pg.is_visible("#dock"))
         self.assertClean()
@@ -430,6 +430,25 @@ class UiTests(unittest.TestCase):
         o = pg.inner_text("#analysis-cards")
         self.assertIn("first showed up on", o)
         self.assertIn("After that it reached", o)
+        self.assertClean()
+
+    def test_23_non_technical_friendly(self):
+        pg = self.open()
+        self.run_demo(pg, "overview")
+        labels = pg.locator(".side-link span").all_inner_texts()
+        for w in ("Summary", "Map", "What People Say", "Accounts Working Together", "Where It Started", "Download Results"):
+            self.assertIn(w, labels)
+        self.assertTrue(pg.locator(".side-link[title]").count() >= 10)          # every menu item has a tooltip
+        t = pg.inner_text("#analysis-cards")
+        self.assertIn("THE SHORT ANSWER", t)
+        self.assertIn("WHAT TO LOOK AT NEXT", t)
+        self.assertIn("WORDS WE USE", t)
+        pg.click(".next-btn >> nth=1")                                           # big button jumps to the groups screen
+        g = pg.inner_text("#analysis-cards")
+        for jargon in ("Jaccard", "Hamming", "perceptual", "median lag"):
+            self.assertNotIn(jargon, g)
+        pg.click("[data-screen=guide]")
+        self.assertIn("Type what you want to know about", pg.inner_text("#analysis-cards"))
         self.assertClean()
 
     def test_15_keyboard_access(self):

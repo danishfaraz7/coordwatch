@@ -337,7 +337,7 @@ function loadResult() {
   $('#kpis').innerHTML = [['Posts', m.n_posts.toLocaleString(), ''], ['Accounts', m.n_accounts.toLocaleString(), ''], ['Narratives', m.n_narratives, ''],
     ['Coordinated accts', m.coordinated_accounts, `<em>${m.n_groups} group(s)</em>`], ['Coordinated posts', Math.round(m.coordinated_post_share * 100) + '%', '']]
     .map(([a, b, c]) => `<div><small>${a}</small><b>${b}${c}</b></div>`).join('');
-  $('#exp-menu').innerHTML = ['report.html', 'results.json', 'posts.csv', 'narratives.csv', 'coordinated_groups.csv', 'origins.csv', 'cross_platform.csv', 'cross_platform_summary.txt', 'volume_by_platform.csv', 'run_log.txt']
+  $('#exp-menu').innerHTML = ['report.html', 'results.json', 'posts.csv', 'narratives.csv', 'coordinated_groups.csv', 'origins.csv', 'cross_platform.csv', 'cross_platform_summary.txt', 'volume_by_platform.csv', 'run_log.txt', 'plain_summary.txt', 'daily_counts.csv', 'term_mentions.csv', 'narrative_by_day.csv', 'narrative_by_term.csv', 'overview.json']
     .map(f => `<a href="/api/jobs/${st.jobId}/download/${f}" ${f === 'report.html' ? 'target="_blank" rel="noopener"' : ''}>${f === 'report.html' ? '↗ Static report (HTML)' : '⭳ ' + f}</a>`).join('');
   setScreen('overview'); fitCamera(); renderNotes(); fillPosts();
   $('#notes').classList.add('hidden');
@@ -874,7 +874,7 @@ function showAnalysisScreen(screen){
   if(screen!=='posts') $('#drawer').classList.add('hidden');
   $('#notes').classList.add('hidden');
   document.querySelectorAll('[data-analysis]').forEach(b=>b.classList.toggle('active',b.dataset.analysis===screen||(b.dataset.analysis==='timeline'&&screen==='spread')));$('#app-topbar').classList.add('hidden');$('#analysis-header').classList.remove('hidden');
-  $('#analysis-title').textContent=({overview:'Dashboard',graph:'Constellation',narratives:'Discussion themes',groups:'Accounts acting together',spread:'How the discussion spread',cross:'Cross-platform map',posts:'Posts Explorer',exports:'Exports',guide:'Help & Guide'})[screen]||'Investigation';
+  $('#analysis-title').textContent=({overview:'Summary',graph:'Map',narratives:'What people are saying',groups:'Accounts that seem to work together',spread:'Where it started and how it spread',cross:'How YouTube and Telegram connect',posts:'All posts',exports:'Download your results',guide:'Help: how to use this in 4 steps'})[screen]||'Investigation';
   $('#analysis-subtitle').textContent=({overview:'A plain-words summary, posts per day and mentions of each search term, before you export anything.',cross:'Which Telegram posts and YouTube videos belong to the same discussion, and who moved first.',graph:'Explore the relationships between the topic, narratives and account groups.',narratives:'Select a theme to inspect its posts, accounts and timeline.',groups:'Review the signals behind accounts grouped together.',spread:'Earliest observed posts and cross-platform movement.',posts:'Search and filter the collected evidence.',exports:'Download the data and reports from this investigation.',guide:'Understand the graph and what the evidence can tell you.'})[screen]||'';
   $('#app-main').classList.add('analysis-active');
   if(screen==='graph'){const stale=$('#analysis-cards');if(stale)stale.remove();['#drawer','#notes'].forEach(s=>$(s).classList.add('hidden'));$('#panel').classList.toggle('hidden',!st.selected);$('#graph-tools').classList.remove('hidden');}
@@ -884,8 +884,9 @@ function showAnalysisScreen(screen){
   if(screen==='groups')renderAnalysisCards('groups');
   if(screen==='spread')renderAnalysisCards('spread');
   if(screen==='cross')renderAnalysisCards('cross');
-  $('#exp-menu').classList.toggle('hidden',screen!=='exports');
-  if(screen==='guide'){$('#graph-help').classList.remove('hidden');}
+  $('#exp-menu').classList.add('hidden');
+  if(screen==='exports')renderAnalysisCards('exports');
+  if(screen==='guide')renderAnalysisCards('guide');
 }
 document.querySelectorAll('[data-analysis]').forEach(b=>b.addEventListener('click',()=>setScreen(b.dataset.analysis==='timeline'?'spread':b.dataset.analysis)));
 // Telegram <-> YouTube mapping: per discussion theme, the first post on each platform, plus Telegram posts that link to collected videos
@@ -938,16 +939,67 @@ function spark(by, color) {
   return '<svg viewBox="0 0 ' + w + ' ' + h + '" style="width:100%;height:34px">' + v.map((x, i) => '<rect x="' + (i * bw + .5).toFixed(1) + '" y="' + (h - 1 - (h - 3) * x / mx).toFixed(1) + '" width="' + Math.max(bw - 1, 1).toFixed(1) + '" height="' + Math.max((h - 3) * x / mx, x ? 1 : 0).toFixed(1) + '" fill="' + color + '"/>').join('') + '</svg>';
 }
 function heatTable(rowsHtml, head) { return '<div class="xp-scroll"><table class="xp-table"><thead><tr>' + head + '</tr></thead><tbody>' + rowsHtml + '</tbody></table></div>'; }
+
+// ---- plain-language helpers for non-technical readers ----
+function simple(r) {
+  return String(r)
+    .replace(/\s*\(\d+ distinct copy-pasted message\(s\), Jaccard[^)]*\)/, ' (the same message copied again and again)')
+    .replace(/\s*\(median lag[^)]*\)/, ' (usually seconds apart)')
+    .replace(/post-pairs with similar content within (\d+) min of each other/, 'pairs of similar posts made within $1 minutes of each other')
+    .replace(/\s*\(perceptual-hash Hamming[^)]*\)/, '')
+    .replace(/\(mutual amplification\)/, '(they boost each other)')
+    .replace(/near-identical text/, 'almost the same text')
+    .replace(/known creation dates span (\d+) day\(s\) \(([^)]*)\); (\d+) linked pair\(s\) created within (\d+)h/, 'the accounts were made close together in time ($1 days apart, $2); $3 pair(s) were made within $4 hours of each other');
+}
+function bottomLine() {
+  const m = st.res.meta, gs = st.res.coordinated_groups || [];
+  const a = '<b>' + m.n_posts.toLocaleString() + '</b> posts from <b>' + m.n_accounts.toLocaleString() + '</b> accounts talked about “' + esc(m.topic) + '”. We found <b>' + m.n_narratives + '</b> main ' + (m.n_narratives === 1 ? 'story' : 'stories') + ' people are telling. ';
+  const b = gs.length ? 'We also spotted <b>' + gs.length + '</b> ' + (gs.length === 1 ? 'group' : 'groups') + ' of accounts that behave like a team (for example posting the same words at the same time). That is a clue worth a closer look, not proof that anything is fake.'
+    : 'We did not find accounts that clearly work together as a team.';
+  return '<div class="analysis-card xp-card wide bottom-line"><small>THE SHORT ANSWER</small><p class="bl-text">' + a + b + '</p></div>';
+}
+function nextSteps() {
+  const b = (go, t, d) => '<button class="xp-go next-btn" data-go="' + go + '"><b>' + t + '</b><span>' + d + '</span></button>';
+  return '<div class="analysis-card xp-card wide"><small>WHAT TO LOOK AT NEXT</small><div class="next-grid">' +
+    b('narratives', 'What are people saying?', 'The main stories, day by day') + b('groups', 'Who is working together?', 'Accounts that act like a team') +
+    b('spread', 'Where did it start?', 'Who posted first and how it spread') + b('exports', 'Save or share it', 'Download a report or spreadsheet') + '</div></div>';
+}
+const WORDS = [['Post', 'One message, video or comment that someone published.'], ['Account', 'The person, channel or page that published a post.'], ['Story (narrative)', 'A group of posts that say roughly the same thing.'],
+  ['Working together (coordinated)', 'Accounts that post the same words, at the same time, or boost each other. A clue, not proof.'], ['Hashtag', 'A word starting with # that people add to join a conversation.'], ['Platform', 'The website or app where a post was published, such as YouTube or Telegram.']];
+function glossary() {
+  return '<div class="analysis-card xp-card wide"><small>WORDS WE USE</small><dl class="gloss">' + WORDS.map(([a, b]) => '<dt>' + a + '</dt><dd>' + b + '</dd>').join('') + '</dl></div>';
+}
+const FILES = [['report.html', 'Report you can read and share', 'One web page with everything. Best to open first.'], ['plain_summary.txt', 'Summary in plain words', 'A short text file anyone can read.'],
+  ['posts.csv', 'All posts (spreadsheet)', 'Text, date, likes and link for every post. Opens in Excel.'], ['daily_counts.csv', 'Posts per day (spreadsheet)', 'How many posts were made on each date.'],
+  ['term_mentions.csv', 'Mentions of each keyword (spreadsheet)', 'Hashtags, people, brands and words, counted by day.'], ['narratives.csv', 'Main stories (spreadsheet)', 'What people are saying, grouped.'],
+  ['narrative_by_day.csv', 'Stories by day (spreadsheet)', 'Which story was big on which date.'], ['narrative_by_term.csv', 'Stories by keyword (spreadsheet)', 'Which story goes with which keyword.'],
+  ['coordinated_groups.csv', 'Accounts working together (spreadsheet)', 'Each group and the reason it was flagged.'], ['origins.csv', 'Where each story started (spreadsheet)', 'The first accounts and posts.'],
+  ['cross_platform.csv', 'YouTube and Telegram links (spreadsheet)', 'Which posts on the two sites belong together.'], ['volume_by_platform.csv', 'Posts per site (spreadsheet)', 'Volume per platform over time.'],
+  ['results.json', 'Everything, for programmers (JSON)', 'The full data in one file for other tools.'], ['overview.json', 'Summary data, for programmers (JSON)', 'The dashboard numbers in one file.'], ['run_log.txt', 'Technical log', 'Only needed if something went wrong.']];
+function exportCards() {
+  if (!st.jobId || !st.res) return '<div class="analysis-card xp-card wide"><h3>Nothing to download yet</h3><p>Run a search first (Start a New Search), then come back here.</p></div>';
+  return '<div class="xp-head wide"><h3>Pick a file to save</h3><p>Not sure? Click the first one. It opens in your browser and you can print or share it.</p></div>' +
+    FILES.map(([f, t, d], i) => '<div class="analysis-card xp-card' + (i === 0 ? ' wide' : '') + '"><h3>' + t + '</h3><p>' + d + '</p><a class="xp-go" href="/api/jobs/' + st.jobId + '/download/' + f + '"' + (f === 'report.html' ? ' target="_blank" rel="noopener"' : '') + '>' + (f === 'report.html' ? 'Open report ↗' : '⭳ Download') + ' <small>' + f + '</small></a></div>').join('');
+}
+function guideCards() {
+  const step = (n, t, d) => '<div class="analysis-card xp-card"><small>STEP ' + n + '</small><h3>' + t + '</h3><p>' + d + '</p></div>';
+  return step(1, 'Type what you want to know about', 'Click “Start a New Search”. Type a subject, a hashtag or a name, for example the name of a match, a brand or a person. You can add more than one.') +
+    step(2, 'Choose where to look and which days', 'Tick YouTube, Telegram or X. Pick a start and end date. Then press the big button to begin. It can take a few minutes.') +
+    step(3, 'Read the Summary', 'When it finishes you land on the Summary. The first box gives the short answer. The bars show how many posts were made each day.') +
+    step(4, 'Save or share it', 'Click “Download Results” and open the report. It is one page anyone can read. Spreadsheets are there too.') +
+    '<div class="analysis-card xp-card wide"><small>GOOD TO KNOW</small><ul class="plain-list"><li>Nothing is sent anywhere. Everything stays on this computer.</li><li>“Accounts working together” is a clue to check, not proof that anything is fake.</li><li>Lost? Click “Summary” in the left menu. The menu button at the top collapses it.</li></ul></div>' + glossary();
+}
 function overviewCards() {
   const ov = st.res.overview; if (!ov) return NO_OV;
-  let h = '<div class="analysis-card xp-card wide"><small>IN SIMPLE WORDS</small><h3>' + esc(st.res.meta.topic) + '</h3><ul class="plain-list">' + ov.plain.summary.map(x => '<li>' + esc(x) + '</li>').join('') + '</ul></div>';
+  let h = bottomLine() + nextSteps();
+  h += '<div class="analysis-card xp-card wide"><small>IN SIMPLE WORDS</small><h3>' + esc(st.res.meta.topic) + '</h3><ul class="plain-list">' + ov.plain.summary.map(x => '<li>' + esc(x) + '</li>').join('') + '</ul></div>';
   h += '<div class="analysis-card xp-card wide"><small>POSTS PER DAY</small><h3>How many posts were made on each day</h3>' + dayBars(ov.days, ov.platforms) +
     '<details><summary>Show the numbers</summary>' + heatTable(ov.days.map(d => '<tr><td>' + esc(d.date) + '</td><td><b>' + d.total.toLocaleString() + '</b></td>' + ov.platforms.map(p => '<td>' + (d.by_platform[p] || 0) + '</td>').join('') + ov.terms.map(t => '<td>' + (d.by_term[t.term] || 0) + '</td>').join('') + '</tr>').join(''),
       '<th>Date</th><th>Posts</th>' + ov.platforms.map(p => '<th>' + esc(LABEL[p] || p) + '</th>').join('') + ov.terms.map(t => '<th>“' + esc(t.term) + '”</th>').join('')) + '</details></div>';
   h += '<div class="xp-head wide"><h3>Mentions of each keyword, hashtag, person, brand or event</h3><p>How many posts mention each term you searched for, and when.</p></div>';
   h += ov.terms.map(t => '<div class="analysis-card xp-card"><small>' + esc(t.kind.toUpperCase()) + '</small><h3>' + esc(t.term) + '</h3><p><b class="big-n">' + t.posts.toLocaleString() + '</b> posts · ' + Math.round(t.share * 100) + '% of all · ' + t.accounts.toLocaleString() + ' accounts</p>' + spark(t.by_day, '#9a8cff') +
     '<p>' + ov.platforms.map(p => esc(LABEL[p] || p) + ' ' + (t.by_platform[p] || 0)).join(' · ') + '</p></div>').join('');
-  return h;
+  return h + glossary();
 }
 let narMode = 'theme';
 function narrativeCards() {
@@ -969,7 +1021,7 @@ function groupCards() {
   const ov = st.res.overview, gs = st.res.coordinated_groups;
   if (!gs.length) return '<div class="analysis-card xp-card wide"><h3>No groups found</h3><p>No set of accounts met the evidence thresholds for this topic and time frame.</p></div>';
   return gs.map(g => '<div class="analysis-card xp-card"><small>GROUP ' + esc(g.id) + ' · ' + esc(g.confidence.toUpperCase()) + ' CONFIDENCE</small><h3>' + g.size + ' accounts · ' + g.posts + ' posts</h3><p>' + esc(plainOf(ov && ov.plain.groups, 'id', g.id)) + '</p>' +
-    '<p><b>The evidence:</b></p><ul class="plain-list">' + g.reasons.map(r => '<li>' + esc(r) + '</li>').join('') + '</ul><button class="xp-go" data-grp="' + esc(g.id) + '">Inspect signals →</button></div>').join('');
+    '<p><b>The evidence:</b></p><ul class="plain-list">' + g.reasons.map(r => '<li>' + esc(simple(r)) + '</li>').join('') + '</ul><button class="xp-go" data-grp="' + esc(g.id) + '">Inspect signals →</button></div>').join('');
 }
 function spreadCards() {
   const ov = st.res.overview;
@@ -979,12 +1031,15 @@ function spreadCards() {
 function renderAnalysisCards(kind){
   let html='<section id="analysis-cards" class="analysis-cards">';
   if(kind==='cross')html+=crossCards();
+  if(kind==='exports')html+=exportCards();
+  if(kind==='guide')html+=guideCards();
   if(kind==='overview')html+=overviewCards();
   if(kind==='narratives')html+=narrativeCards();
   if(kind==='groups')html+=groupCards();
   if(kind==='spread')html+=spreadCards();
   html+='</section>';let old=$('#analysis-cards');if(old)old.remove();$('#app-main').appendChild(document.createRange().createContextualFragment(html));
-  $('#analysis-cards').querySelectorAll('[data-nmode]').forEach(b=>b.onclick=()=>{narMode=b.dataset.nmode;renderAnalysisCards('narratives');});
+  $('#analysis-cards').querySelectorAll('[data-go]').forEach(b=>b.onclick=()=>setScreen(b.dataset.go));
+   $('#analysis-cards').querySelectorAll('[data-nmode]').forEach(b=>b.onclick=()=>{narMode=b.dataset.nmode;renderAnalysisCards('narratives');});
   $('#analysis-cards').querySelectorAll('[data-nar]').forEach(b=>b.onclick=()=>{setScreen('graph');const n=st.scene.byNar.get(+b.dataset.nar);if(n)select(n);});
   $('#analysis-cards').querySelectorAll('[data-grp]').forEach(b=>b.onclick=()=>{setScreen('graph');const n=st.scene.nodes.find(x=>x.kind==='grp'&&x.id===b.dataset.grp);if(n)select(n);});
 }

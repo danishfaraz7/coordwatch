@@ -458,3 +458,6 @@ scripts/stress.py      multi-seed accuracy + ablation table
 sample_data/           synthetic posts + ground truth JSON (importable via --source file)
 out/example/           pre-generated report, JSON and CSVs
 ```
+
+### Made for non-technical readers
+Plain menu names with tooltips (Summary, Map, What People Say, Accounts Working Together, Where It Started, Download Results), a one-sentence "short answer" on the Summary, big "what to look at next" buttons, jargon-free reasons, a plain-named Download screen covering every export, and a 4-step Help page.
