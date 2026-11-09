@@ -857,7 +857,12 @@ function renderHome(){
 }
 function renderInvestigationList(){const el=$('#investigations-list');el.innerHTML=recentRuns.length?recentRuns.map((r,i)=>'<button class="recent-item" data-run="'+i+'"><span class="recent-icon">✥</span><span><b>'+esc(r.topic)+'</b><small>'+esc(r.date)+' · '+(r.meta?.n_posts||0)+' posts · '+(r.meta?.n_narratives||0)+' themes</small></span><span class="recent-status">Completed ›</span></button>').join(''):'<div class="empty-state">No investigations yet. Start one to see your results here.</div>';el.querySelectorAll('[data-run]').forEach(b=>b.onclick=()=>{const r=recentRuns[+b.dataset.run];st.res=r.res;st.jobId=r.jobId;loadResult();setScreen('graph');});}
 function showAnalysisScreen(screen){
-  $('#app-shell').classList.add('analysis-mode');$('#app-topbar').classList.add('hidden');$('#analysis-header').classList.remove('hidden');
+  $('#app-shell').classList.add('analysis-mode');
+  $('#graph-tools').classList.toggle('hidden',screen!=='graph');
+  if(screen!=='graph') $('#panel').classList.add('hidden');
+  if(screen!=='posts') $('#drawer').classList.add('hidden');
+  $('#notes').classList.add('hidden');
+  document.querySelectorAll('[data-analysis]').forEach(b=>b.classList.toggle('active',b.dataset.analysis===screen||(b.dataset.analysis==='timeline'&&screen==='spread')));$('#app-topbar').classList.add('hidden');$('#analysis-header').classList.remove('hidden');
   $('#analysis-title').textContent=({graph:'Constellation',narratives:'Discussion themes',groups:'Accounts acting together',spread:'How the discussion spread',posts:'Posts Explorer',exports:'Exports',guide:'Help & Guide'})[screen]||'Investigation';
   $('#analysis-subtitle').textContent=({graph:'Explore the relationships between the topic, narratives and account groups.',narratives:'Select a theme to inspect its posts, accounts and timeline.',groups:'Review the signals behind accounts grouped together.',spread:'Earliest observed posts and cross-platform movement.',posts:'Search and filter the collected evidence.',exports:'Download the data and reports from this investigation.',guide:'Understand the graph and what the evidence can tell you.'})[screen]||'';
   $('#app-main').classList.add('analysis-active');
@@ -869,7 +874,7 @@ function showAnalysisScreen(screen){
   if(screen==='exports')$('#exp-menu').classList.remove('hidden');
   if(screen==='guide'){$('#graph-help').classList.remove('hidden');}
 }
-function renderAnalysisCards(kind){
+document.querySelectorAll('[data-analysis]').forEach(b=>b.addEventListener('click',()=>setScreen(b.dataset.analysis==='timeline'?'spread':b.dataset.analysis)));\nfunction renderAnalysisCards(kind){
   let html='<section id="analysis-cards" class="analysis-cards">';
   if(kind==='narratives')html+=st.res.narratives.filter(n=>n.id>=0).map(n=>'<button class="analysis-card" data-nar="'+n.id+'"><small>DISCUSSION THEME #'+n.id+'</small><h3>'+esc(title(n.label))+'</h3><p>'+n.posts+' posts · '+n.accounts+' accounts · '+Math.round((n.coordinated_post_share||0)*100)+'% from flagged accounts</p><span>Inspect evidence →</span></button>').join('');
   if(kind==='groups')html+=st.res.coordinated_groups.map(g=>'<button class="analysis-card" data-grp="'+esc(g.id)+'"><small>GROUP '+esc(g.id)+'</small><h3>'+g.size+' accounts · '+esc(g.confidence)+' confidence</h3><p>'+esc(g.reasons.slice(0,2).join(' · '))+'</p><span>Inspect signals →</span></button>').join('')||'<p>No account groups met the current evidence thresholds.</p>';
