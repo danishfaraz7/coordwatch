@@ -96,6 +96,18 @@ so in Codespaces you can instead add them as **Codespaces secrets** (GitHub → 
 
 ---------------------------------------------------------------------------------------------------
 
+## Expected output → where to find it
+
+| Expected output | In the app | In the exports / report |
+|---|---|---|
+| Posts about the topic in the date range, with text, photos, videos, date, engagement and link | **Posts Explorer** (search, platform/theme/group/media filters, thumbnails, open original) | `posts.csv` (text, photo_urls, video_urls, created_at, likes, shares, replies, views, url), `results.json`, report section "Posts" |
+| Main narratives, grouped, with volume over time and per platform | **Narratives** and the Constellation panel (volume chart per platform) | `narratives.csv`, `volume_by_platform.csv`, report "Main narratives" |
+| Groups of accounts acting together, with the reason | **Coordinated Groups** (reasons and signal strength per group) | `coordinated_groups.csv` (reasons, accounts), report "Accounts acting together / Why they're grouped" |
+| Where each narrative started and how it spread | **Origin & Spread** and **Cross-Platform** | `origins.csv` (first account, first post, platform order, seeding group), `cross_platform.csv`, report "Where each narrative started" |
+| JSON or CSV export and a simple dashboard / HTML report | **Exports** menu, Settings → Run logs | `results.json`, all CSVs, self-contained `report.html` (works offline) |
+
+Group reasons cover: identical or near-identical text, posting within minutes of each other, accounts created around the same time, reused profile photos and accounts amplifying each other. `tests/test_requirements.py` checks every row of this table against a full run.
+
 ## 3. Connecting the platforms (API keys, step by step)
 
 **How the keys get into the app.** Every key goes in the same place:
