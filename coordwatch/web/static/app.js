@@ -322,7 +322,8 @@ function buildScene(res) {
 
 function fitCamera() {
   const sc = st.scene; let m = 200; sc.nodes.forEach(n => { m = Math.max(m, Math.abs(n.x) + n.r + 90, (Math.abs(n.y) + n.r + 60) * 1.35); });
-  const avail = Math.min(W - 460, (H - 190) * 1.5); st.cam.tk = clamp(avail / (2 * m), .35, 1.25); st.cam.tx = 0; st.cam.ty = -10;
+  const L = innerWidth <= 720 ? 8 : $('#app-sidebar').offsetWidth + 84, R = innerWidth <= 720 ? 8 : (st.selected ? 404 : 14);   // space taken by the menu + timeline and by the details panel
+  const avail = Math.min(W - L - R, (H - 190) * 1.5); st.cam.tk = clamp(avail / (2 * m), .35, 1.25); st.cam.tx = (L - R) / 2; st.cam.ty = -10;
   st.cam.k = st.cam.tk * .6; st.cam.x = st.cam.tx; st.cam.y = st.cam.ty;
 }
 
@@ -330,7 +331,7 @@ function loadResult() {
   const res = st.res, sc = st.scene = buildScene(res);
   st.selected = null; st.cursor = 1; hidePanel();
   setIdle(false);
-  ['#tl', '#legend', '#dock', '#exp', '#posts-btn'].forEach(s => $(s).classList.remove('hidden'));
+  ['#tl', '#dock', '#exp', '#posts-btn'].forEach(s => $(s).classList.remove('hidden'));
   $('#tlr').value = 1000; renderTicks(); updateBubble();
   const m = res.meta;
   $('#kpis').innerHTML = [['Posts', m.n_posts.toLocaleString(), ''], ['Accounts', m.n_accounts.toLocaleString(), ''], ['Narratives', m.n_narratives, ''],
@@ -338,8 +339,9 @@ function loadResult() {
     .map(([a, b, c]) => `<div><small>${a}</small><b>${b}${c}</b></div>`).join('');
   $('#exp-menu').innerHTML = ['report.html', 'results.json', 'posts.csv', 'narratives.csv', 'coordinated_groups.csv', 'origins.csv', 'cross_platform.csv', 'cross_platform_summary.txt', 'volume_by_platform.csv', 'run_log.txt']
     .map(f => `<a href="/api/jobs/${st.jobId}/download/${f}" ${f === 'report.html' ? 'target="_blank" rel="noopener"' : ''}>${f === 'report.html' ? '↗ Static report (HTML)' : '⭳ ' + f}</a>`).join('');
-  fitCamera(); renderNotes(); fillPosts();
+  setScreen('graph'); fitCamera(); renderNotes(); fillPosts();
   $('#notes').classList.add('hidden');
+  refreshRuns().then(renderHome);
 }
 
 function renderTicks() {
@@ -713,13 +715,13 @@ $('#pf').addEventListener('input', e => { pf.q = e.target.value; pf.limit = 300;
 $('#f-thumbs').addEventListener('change', e => { pf.thumbs = e.target.checked; renderPosts(); });
 $('#f-reset').onclick = () => resetFilters();
 $('#exp').onclick = () => $('#exp-menu').classList.toggle('hidden');
-document.addEventListener('click', e => { if (!e.target.closest('#exp') && !e.target.closest('#exp-menu')) $('#exp-menu').classList.add('hidden'); });
+document.addEventListener('click', e => { if (!e.target.closest('#exp, #exp-menu, .side-link')) $('#exp-menu').classList.add('hidden'); });
 
 // ------------------------------------------------------------------ landing (idle) scene
 function setIdle(on) {
   document.body.classList.toggle('idle', on);
-  ['#hero', '#conns', '#hero-demo'].forEach(x => $(x).classList.toggle('hidden', !on));
-  if (on) renderConns();
+  $('#app-shell').classList.toggle('analysis-mode', !on);
+  if (on) { setScreen('home'); renderHome(); }
 }
 $('#brand').onclick = () => {
   if ((st.job && st.job.running) || !st.res) return;
@@ -788,62 +790,176 @@ function runBoot() {
   });
 }
 
-// ------------------------------------------------------------------ accessible workspace navigation + graph controls
-function setWorkspaceView(view) {
-  const nav = $('#workspace-nav');
-  nav.querySelectorAll('button[data-view]').forEach(b => b.setAttribute('aria-current', b.dataset.view === view ? 'true' : 'false'));
-  if (view === 'graph') {
-    $('#drawer').classList.add('hidden'); $('#notes').classList.add('hidden'); $('#graph-help').classList.add('hidden');
-    if (st.scene) { $('#panel').classList.toggle('hidden', !st.selected); $('#graph-tools').classList.remove('hidden'); }
-  } else if (view === 'posts') {
-    $('#notes').classList.add('hidden'); $('#graph-help').classList.add('hidden');
-    if (st.scene) openPosts('');
-  } else if (view === 'notes') {
-    $('#drawer').classList.add('hidden'); $('#graph-help').classList.add('hidden');
-    if (st.scene) { renderNotes(); $('#notes').classList.remove('hidden'); }
-  } else if (view === 'export') {
-    $('#exp-menu').classList.toggle('hidden');
-  } else if (view === 'help') {
-    $('#graph-help').classList.toggle('hidden');
+// ------------------------------------------------------------------ dashboard, guided investigation and reference-led navigation
+let runs = [];   // finished runs found on disk (newest first), so history survives a restart
+async function refreshRuns() { try { runs = (await api('/api/runs')).runs || []; } catch (e) { runs = []; } }
+async function openRun(id) { st.res = await api('/api/jobs/' + id + '/result'); st.jobId = id; st.selected = null; loadResult(); }
+const runDate = r => r.started ? new Date(r.started).toLocaleDateString() : '';
+const runItem = (r, i, long) => '<button class="recent-item" data-run="' + esc(r.id) + '"><span class="recent-icon">✥</span><span><b>' + esc(r.topic || 'Untitled') + '</b><small>' + esc(runDate(r)) + ' · ' + (r.n_posts || 0) + ' posts' + (long ? ' · ' + (r.n_narratives || 0) + ' themes' : '') + '</small></span><span class="recent-status">Open ›</span></button>';
+const wireRuns = el => el.querySelectorAll('[data-run]').forEach(b => b.onclick = () => openRun(b.dataset.run).catch(e => alert('Could not open this run: ' + e.message)));
+let activeScreen = 'home', wizardStep = 1;
+function move(el, target) { if (el && target && el.parentElement !== target) target.appendChild(el); }
+function stashDates() { const t = $('#top'); ['#since', '#until'].forEach(q => { const e = document.querySelector(q); if (e) t.appendChild(e); }); }   // park the date pickers before a slot is rebuilt, or they would be destroyed with it
+function mountHomeInputs() {
+  stashDates();
+  move($('#topic'), $('#home-topic-slot')); move($('#chips'), $('#home-platform-slot'));
+  const dates=$('#home-date-row'); if(dates){ dates.innerHTML='<label>From</label><label>To</label>'; const a=document.createElement('div'),b=document.createElement('div');a.appendChild($('#since'));b.appendChild($('#until'));dates.append(a,b); }
+}
+function mountWizardInputs(step) {
+  if(step===1){move($('#topic'),$('#wizard-topic-slot'));}
+  if(step===2){move($('#chips'),$('#wizard-platform-slot'));move($('#tgch'),$('#wizard-platform-slot'));}
+  if(step===3){stashDates();const slot=$('#wizard-dates-slot');slot.innerHTML='';const a=document.createElement('label'),b=document.createElement('label');a.textContent='From';b.textContent='To';a.appendChild($('#since'));b.appendChild($('#until'));slot.append(a,b);}
+  if(step===4){move($('#depth'),$('#wizard-advanced-slot'));move($('#dv').parentElement,$('#wizard-advanced-slot'));move($('#tgch'),$('#wizard-advanced-slot'));}
+}
+function setScreen(screen) {
+  const priorCards=$('#analysis-cards'); if(priorCards) priorCards.remove();
+  activeScreen=screen;
+  const analysis=['graph','narratives','groups','spread','cross','posts','exports','guide'].includes(screen);
+  document.body.dataset.view=screen; setTimeout(syncChrome,0); document.body.classList.toggle('analysis',analysis&&!!st.res);
+  document.querySelectorAll('.side-link[data-screen]').forEach(b=>b.classList.toggle('active',b.dataset.screen===screen));
+  document.querySelectorAll('.app-screen').forEach(x=>x.classList.add('hidden'));
+  $('#analysis-header').classList.add('hidden');
+  $('#app-topbar').classList.remove('hidden');
+  $('#crumb-main').textContent=screen==='wizard'?'New Investigation':screen==='home'?'Home':title(screen==='landing'?'Welcome':screen);
+  $('#crumb-sub').textContent=screen==='home'?'': ' / coordwatch';
+  $('#app-shell').classList.remove('analysis-mode');
+  if(screen==='landing'){
+    $('#landing-view').classList.remove('hidden');
+  } else if(screen==='home'){
+    $('#home-view').classList.remove('hidden'); mountHomeInputs();
+  } else if(screen==='wizard'){
+    $('#wizard-view').classList.remove('hidden'); showWizardStep(1);
+  } else if(screen==='investigations'){
+    $('#investigations-view').classList.remove('hidden'); renderInvestigationList();
+  } else if(['graph','narratives','groups','spread','cross','posts','exports','guide'].includes(screen)){
+    if(!st.res){setScreen('wizard');return;}
+    showAnalysisScreen(screen);
   }
 }
-$('#workspace-nav').addEventListener('click', e => {
-  const b = e.target.closest('button[data-view]'); if (b) setWorkspaceView(b.dataset.view);
-});
-$('#graph-fit').onclick = () => { if (st.scene) fitCamera(); };
-$('#graph-zoom-in').onclick = () => { st.cam.tk = clamp(st.cam.tk * 1.22, .3, 3.2); };
-$('#graph-zoom-out').onclick = () => { st.cam.tk = clamp(st.cam.tk / 1.22, .3, 3.2); };
-$('#graph-legend').onclick = () => $('#legend').classList.toggle('hidden');
-$('#graph-help-close').onclick = () => $('#graph-help').classList.add('hidden');
-function showWorkspaceChrome(on) {
-  $('#workspace-nav').classList.toggle('hidden', !on);
-  $('#graph-tools').classList.toggle('hidden', !on);
-  if (!on) { $('#graph-help').classList.add('hidden'); $('#workspace-nav').querySelectorAll('button').forEach(b => b.removeAttribute('aria-current')); }
+function showWizardStep(n){
+  wizardStep=Math.max(1,Math.min(4,n));
+  document.querySelectorAll('.wizard-step-panel').forEach(p=>p.classList.toggle('hidden',Number(p.dataset.step)!==wizardStep));
+  document.querySelectorAll('.wizard-progress .step').forEach((p,i)=>{p.classList.toggle('active',i+1===wizardStep);p.classList.toggle('done',i+1<wizardStep)});
+  $('#wizard-back').disabled=wizardStep===1;
+  $('#wizard-next').classList.toggle('hidden',wizardStep===4);
+  $('#wizard-launch').classList.toggle('hidden',wizardStep!==4);
+  mountWizardInputs(wizardStep);
+  if(wizardStep===4){$('#wizard-review').innerHTML='<div class="review-line"><b>Topic</b><span>'+esc($('#topic').value||'Not entered')+'</span></div><div class="review-line"><b>Platforms</b><span>'+[...st.sel].map(p=>esc(LABEL[p]||p)).join(', ')+'</span></div><div class="review-line"><b>Date range</b><span>'+esc($('#since').value)+' – '+esc($('#until').value)+'</span></div><div class="review-line"><b>Collection depth</b><span>'+esc($('#depth').value)+'</span></div>';}
 }
-const originalSetIdle = setIdle;
-setIdle = function(on) { originalSetIdle(on); showWorkspaceChrome(!on); };
-const originalLoadResult = loadResult;
-loadResult = function() { originalLoadResult(); showWorkspaceChrome(true); setWorkspaceView('graph'); };
+$('#wizard-back').onclick=()=>showWizardStep(wizardStep-1);
+$('#wizard-next').onclick=()=>{if(wizardStep===1&&!$('#topic').value.trim()){$('#topic').focus();return;}if(wizardStep===2&&!st.sel.size&&!Object.keys(st.uploads).length){alert('Choose at least one source or import a file.');return;}showWizardStep(wizardStep+1);};
+$('#wizard-launch').onclick=()=>{if(!$('#topic').value.trim())return showWizardStep(1);$('#run').click();};
+document.querySelectorAll('[data-example]').forEach(b=>b.onclick=()=>{$('#topic').value=b.dataset.example;$('#topic').focus();});
+$('#home-new').onclick=$('#investigations-new').onclick=()=>setScreen('wizard');
+$('#view-investigations').onclick=()=>setScreen('investigations');
+$('#home-start').onclick=()=>{if(!$('#topic').value.trim()){setScreen('wizard');return;}$('#run').click();};
+$('#home-demo').onclick=()=>{$('#demo').click();};
+$('#top-settings').onclick=$('#home-manage-settings').onclick=()=>openSettings();
+document.querySelectorAll('.side-link[data-screen]').forEach(b=>b.addEventListener('click',()=>{if(b.dataset.screen==='settings'){openSettings();return;}setScreen(b.dataset.screen);}));
+function renderHome(){
+  $('#home-total').textContent=runs.length;
+  $('#home-total-note').textContent=runs.length?runs.length+' saved on this computer':'Start your first investigation';
+  $('#home-active').textContent=st.job&&st.job.running?'Running':'Ready';
+  $('#home-active-note').textContent=st.job&&st.job.running?st.job.topic:'No collection running';
+  const total=runs.reduce((n,r)=>n+(r.n_posts||0),0);
+  $('#home-posts').textContent=total?total.toLocaleString():'—';
+  const rl=$('#recent-list'); rl.innerHTML=runs.length?runs.slice(0,4).map((r,i)=>runItem(r,i,false)).join(''):'<div class="empty-state">Your completed investigations will appear here.</div>'; wireRuns(rl);
+  $('#home-connectors').innerHTML=st.status?['youtube','telegram','x','tiktok','instagram','facebook'].map(p=>'<span class="connector-mini">'+esc(LABEL[p]||p)+' · '+(st.status.platforms[p]?.ready?'Available':'Import / setup')+'</span>').join(''):'<span class="connector-mini">Checking local services…</span>';
+}
+function renderInvestigationList(){const el=$('#investigations-list');el.innerHTML=runs.length?runs.map((r,i)=>runItem(r,i,true)).join(''):'<div class="empty-state">No investigations yet. Start one to see your results here.</div>';wireRuns(el);}
+function showAnalysisScreen(screen){
+  $('#app-shell').classList.add('analysis-mode');
+  $('#graph-tools').classList.toggle('hidden',screen!=='graph');
+  if(screen!=='graph') $('#panel').classList.add('hidden');
+  if(screen!=='posts') $('#drawer').classList.add('hidden');
+  $('#notes').classList.add('hidden');
+  document.querySelectorAll('[data-analysis]').forEach(b=>b.classList.toggle('active',b.dataset.analysis===screen||(b.dataset.analysis==='timeline'&&screen==='spread')));$('#app-topbar').classList.add('hidden');$('#analysis-header').classList.remove('hidden');
+  $('#analysis-title').textContent=({graph:'Constellation',narratives:'Discussion themes',groups:'Accounts acting together',spread:'How the discussion spread',cross:'Cross-platform map',posts:'Posts Explorer',exports:'Exports',guide:'Help & Guide'})[screen]||'Investigation';
+  $('#analysis-subtitle').textContent=({cross:'Which Telegram posts and YouTube videos belong to the same discussion, and who moved first.',graph:'Explore the relationships between the topic, narratives and account groups.',narratives:'Select a theme to inspect its posts, accounts and timeline.',groups:'Review the signals behind accounts grouped together.',spread:'Earliest observed posts and cross-platform movement.',posts:'Search and filter the collected evidence.',exports:'Download the data and reports from this investigation.',guide:'Understand the graph and what the evidence can tell you.'})[screen]||'';
+  $('#app-main').classList.add('analysis-active');
+  if(screen==='graph'){const stale=$('#analysis-cards');if(stale)stale.remove();['#drawer','#notes'].forEach(s=>$(s).classList.add('hidden'));$('#panel').classList.toggle('hidden',!st.selected);$('#graph-tools').classList.remove('hidden');}
+  if(screen==='posts'){openPosts('');}
+  if(screen==='narratives')renderAnalysisCards('narratives');
+  if(screen==='groups')renderAnalysisCards('groups');
+  if(screen==='spread')renderAnalysisCards('spread');
+  if(screen==='cross')renderAnalysisCards('cross');
+  $('#exp-menu').classList.toggle('hidden',screen!=='exports');
+  if(screen==='guide'){$('#graph-help').classList.remove('hidden');}
+}
+document.querySelectorAll('[data-analysis]').forEach(b=>b.addEventListener('click',()=>setScreen(b.dataset.analysis==='timeline'?'spread':b.dataset.analysis)));
+// Telegram <-> YouTube mapping: per discussion theme, the first post on each platform, plus Telegram posts that link to collected videos
+function crossCards() {
+  const res = st.res, c = res.cross_platform || {}, posts = res.posts || [];
+  const snip = (t, n) => { t = (t || '').replace(/\s+/g, ' ').trim(); return esc(t.slice(0, n)) + (t.length > n ? '…' : ''); };
+  const earliest = arr => arr.reduce((a, b) => a && a.created_at <= b.created_at ? a : b, null);
+  const side = (lab, p) => '<div class="xp-side"><b>' + lab + '</b>' + (p ? '<small>' + esc(p.author_name || p.account) + ' · ' + esc(fmtDT(p.created_at)) + ' UTC</small><p>' + snip(p.text, 150) + '</p>' + (p.url ? '<a href="' + esc(p.url) + '" target="_blank" rel="noopener">Open post ↗</a>' : '') : '<p>No post</p>') + '</div>';
+  const hours = h => Math.abs(h) < 1 ? Math.round(Math.abs(h) * 60) + ' min' : Math.abs(h) < 48 ? (Math.round(Math.abs(h) * 10) / 10) + ' h' : (Math.round(Math.abs(h) / 2.4) / 10) + ' days';
+  let html = '';
+  const has = {youtube: 0, telegram: 0}; posts.forEach(p => { if (p.platform in has) has[p.platform]++; });
+  html += '<div class="analysis-card xp-card wide"><small>SUMMARY</small><h3>YouTube ' + has.youtube.toLocaleString() + ' posts · Telegram ' + has.telegram.toLocaleString() + ' posts</h3>' + ((c.summary || []).map(x => '<p>' + esc(x) + '</p>').join('') || '<p>Run a search with both YouTube and Telegram selected to compare them.</p>') + '</div>';
+  if (!has.youtube || !has.telegram) return html + '<div class="analysis-card xp-card wide"><h3>Both platforms are needed</h3><p>This run has no ' + (!has.youtube ? 'YouTube' : 'Telegram') + ' posts, so there is nothing to map. Check Settings → Run logs to see why that platform returned nothing.</p></div>';
+  const rows = [];
+  res.narratives.filter(n => n.id >= 0).forEach(n => {
+    const yt = posts.filter(p => p.narrative_id === n.id && p.platform === 'youtube'), tg = posts.filter(p => p.narrative_id === n.id && p.platform === 'telegram');
+    if (yt.length && tg.length) rows.push({n, yt, tg, a: earliest(yt), b: earliest(tg)});
+  });
+  rows.sort((x, y) => Math.min(y.yt.length, y.tg.length) - Math.min(x.yt.length, x.tg.length) || (y.yt.length + y.tg.length) - (x.yt.length + x.tg.length));
+  html += '<div class="xp-head wide"><h3>Same discussion on both platforms (' + rows.length + ')</h3><p>Each card is one discussion theme that appears on YouTube and Telegram, with the earliest post from each.</p></div>';
+  html += rows.slice(0, 40).map(r => {
+    const lag = (new Date(r.b.created_at) - new Date(r.a.created_at)) / 36e5, first = lag >= 0 ? 'YouTube' : 'Telegram';
+    return '<div class="analysis-card xp-card wide"><small>THEME #' + r.n.id + '</small><h3>' + esc(title(r.n.label)) + '</h3><p>' + r.yt.length + ' YouTube · ' + r.tg.length + ' Telegram · <b>' + first + ' first</b>, the other followed ' + hours(lag) + ' later</p>' +
+      '<div class="xp-pair">' + side('YouTube · first', r.a) + '<span class="xp-arrow">' + (lag >= 0 ? '→' : '←') + '</span>' + side('Telegram · first', r.b) + '</div><button class="xp-go" data-nar="' + r.n.id + '">Inspect theme in the constellation →</button></div>';
+  }).join('') || '<div class="analysis-card xp-card wide"><p>No discussion theme contains both YouTube and Telegram posts yet.</p></div>';
+  const links = c.youtube_links_in_telegram || [];
+  html += '<div class="xp-head wide"><h3>Telegram posts that link to collected YouTube videos (' + links.length + ')</h3><p>The strongest tie between the two platforms: a Telegram post that shares one of the videos found in this run.</p></div>';
+  html += links.slice(0, 30).map(l => '<div class="analysis-card xp-card"><small>TELEGRAM → YOUTUBE</small><h3>' + esc(l.telegram_account) + '</h3><p>Shared the video ' + hours(l.telegram_after_video_hours) + (l.telegram_after_video_hours >= 0 ? ' after it was uploaded' : ' before the upload time we recorded') + '.</p><p>' + (l.telegram_post ? '<a href="' + esc(l.telegram_post) + '" target="_blank" rel="noopener">Telegram post ↗</a> · ' : '') + '<a href="' + esc(l.video_url) + '" target="_blank" rel="noopener">YouTube video ↗</a></p></div>').join('') || '<div class="analysis-card xp-card wide"><p>None found. Telegram posts here do not contain links to the YouTube videos collected.</p></div>';
+  const tags = (c.shared_hashtags || []).slice(0, 12), copies = (c.cross_platform_copies || []).slice(0, 6);
+  if (tags.length) html += '<div class="analysis-card xp-card"><small>SHARED HASHTAGS</small><h3>Used on both platforms</h3><p>' + tags.map(t => esc('#' + String(t.tag).replace(/^#/, '')) + ' (' + t.posts + ')').join(' · ') + '</p></div>';
+  if (copies.length) html += '<div class="analysis-card xp-card"><small>COPIED TEXT</small><h3>Near-identical posts across platforms</h3><p>' + copies.map(x => x.posts + ' posts on ' + x.platforms.map(p => LABEL[p] || p).join(' + ')).map(esc).join(' · ') + '</p></div>';
+  return html;
+}
+function renderAnalysisCards(kind){
+  let html='<section id="analysis-cards" class="analysis-cards">';
+  if(kind==='cross')html+=crossCards();
+  if(kind==='narratives')html+=st.res.narratives.filter(n=>n.id>=0).map(n=>'<button class="analysis-card" data-nar="'+n.id+'"><small>DISCUSSION THEME #'+n.id+'</small><h3>'+esc(title(n.label))+'</h3><p>'+n.posts+' posts · '+n.accounts+' accounts · '+Math.round((n.coordinated_post_share||0)*100)+'% from flagged accounts</p><span>Inspect evidence →</span></button>').join('');
+  if(kind==='groups')html+=st.res.coordinated_groups.map(g=>'<button class="analysis-card" data-grp="'+esc(g.id)+'"><small>GROUP '+esc(g.id)+'</small><h3>'+g.size+' accounts · '+esc(g.confidence)+' confidence</h3><p>'+esc(g.reasons.slice(0,2).join(' · '))+'</p><span>Inspect signals →</span></button>').join('')||'<p>No account groups met the current evidence thresholds.</p>';
+  if(kind==='spread')html+=st.res.origins.map(o=>'<button class="analysis-card" data-nar="'+o.narrative_id+'"><small>THEME #'+o.narrative_id+'</small><h3>'+esc(o.label)+'</h3><p>First observed: '+esc(o.first_post.platform)+' · '+esc(fmtDT(o.first_post.at))+' UTC</p><p>'+esc(o.verdict)+'</p><span>Inspect timeline →</span></button>').join('');
+  html+='</section>';let old=$('#analysis-cards');if(old)old.remove();$('#app-main').appendChild(document.createRange().createContextualFragment(html));
+  $('#analysis-cards').querySelectorAll('[data-nar]').forEach(b=>b.onclick=()=>{setScreen('graph');const n=st.scene.byNar.get(+b.dataset.nar);if(n)select(n);});
+  $('#analysis-cards').querySelectorAll('[data-grp]').forEach(b=>b.onclick=()=>{setScreen('graph');const n=st.scene.nodes.find(x=>x.kind==='grp'&&x.id===b.dataset.grp);if(n)select(n);});
+}
+$('#graph-fit').onclick=()=>{if(st.scene)fitCamera();};
+$('#graph-zoom-in').onclick=()=>{st.cam.tk=clamp(st.cam.tk*1.22,.3,3.2);};
+$('#graph-zoom-out').onclick=()=>{st.cam.tk=clamp(st.cam.tk/1.22,.3,3.2);};
+$('#graph-legend').onclick=()=>{const open=$('#legend').classList.toggle('hidden')===false;$('#graph-legend').setAttribute('aria-pressed',String(open));};
+$('#graph-help-close').onclick=()=>$('#graph-help').classList.add('hidden');
+let touchStart=null;
+cv.addEventListener('touchstart',e=>{if(!st.scene||e.touches.length!==1)return;const t=e.touches[0],n=hit(t.clientX,t.clientY);touchStart={x:t.clientX,y:t.clientY,lastX:t.clientX,lastY:t.clientY,node:n,moved:false};},{passive:true});
+cv.addEventListener('touchmove',e=>{if(!touchStart||e.touches.length!==1)return;const t=e.touches[0],dx=t.clientX-touchStart.lastX,dy=t.clientY-touchStart.lastY;if(Math.hypot(t.clientX-touchStart.x,t.clientY-touchStart.y)>7)touchStart.moved=true;if(touchStart.moved&&!touchStart.node){st.cam.tx+=dx;st.cam.ty+=dy;st.cam.x=st.cam.tx;st.cam.y=st.cam.ty;}touchStart.lastX=t.clientX;touchStart.lastY=t.clientY;},{passive:true});
+cv.addEventListener('touchend',()=>{if(!touchStart)return;if(!touchStart.moved&&touchStart.node)select(touchStart.node);touchStart=null;},{passive:true});
 
-// Touch support for graph pan and node selection. Mouse interaction remains unchanged.
-let touchStart = null;
-cv.addEventListener('touchstart', e => {
-  if (!st.scene || e.touches.length !== 1) return;
-  const t = e.touches[0], n = hit(t.clientX, t.clientY);
-  touchStart = {x:t.clientX,y:t.clientY,lastX:t.clientX,lastY:t.clientY,node:n,moved:false};
-}, {passive:true});
-cv.addEventListener('touchmove', e => {
-  if (!touchStart || e.touches.length !== 1) return;
-  const t=e.touches[0], dx=t.clientX-touchStart.lastX, dy=t.clientY-touchStart.lastY;
-  if (Math.hypot(t.clientX-touchStart.x,t.clientY-touchStart.y)>7) touchStart.moved=true;
-  if (touchStart.moved && !touchStart.node) { st.cam.tx += dx; st.cam.ty += dy; st.cam.x=st.cam.tx; st.cam.y=st.cam.ty; }
-  touchStart.lastX=t.clientX; touchStart.lastY=t.clientY;
-}, {passive:true});
-cv.addEventListener('touchend', e => {
-  if (!touchStart) return;
-  if (!touchStart.moved && touchStart.node) select(touchStart.node);
-  touchStart=null;
-}, {passive:true});
+// ------------------------------------------------------------------ keep the floating chrome clear of each other
+// The header and the dock change height with fonts, wrapping and screen size, so measure them instead of assuming.
+function syncChrome() {
+  const root = document.documentElement.style, hd = $('#analysis-header'), dk = $('#dock');
+  if (!hd.classList.contains('hidden') && hd.offsetHeight) root.setProperty('--worky', Math.ceil(hd.getBoundingClientRect().bottom) + 12 + 'px');
+  if (dk.offsetHeight) root.setProperty('--lowy', dk.offsetHeight + 28 + 'px');
+}
+if (window.ResizeObserver) { const ro = new ResizeObserver(syncChrome); ro.observe($('#analysis-header')); ro.observe($('#dock')); }
+addEventListener('resize', syncChrome);
+
+// ------------------------------------------------------------------ collapsible menu
+let sbChosen = null; try { sbChosen = localStorage.getItem('cw.sidebar'); } catch (e) { /* storage blocked: just don't remember */ }
+function setSidebar(collapsed, remember) {
+  document.body.classList.toggle('sb-collapsed', collapsed);
+  const t = $('#sb-toggle'); t.setAttribute('aria-expanded', String(!collapsed)); t.title = collapsed ? 'Expand menu' : 'Collapse menu'; t.textContent = collapsed ? '›' : '‹';
+  if (remember) { sbChosen = collapsed ? '1' : '0'; try { localStorage.setItem('cw.sidebar', sbChosen); } catch (e) { /* ignore */ } }
+  if (st.scene && activeScreen === 'graph') setTimeout(fitCamera, 230);   // re-centre once the menu has finished sliding
+}
+document.querySelectorAll('.side-link').forEach(b => { b.title = b.textContent.trim().replace(/^\S+\s+/, ''); });
+$('#sb-toggle').onclick = () => setSidebar(!document.body.classList.contains('sb-collapsed'), true);
+setSidebar(sbChosen === null ? innerWidth <= 1100 : sbChosen === '1', false);
+addEventListener('resize', () => { if (sbChosen === null) setSidebar(innerWidth <= 1100, false); });
 
 // ------------------------------------------------------------------ init
 (async () => {
@@ -851,8 +967,12 @@ cv.addEventListener('touchend', e => {
   const booting = runBoot();
   try { st.status = await api('/api/status'); }
   catch (e) { $('#boot') && $('#boot').remove(); document.body.insertAdjacentHTML('beforeend', `<div class="glass" style="position:fixed;top:40%;left:30%;padding:20px;z-index:200">Cannot reach the coordwatch server: ${esc(e.message)}</div>`); return; }
-  renderChips(); autoValidate();
+  renderChips(); autoValidate(); await refreshRuns();
   await booting; setIdle(true);
+  let landed = null; try { landed = localStorage.getItem('cw.landed'); } catch (e) { /* ignore */ }
+  if (!landed && !runs.length) setScreen('landing');                       // first launch: show the welcome page once
+  const leave = demo => { try { localStorage.setItem('cw.landed', '1'); } catch (e) { /* ignore */ } setScreen('home'); if (demo) $('#home-demo').click(); };
+  $('#landing-go').onclick = () => leave(false); $('#landing-demo').onclick = () => leave(true);
 })();
 window.__cw = st;   // handy for debugging in the browser console
 })();
