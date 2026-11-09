@@ -284,7 +284,7 @@ body.analysis:not([data-view=posts]) #drawer{display:none!important}
 /* phones: the menu becomes a scrolling bar along the top and stays reachable in every view */
 @media(max-width:720px){
   body,body.sb-collapsed{--sbw:0px}
-  :root{--sbw:0px;--navh:52px;--gap:8px;--worky:calc(var(--navh) + 104px);--lowy:150px;--panelw:100%}
+  :root{--sbw:0px;--navh:52px;--gap:8px;--worky:calc(var(--navh) + 104px);--panelw:100%}
   #app-sidebar,body.sb-collapsed #app-sidebar{position:fixed;top:0;left:0;right:0;width:100%;height:var(--navh);flex-direction:row;align-items:center;gap:2px;padding:4px 6px;border-right:0;border-bottom:1px solid var(--line);overflow-x:auto;overflow-y:hidden;z-index:30}
   #app-shell.analysis-mode #app-sidebar{z-index:30}
   .side-brand,.side-label,.side-spacer,.local-pill,.sb-toggle{display:none}
@@ -303,7 +303,7 @@ body.analysis:not([data-view=posts]) #drawer{display:none!important}
   body.analysis #analysis-header{padding:6px 10px}
   body.analysis #analysis-header .eyebrow,body.analysis #analysis-subtitle{display:none}
   #tl{display:none!important}
-  #legend{left:var(--gap);bottom:104px;max-width:230px}
+  #legend{left:var(--gap);max-width:230px}
   #graph-tools{left:var(--gap);right:auto;top:var(--worky)}
   #graph-help{left:var(--gap);right:var(--gap);width:auto}
   #dock{left:var(--gap);right:var(--gap);width:auto;padding:9px;bottom:var(--gap)}
@@ -317,6 +317,6 @@ body.analysis:not([data-view=posts]) #drawer{display:none!important}
   #analysis-cards{grid-template-columns:1fr}
 }
 /* short windows */
-@media(max-height:620px) and (min-width:721px){:root{--lowy:150px}#legend{max-height:calc(100vh - var(--worky) - var(--lowy) - 10px);overflow:auto}}
+@media(max-height:620px) and (min-width:721px){#legend{max-height:calc(100vh - var(--worky) - var(--lowy) - 10px);overflow:auto}}
 
 #graph-tools{position:fixed;display:flex;gap:6px;padding:6px;border-radius:12px}

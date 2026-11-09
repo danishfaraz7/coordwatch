@@ -815,7 +815,7 @@ function setScreen(screen) {
   const priorCards=$('#analysis-cards'); if(priorCards) priorCards.remove();
   activeScreen=screen;
   const analysis=['graph','narratives','groups','spread','posts','exports','guide'].includes(screen);
-  document.body.dataset.view=screen; document.body.classList.toggle('analysis',analysis&&!!st.res);
+  document.body.dataset.view=screen; setTimeout(syncChrome,0); document.body.classList.toggle('analysis',analysis&&!!st.res);
   document.querySelectorAll('.side-link[data-screen]').forEach(b=>b.classList.toggle('active',b.dataset.screen===screen));
   document.querySelectorAll('.app-screen').forEach(x=>x.classList.add('hidden'));
   $('#analysis-header').classList.add('hidden');
@@ -902,6 +902,16 @@ let touchStart=null;
 cv.addEventListener('touchstart',e=>{if(!st.scene||e.touches.length!==1)return;const t=e.touches[0],n=hit(t.clientX,t.clientY);touchStart={x:t.clientX,y:t.clientY,lastX:t.clientX,lastY:t.clientY,node:n,moved:false};},{passive:true});
 cv.addEventListener('touchmove',e=>{if(!touchStart||e.touches.length!==1)return;const t=e.touches[0],dx=t.clientX-touchStart.lastX,dy=t.clientY-touchStart.lastY;if(Math.hypot(t.clientX-touchStart.x,t.clientY-touchStart.y)>7)touchStart.moved=true;if(touchStart.moved&&!touchStart.node){st.cam.tx+=dx;st.cam.ty+=dy;st.cam.x=st.cam.tx;st.cam.y=st.cam.ty;}touchStart.lastX=t.clientX;touchStart.lastY=t.clientY;},{passive:true});
 cv.addEventListener('touchend',()=>{if(!touchStart)return;if(!touchStart.moved&&touchStart.node)select(touchStart.node);touchStart=null;},{passive:true});
+
+// ------------------------------------------------------------------ keep the floating chrome clear of each other
+// The header and the dock change height with fonts, wrapping and screen size, so measure them instead of assuming.
+function syncChrome() {
+  const root = document.documentElement.style, hd = $('#analysis-header'), dk = $('#dock');
+  if (!hd.classList.contains('hidden') && hd.offsetHeight) root.setProperty('--worky', Math.ceil(hd.getBoundingClientRect().bottom) + 12 + 'px');
+  if (dk.offsetHeight) root.setProperty('--lowy', dk.offsetHeight + 28 + 'px');
+}
+if (window.ResizeObserver) { const ro = new ResizeObserver(syncChrome); ro.observe($('#analysis-header')); ro.observe($('#dock')); }
+addEventListener('resize', syncChrome);
 
 // ------------------------------------------------------------------ collapsible menu
 let sbChosen = null; try { sbChosen = localStorage.getItem('cw.sidebar'); } catch (e) { /* storage blocked: just don't remember */ }
