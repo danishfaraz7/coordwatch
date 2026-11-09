@@ -32,7 +32,7 @@
 </header>
 <div id="app-shell">
   <aside id="app-sidebar" aria-label="Main navigation">
-    <div class="side-brand"><span class="side-mark">✣</span><span><b>coordwatch</b><small>Social Coordination Analysis</small></span></div>
+    <div class="side-brand"><span class="side-mark">✣</span><span class="side-name"><b>coordwatch</b><small>Social Coordination Analysis</small></span><button type="button" id="sb-toggle" class="sb-toggle" aria-expanded="true" aria-controls="app-sidebar" title="Collapse menu">‹</button></div>
     <button class="side-link active" data-screen="home">⌂ <span>Home</span></button>
     <button class="side-link" data-screen="wizard">＋ <span>New Investigation</span></button>
     <button class="side-link" data-screen="investigations">▤ <span>Investigations</span></button>
@@ -85,7 +85,7 @@
         <div class="wizard-actions"><button class="btn" id="wizard-back">Back</button><button class="btn primary" id="wizard-next">Next →</button><button class="btn primary hidden" id="wizard-launch">Start Investigation →</button></div>
       </article><aside class="home-card wizard-help"><h3>What happens next?</h3><p>✓ Collect public posts from your selected sources</p><p>✓ Group similar discussions into narratives</p><p>✓ Find accounts that appear to work together</p><p>✓ Show how conversations spread over time</p><p>✓ Explore the evidence and export your results</p><hr><h3>Collection methods</h3><div id="wizard-methods"></div><p class="muted-note">Results are investigative leads, not proof of coordination or attribution.</p></aside></div>
     </section>
-    <section id="investigations-view" class="app-screen hidden"><div class="welcome-row"><div><p class="eyebrow">YOUR WORK</p><h1>Investigations</h1><p>Runs created in this session.</p></div><button class="btn primary" id="investigations-new">＋ New Investigation</button></div><div id="investigations-list" class="home-card"></div></section>
+    <section id="investigations-view" class="app-screen hidden"><div class="welcome-row"><div><p class="eyebrow">YOUR WORK</p><h1>Investigations</h1><p>Saved runs on this computer.</p></div><button class="btn primary" id="investigations-new">＋ New Investigation</button></div><div id="investigations-list" class="home-card"></div></section>
     <section id="analysis-header" class="hidden"><div><p class="eyebrow">INVESTIGATION RESULTS</p><h1 id="analysis-title">Constellation</h1><p id="analysis-subtitle">Explore the narratives, accounts and evidence.</p></div><div class="analysis-tabs"><button data-analysis="graph" class="active">Graph</button><button data-analysis="narratives">Narratives</button><button data-analysis="timeline">Timeline</button></div></section>
   </main>
 </div>
@@ -106,13 +106,6 @@
   <div class="mut">Gold beam = topic → narrative · Teal line = group pushed narrative</div>
 </section>
 
-<nav id="workspace-nav" class="glass hidden" aria-label="Investigation navigation">
-  <button type="button" data-view="graph" aria-label="Show constellation graph">◎ <span>Graph</span></button>
-  <button type="button" data-view="posts" aria-label="Explore collected posts">▤ <span>Posts</span></button>
-  <button type="button" data-view="notes" aria-label="View analyst notes">✦ <span>Insights</span></button>
-  <button type="button" data-view="export" aria-label="Open export options">⇩ <span>Export</span></button>
-  <button type="button" data-view="help" aria-label="Open graph help">? <span>Guide</span></button>
-</nav>
 <div id="graph-tools" class="glass hidden" role="toolbar" aria-label="Graph controls">
   <button type="button" id="graph-fit" title="Fit all items in view" aria-label="Fit graph">Fit</button>
   <button type="button" id="graph-zoom-in" title="Zoom in" aria-label="Zoom in">+</button>

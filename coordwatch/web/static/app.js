@@ -322,7 +322,8 @@ function buildScene(res) {
 
 function fitCamera() {
   const sc = st.scene; let m = 200; sc.nodes.forEach(n => { m = Math.max(m, Math.abs(n.x) + n.r + 90, (Math.abs(n.y) + n.r + 60) * 1.35); });
-  const avail = Math.min(W - 460, (H - 190) * 1.5); st.cam.tk = clamp(avail / (2 * m), .35, 1.25); st.cam.tx = 0; st.cam.ty = -10;
+  const L = innerWidth <= 720 ? 8 : $('#app-sidebar').offsetWidth + 84, R = innerWidth <= 720 ? 8 : (st.selected ? 404 : 14);   // space taken by the menu + timeline and by the details panel
+  const avail = Math.min(W - L - R, (H - 190) * 1.5); st.cam.tk = clamp(avail / (2 * m), .35, 1.25); st.cam.tx = (L - R) / 2; st.cam.ty = -10;
   st.cam.k = st.cam.tk * .6; st.cam.x = st.cam.tx; st.cam.y = st.cam.ty;
 }
 
@@ -330,7 +331,7 @@ function loadResult() {
   const res = st.res, sc = st.scene = buildScene(res);
   st.selected = null; st.cursor = 1; hidePanel();
   setIdle(false);
-  ['#tl', '#legend', '#dock', '#exp', '#posts-btn'].forEach(s => $(s).classList.remove('hidden'));
+  ['#tl', '#dock', '#exp', '#posts-btn'].forEach(s => $(s).classList.remove('hidden'));
   $('#tlr').value = 1000; renderTicks(); updateBubble();
   const m = res.meta;
   $('#kpis').innerHTML = [['Posts', m.n_posts.toLocaleString(), ''], ['Accounts', m.n_accounts.toLocaleString(), ''], ['Narratives', m.n_narratives, ''],
@@ -338,8 +339,9 @@ function loadResult() {
     .map(([a, b, c]) => `<div><small>${a}</small><b>${b}${c}</b></div>`).join('');
   $('#exp-menu').innerHTML = ['report.html', 'results.json', 'posts.csv', 'narratives.csv', 'coordinated_groups.csv', 'origins.csv', 'cross_platform.csv', 'cross_platform_summary.txt', 'volume_by_platform.csv', 'run_log.txt']
     .map(f => `<a href="/api/jobs/${st.jobId}/download/${f}" ${f === 'report.html' ? 'target="_blank" rel="noopener"' : ''}>${f === 'report.html' ? '↗ Static report (HTML)' : '⭳ ' + f}</a>`).join('');
-  fitCamera(); renderNotes(); fillPosts();
+  setScreen('graph'); fitCamera(); renderNotes(); fillPosts();
   $('#notes').classList.add('hidden');
+  refreshRuns().then(renderHome);
 }
 
 function renderTicks() {
@@ -713,13 +715,13 @@ $('#pf').addEventListener('input', e => { pf.q = e.target.value; pf.limit = 300;
 $('#f-thumbs').addEventListener('change', e => { pf.thumbs = e.target.checked; renderPosts(); });
 $('#f-reset').onclick = () => resetFilters();
 $('#exp').onclick = () => $('#exp-menu').classList.toggle('hidden');
-document.addEventListener('click', e => { if (!e.target.closest('#exp') && !e.target.closest('#exp-menu')) $('#exp-menu').classList.add('hidden'); });
+document.addEventListener('click', e => { if (!e.target.closest('#exp, #exp-menu, .side-link')) $('#exp-menu').classList.add('hidden'); });
 
 // ------------------------------------------------------------------ landing (idle) scene
 function setIdle(on) {
   document.body.classList.toggle('idle', on);
-  ['#hero', '#conns', '#hero-demo'].forEach(x => $(x).classList.toggle('hidden', !on));
-  if (on) renderConns();
+  $('#app-shell').classList.toggle('analysis-mode', !on);
+  if (on) { setScreen('home'); renderHome(); }
 }
 $('#brand').onclick = () => {
   if ((st.job && st.job.running) || !st.res) return;
@@ -789,29 +791,37 @@ function runBoot() {
 }
 
 // ------------------------------------------------------------------ dashboard, guided investigation and reference-led navigation
-const recentRuns = [];
+let runs = [];   // finished runs found on disk (newest first), so history survives a restart
+async function refreshRuns() { try { runs = (await api('/api/runs')).runs || []; } catch (e) { runs = []; } }
+async function openRun(id) { st.res = await api('/api/jobs/' + id + '/result'); st.jobId = id; st.selected = null; loadResult(); }
+const runDate = r => r.started ? new Date(r.started).toLocaleDateString() : '';
+const runItem = (r, i, long) => '<button class="recent-item" data-run="' + esc(r.id) + '"><span class="recent-icon">✥</span><span><b>' + esc(r.topic || 'Untitled') + '</b><small>' + esc(runDate(r)) + ' · ' + (r.n_posts || 0) + ' posts' + (long ? ' · ' + (r.n_narratives || 0) + ' themes' : '') + '</small></span><span class="recent-status">Open ›</span></button>';
+const wireRuns = el => el.querySelectorAll('[data-run]').forEach(b => b.onclick = () => openRun(b.dataset.run).catch(e => alert('Could not open this run: ' + e.message)));
 let activeScreen = 'home', wizardStep = 1;
 function move(el, target) { if (el && target && el.parentElement !== target) target.appendChild(el); }
+function stashDates() { const t = $('#top'); ['#since', '#until'].forEach(q => { const e = document.querySelector(q); if (e) t.appendChild(e); }); }   // park the date pickers before a slot is rebuilt, or they would be destroyed with it
 function mountHomeInputs() {
+  stashDates();
   move($('#topic'), $('#home-topic-slot')); move($('#chips'), $('#home-platform-slot'));
   const dates=$('#home-date-row'); if(dates){ dates.innerHTML='<label>From</label><label>To</label>'; const a=document.createElement('div'),b=document.createElement('div');a.appendChild($('#since'));b.appendChild($('#until'));dates.append(a,b); }
 }
 function mountWizardInputs(step) {
   if(step===1){move($('#topic'),$('#wizard-topic-slot'));}
   if(step===2){move($('#chips'),$('#wizard-platform-slot'));move($('#tgch'),$('#wizard-platform-slot'));}
-  if(step===3){const slot=$('#wizard-dates-slot');slot.innerHTML='';const a=document.createElement('label'),b=document.createElement('label');a.textContent='From';b.textContent='To';a.appendChild($('#since'));b.appendChild($('#until'));slot.append(a,b);}
+  if(step===3){stashDates();const slot=$('#wizard-dates-slot');slot.innerHTML='';const a=document.createElement('label'),b=document.createElement('label');a.textContent='From';b.textContent='To';a.appendChild($('#since'));b.appendChild($('#until'));slot.append(a,b);}
   if(step===4){move($('#depth'),$('#wizard-advanced-slot'));move($('#dv').parentElement,$('#wizard-advanced-slot'));move($('#tgch'),$('#wizard-advanced-slot'));}
 }
 function setScreen(screen) {
   const priorCards=$('#analysis-cards'); if(priorCards) priorCards.remove();
   activeScreen=screen;
+  const analysis=['graph','narratives','groups','spread','posts','exports','guide'].includes(screen);
+  document.body.dataset.view=screen; document.body.classList.toggle('analysis',analysis&&!!st.res);
   document.querySelectorAll('.side-link[data-screen]').forEach(b=>b.classList.toggle('active',b.dataset.screen===screen));
   document.querySelectorAll('.app-screen').forEach(x=>x.classList.add('hidden'));
   $('#analysis-header').classList.add('hidden');
   $('#app-topbar').classList.remove('hidden');
   $('#crumb-main').textContent=screen==='wizard'?'New Investigation':screen==='home'?'Home':title(screen);
   $('#crumb-sub').textContent=screen==='home'?'': ' / coordwatch';
-  $('#top').classList.add('hidden'); $('#hero').classList.add('hidden'); $('#conns').classList.add('hidden'); $('#hero-demo').classList.add('hidden');
   $('#app-shell').classList.remove('analysis-mode');
   if(screen==='home'){
     $('#home-view').classList.remove('hidden'); mountHomeInputs();
@@ -819,7 +829,7 @@ function setScreen(screen) {
     $('#wizard-view').classList.remove('hidden'); showWizardStep(1);
   } else if(screen==='investigations'){
     $('#investigations-view').classList.remove('hidden'); renderInvestigationList();
-  } else if(['graph','narratives','groups','spread','posts','exports','guide','settings'].includes(screen)){
+  } else if(['graph','narratives','groups','spread','posts','exports','guide'].includes(screen)){
     if(!st.res){setScreen('wizard');return;}
     showAnalysisScreen(screen);
   }
@@ -845,17 +855,16 @@ $('#home-demo').onclick=()=>{$('#demo').click();};
 $('#top-settings').onclick=$('#home-manage-settings').onclick=()=>openSettings();
 document.querySelectorAll('.side-link[data-screen]').forEach(b=>b.addEventListener('click',()=>{if(b.dataset.screen==='settings'){openSettings();return;}setScreen(b.dataset.screen);}));
 function renderHome(){
-  $('#home-total').textContent=recentRuns.length;
-  $('#home-total-note').textContent=recentRuns.length?recentRuns.length+' saved in this session':'Start your first investigation';
+  $('#home-total').textContent=runs.length;
+  $('#home-total-note').textContent=runs.length?runs.length+' saved on this computer':'Start your first investigation';
   $('#home-active').textContent=st.job&&st.job.running?'Running':'Ready';
   $('#home-active-note').textContent=st.job&&st.job.running?st.job.topic:'No collection running';
-  const total=recentRuns.reduce((s,r)=>s+(r.meta?.n_posts||0),0);
+  const total=runs.reduce((n,r)=>n+(r.n_posts||0),0);
   $('#home-posts').textContent=total?total.toLocaleString():'—';
-  $('#recent-list').innerHTML=recentRuns.length?recentRuns.slice(0,4).map((r,i)=>'<button class="recent-item" data-run="'+i+'"><span class="recent-icon">✥</span><span><b>'+esc(r.topic)+'</b><small>'+esc(r.date)+' · '+(r.meta?.n_posts||0)+' posts</small></span><span class="recent-status">Completed ›</span></button>').join(''):'<div class="empty-state">Your completed investigations will appear here.</div>';
-  $('#recent-list').querySelectorAll('[data-run]').forEach(b=>b.onclick=()=>{const r=recentRuns[+b.dataset.run];st.res=r.res;st.jobId=r.jobId;loadResult();setScreen('graph');});
+  const rl=$('#recent-list'); rl.innerHTML=runs.length?runs.slice(0,4).map((r,i)=>runItem(r,i,false)).join(''):'<div class="empty-state">Your completed investigations will appear here.</div>'; wireRuns(rl);
   $('#home-connectors').innerHTML=st.status?['youtube','telegram','x','tiktok','instagram','facebook'].map(p=>'<span class="connector-mini">'+esc(LABEL[p]||p)+' · '+(st.status.platforms[p]?.ready?'Available':'Import / setup')+'</span>').join(''):'<span class="connector-mini">Checking local services…</span>';
 }
-function renderInvestigationList(){const el=$('#investigations-list');el.innerHTML=recentRuns.length?recentRuns.map((r,i)=>'<button class="recent-item" data-run="'+i+'"><span class="recent-icon">✥</span><span><b>'+esc(r.topic)+'</b><small>'+esc(r.date)+' · '+(r.meta?.n_posts||0)+' posts · '+(r.meta?.n_narratives||0)+' themes</small></span><span class="recent-status">Completed ›</span></button>').join(''):'<div class="empty-state">No investigations yet. Start one to see your results here.</div>';el.querySelectorAll('[data-run]').forEach(b=>b.onclick=()=>{const r=recentRuns[+b.dataset.run];st.res=r.res;st.jobId=r.jobId;loadResult();setScreen('graph');});}
+function renderInvestigationList(){const el=$('#investigations-list');el.innerHTML=runs.length?runs.map((r,i)=>runItem(r,i,true)).join(''):'<div class="empty-state">No investigations yet. Start one to see your results here.</div>';wireRuns(el);}
 function showAnalysisScreen(screen){
   $('#app-shell').classList.add('analysis-mode');
   $('#graph-tools').classList.toggle('hidden',screen!=='graph');
@@ -871,7 +880,7 @@ function showAnalysisScreen(screen){
   if(screen==='narratives')renderAnalysisCards('narratives');
   if(screen==='groups')renderAnalysisCards('groups');
   if(screen==='spread')renderAnalysisCards('spread');
-  if(screen==='exports')$('#exp-menu').classList.remove('hidden');
+  $('#exp-menu').classList.toggle('hidden',screen!=='exports');
   if(screen==='guide'){$('#graph-help').classList.remove('hidden');}
 }
 document.querySelectorAll('[data-analysis]').forEach(b=>b.addEventListener('click',()=>setScreen(b.dataset.analysis==='timeline'?'spread':b.dataset.analysis)));
@@ -884,21 +893,28 @@ function renderAnalysisCards(kind){
   $('#analysis-cards').querySelectorAll('[data-nar]').forEach(b=>b.onclick=()=>{setScreen('graph');const n=st.scene.byNar.get(+b.dataset.nar);if(n)select(n);});
   $('#analysis-cards').querySelectorAll('[data-grp]').forEach(b=>b.onclick=()=>{setScreen('graph');const n=st.scene.nodes.find(x=>x.kind==='grp'&&x.id===b.dataset.grp);if(n)select(n);});
 }
-const oldSetIdle=setIdle;
-setIdle=function(on){oldSetIdle(on);$('#top').classList.add('hidden');$('#hero').classList.add('hidden');$('#conns').classList.add('hidden');$('#hero-demo').classList.add('hidden');$('#app-shell').classList.toggle('analysis-mode',!on);if(on){$('#analysis-header').classList.add('hidden');$('#app-topbar').classList.remove('hidden');setScreen('home');renderHome();}else{$('#app-topbar').classList.add('hidden');}};
-const oldLoadResult=loadResult;
-loadResult=function(){oldLoadResult();const run={topic:st.res.meta.topic,date:new Date().toLocaleDateString(),meta:st.res.meta,res:st.res,jobId:st.jobId};recentRuns.unshift(run);renderHome();setScreen('graph');};
-function setWorkspaceView(view){setScreen(view==='notes'?'graph':view);}
-$('#workspace-nav').addEventListener('click',e=>{const b=e.target.closest('button[data-view]');if(b)setWorkspaceView(b.dataset.view);});
 $('#graph-fit').onclick=()=>{if(st.scene)fitCamera();};
 $('#graph-zoom-in').onclick=()=>{st.cam.tk=clamp(st.cam.tk*1.22,.3,3.2);};
 $('#graph-zoom-out').onclick=()=>{st.cam.tk=clamp(st.cam.tk/1.22,.3,3.2);};
-$('#graph-legend').onclick=()=>$('#legend').classList.toggle('hidden');
+$('#graph-legend').onclick=()=>{const open=$('#legend').classList.toggle('hidden')===false;$('#graph-legend').setAttribute('aria-pressed',String(open));};
 $('#graph-help-close').onclick=()=>$('#graph-help').classList.add('hidden');
 let touchStart=null;
 cv.addEventListener('touchstart',e=>{if(!st.scene||e.touches.length!==1)return;const t=e.touches[0],n=hit(t.clientX,t.clientY);touchStart={x:t.clientX,y:t.clientY,lastX:t.clientX,lastY:t.clientY,node:n,moved:false};},{passive:true});
 cv.addEventListener('touchmove',e=>{if(!touchStart||e.touches.length!==1)return;const t=e.touches[0],dx=t.clientX-touchStart.lastX,dy=t.clientY-touchStart.lastY;if(Math.hypot(t.clientX-touchStart.x,t.clientY-touchStart.y)>7)touchStart.moved=true;if(touchStart.moved&&!touchStart.node){st.cam.tx+=dx;st.cam.ty+=dy;st.cam.x=st.cam.tx;st.cam.y=st.cam.ty;}touchStart.lastX=t.clientX;touchStart.lastY=t.clientY;},{passive:true});
 cv.addEventListener('touchend',()=>{if(!touchStart)return;if(!touchStart.moved&&touchStart.node)select(touchStart.node);touchStart=null;},{passive:true});
+
+// ------------------------------------------------------------------ collapsible menu
+let sbChosen = null; try { sbChosen = localStorage.getItem('cw.sidebar'); } catch (e) { /* storage blocked: just don't remember */ }
+function setSidebar(collapsed, remember) {
+  document.body.classList.toggle('sb-collapsed', collapsed);
+  const t = $('#sb-toggle'); t.setAttribute('aria-expanded', String(!collapsed)); t.title = collapsed ? 'Expand menu' : 'Collapse menu'; t.textContent = collapsed ? '›' : '‹';
+  if (remember) { sbChosen = collapsed ? '1' : '0'; try { localStorage.setItem('cw.sidebar', sbChosen); } catch (e) { /* ignore */ } }
+  if (st.scene && activeScreen === 'graph') setTimeout(fitCamera, 230);   // re-centre once the menu has finished sliding
+}
+document.querySelectorAll('.side-link').forEach(b => { b.title = b.textContent.trim().replace(/^\S+\s+/, ''); });
+$('#sb-toggle').onclick = () => setSidebar(!document.body.classList.contains('sb-collapsed'), true);
+setSidebar(sbChosen === null ? innerWidth <= 1100 : sbChosen === '1', false);
+addEventListener('resize', () => { if (sbChosen === null) setSidebar(innerWidth <= 1100, false); });
 
 // ------------------------------------------------------------------ init
 (async () => {
@@ -906,7 +922,7 @@ cv.addEventListener('touchend',()=>{if(!touchStart)return;if(!touchStart.moved&&
   const booting = runBoot();
   try { st.status = await api('/api/status'); }
   catch (e) { $('#boot') && $('#boot').remove(); document.body.insertAdjacentHTML('beforeend', `<div class="glass" style="position:fixed;top:40%;left:30%;padding:20px;z-index:200">Cannot reach the coordwatch server: ${esc(e.message)}</div>`); return; }
-  renderChips(); autoValidate();
+  renderChips(); autoValidate(); await refreshRuns();
   await booting; setIdle(true);
 })();
 window.__cw = st;   // handy for debugging in the browser console
