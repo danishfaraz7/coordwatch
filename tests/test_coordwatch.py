@@ -168,7 +168,7 @@ class CollectorTests(unittest.TestCase):
         b1, b2 = io.BytesIO(), io.BytesIO()
         im.save(b1, "PNG"); im.resize((90, 90)).save(b2, "JPEG")
         h1, h2 = dhash_bytes(b1.getvalue()), dhash_bytes(b2.getvalue())
-        self.assertLessEqual((int(h1, 16) ^ int(h2, 16)).bit_count(), 6)
+        self.assertLessEqual(bin(int(h1, 16) ^ int(h2, 16)).count("1"), 6)
 
 
 class CalibrationTests(unittest.TestCase):
