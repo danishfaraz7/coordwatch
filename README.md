@@ -467,3 +467,6 @@ Under the topic box, **See what's trending** lists suggested terms for your date
 
 ### Search and AI summary
 **Search Everything** (sidebar) takes plain questions ("most liked youtube posts about refunds", "who posted first", "telegram 7 nov", "coordinated groups") and works across this run or all saved runs, locally and free (`coordwatch/search.py`, `GET /api/search`). The Summary page has an optional **short AI summary** button: it asks first, sends only a compact summary (never all posts), and can use the free no-login Pollinations service or any provider set in Settings → AI.
+
+### Executive PDF and notifications
+`executive_report.pdf` is a 2–3 page plain-words report for managers (needs the free `reportlab`: `pip install reportlab`; if it is missing, the Download Results card says so). Data-source warnings (API quota notes, "collected N posts via…") are no longer printed in the HTML/PDF reports; they appear in the 🔔 notifications panel at the top right of the app.

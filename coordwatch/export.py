@@ -106,6 +106,9 @@ def export_all(result: dict, out_dir: str) -> list:
                     ("\n".join(f"- {g['text']}" for g in pl["groups"]) or "- None found.") + "\n\nWHERE EACH STORY STARTED AND HOW IT SPREAD\n" +
                     "\n".join(f"- #{o['narrative_id']} {o['label']}: {o['text']}" for o in pl["origins"]) + "\n")
         paths.append(p)
+        from .pdfreport import available, build as build_pdf        # optional: needs `pip install reportlab`
+        if available():
+            paths.append(build_pdf(result, os.path.join(out_dir, "executive_report.pdf")))
         p = os.path.join(out_dir, "overview.json")
         with open(p, "w", encoding="utf-8") as f:
             json.dump(ov, f, indent=2, ensure_ascii=False)

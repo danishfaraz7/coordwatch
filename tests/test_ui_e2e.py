@@ -436,7 +436,7 @@ class UiTests(unittest.TestCase):
         pg = self.open()
         self.run_demo(pg, "overview")
         labels = pg.locator(".side-link span").all_inner_texts()
-        for w in ("Summary", "Map", "What People Say", "Accounts Working Together", "Where It Started", "Download Results"):
+        for w in ("Summary", "Map", "What People Say", "Working Together", "Where It Started", "Download Results"):
             self.assertIn(w, labels)
         self.assertTrue(pg.locator(".side-link[title]").count() >= 10)          # every menu item has a tooltip
         t = pg.inner_text("#analysis-cards")
@@ -530,6 +530,7 @@ class UiTests(unittest.TestCase):
         pg.goto("file://" + os.path.join(out, "report.html"))
         total = pg.locator("#posts tbody tr:visible").count()
         self.assertNotIn("A short summary anyone can read", pg.content())
+        self.assertNotIn("class=warn", pg.content().replace('class="warn"', "class=warn"))             # collector notes live in the app bell, not the report
         for i in range(pg.locator(".bub").count()):
             pg.locator(".bub").nth(i).click()
             n = pg.locator("#posts tbody tr:visible").count()
@@ -537,6 +538,23 @@ class UiTests(unittest.TestCase):
             self.assertIn("selected", pg.inner_text("#pickmsg"))
             pg.locator(".bub").nth(i).click()
         self.assertEqual(pg.locator("#posts tbody tr:visible").count(), total)
+
+    def test_29_notifications_bell_and_pdf_export(self):
+        pg = self.open()
+        self.run_demo(pg, "overview")
+        self.assertTrue(pg.is_visible("#bell"))
+        box = pg.evaluate("(() => { const r = document.querySelector('#bell').getBoundingClientRect(); return [r.right, r.top, innerWidth]; })()")
+        self.assertGreater(box[0], box[2] - 60)                                    # top right corner
+        self.assertTrue(pg.is_visible("#bell-n"))                                  # unread badge after a run
+        pg.click("#bell")
+        self.assertTrue(pg.is_visible("#bell-panel"))
+        self.assertIn("Results are ready", pg.inner_text("#bell-panel"))
+        self.assertFalse(pg.is_visible("#bell-n"))                                 # opening marks them read
+        pg.keyboard.press("Escape")
+        self.assertFalse(pg.is_visible("#bell-panel"))
+        pg.click("[data-screen=exports]")
+        self.assertGreater(pg.locator("#analysis-cards a[href$='executive_report.pdf']").count(), 0)
+        self.assertClean()
 
     def test_15_keyboard_access(self):
         pg = self.open()

@@ -37,7 +37,7 @@ from ..report import render
 STATIC = Path(__file__).parent / "static"
 STATIC_FILES = {"/": ("index.html", "text/html; charset=utf-8"), "/app.js": ("app.js", "text/javascript; charset=utf-8"),
                 "/app.css": ("app.css", "text/css; charset=utf-8")}
-DOWNLOADS = {"results.json": "application/json", "posts.csv": "text/csv", "narratives.csv": "text/csv",
+DOWNLOADS = {"executive_report.pdf": "application/pdf", "results.json": "application/json", "posts.csv": "text/csv", "narratives.csv": "text/csv",
              "volume_by_platform.csv": "text/csv", "coordinated_groups.csv": "text/csv", "origins.csv": "text/csv",
              "cross_platform.csv": "text/csv", "daily_counts.csv": "text/csv", "term_mentions.csv": "text/csv", "narrative_by_day.csv": "text/csv",
              "narrative_by_term.csv": "text/csv", "overview.json": "application/json", "plain_summary.txt": "text/plain; charset=utf-8", "cross_platform_summary.txt": "text/plain; charset=utf-8",
@@ -351,6 +351,11 @@ class Handler(BaseHTTPRequestHandler):
             j = JOBS.get(m.group(1))
             d = j.dir if j else run_dir(m.group(1))
             f = d / m.group(2) if d else None
+            if m.group(2) == "executive_report.pdf" and f and not f.exists() and (d / "results.json").is_file():
+                from ..pdfreport import available, build as build_pdf        # older run, or reportlab was installed later: make it now
+                if not available():
+                    return self._json(501, {"error": "The PDF needs the free reportlab package. Run: pip install reportlab  (then restart the app and try again)."})
+                build_pdf(json.loads((d / "results.json").read_text(encoding="utf-8")), str(f))
             if f and f.exists():
                 disp = "inline" if m.group(2) == "report.html" else f'attachment; filename="{m.group(2)}"'
                 return self._send(200, f.read_bytes(), DOWNLOADS[m.group(2)], {"Content-Disposition": disp})

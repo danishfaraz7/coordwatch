@@ -42,7 +42,7 @@
     <button class="side-link" data-screen="overview" title="The short answer, in plain words">▤ <span>Summary</span></button>
     <button class="side-link" data-screen="graph" title="A picture of the topic: dots are stories and account groups">✥ <span>Map</span></button>
     <button class="side-link" data-screen="narratives" title="The main things people are saying">◉ <span>What People Say</span></button>
-    <button class="side-link" data-screen="groups" title="Accounts that seem to be acting as a team">◎ <span>Accounts Working Together</span></button>
+    <button class="side-link" data-screen="groups" title="Accounts that seem to be acting as a team">◎ <span>Working Together</span></button>
     <button class="side-link" data-screen="spread" title="Who posted first and how it spread">↗ <span>Where It Started</span></button>
     <button class="side-link" data-screen="cross" title="How YouTube and Telegram connect">⇄ <span>Across Platforms</span></button>
     <button class="side-link" data-screen="posts" title="Every post that was found">▦ <span>All Posts</span></button>
@@ -109,6 +109,8 @@
   </main>
 </div>
 <div id="exp-menu" class="glass hidden"></div>
+<div id="bell-wrap"><button type="button" id="bell" title="Notifications" aria-label="Notifications" aria-expanded="false" aria-controls="bell-panel">🔔<span id="bell-n" class="hidden">0</span></button>
+<section id="bell-panel" class="glass hidden" role="dialog" aria-label="Notifications"></section></div>
 
 <aside id="tl" class="hidden">
   <button id="play" title="Play the spread over time">▶</button>

@@ -337,11 +337,11 @@ function loadResult() {
   $('#kpis').innerHTML = [['Posts', m.n_posts.toLocaleString(), ''], ['Accounts', m.n_accounts.toLocaleString(), ''], ['Narratives', m.n_narratives, ''],
     ['Coordinated accts', m.coordinated_accounts, `<em>${m.n_groups} group(s)</em>`], ['Coordinated posts', Math.round(m.coordinated_post_share * 100) + '%', '']]
     .map(([a, b, c]) => `<div><small>${a}</small><b>${b}${c}</b></div>`).join('');
-  $('#exp-menu').innerHTML = ['report.html', 'results.json', 'posts.csv', 'narratives.csv', 'coordinated_groups.csv', 'origins.csv', 'cross_platform.csv', 'cross_platform_summary.txt', 'volume_by_platform.csv', 'run_log.txt', 'plain_summary.txt', 'daily_counts.csv', 'term_mentions.csv', 'narrative_by_day.csv', 'narrative_by_term.csv', 'overview.json']
+  $('#exp-menu').innerHTML = ['report.html', 'results.json', 'posts.csv', 'narratives.csv', 'coordinated_groups.csv', 'origins.csv', 'cross_platform.csv', 'cross_platform_summary.txt', 'volume_by_platform.csv', 'run_log.txt', 'executive_report.pdf', 'plain_summary.txt', 'daily_counts.csv', 'term_mentions.csv', 'narrative_by_day.csv', 'narrative_by_term.csv', 'overview.json']
     .map(f => `<a href="/api/jobs/${st.jobId}/download/${f}" ${f === 'report.html' ? 'target="_blank" rel="noopener"' : ''}>${f === 'report.html' ? '↗ Static report (HTML)' : '⭳ ' + f}</a>`).join('');
   setScreen('overview'); fitCamera(); renderNotes(); fillPosts();
   $('#notes').classList.add('hidden');
-  refreshRuns().then(renderHome);
+  refreshRuns().then(renderHome); setRunNotices(res);
 }
 
 function renderTicks() {
@@ -490,7 +490,7 @@ cv.addEventListener('click', e => {
 });
 cv.addEventListener('wheel', e => { e.preventDefault(); const f = e.deltaY < 0 ? 1.1 : .91, k = clamp(st.cam.tk * f, .3, 3.2); const [wx, wy] = toWorld(e.clientX, e.clientY);
   st.cam.tk = k; st.cam.k = k; st.cam.tx = st.cam.x = e.clientX - W / 2 - wx * k; st.cam.ty = st.cam.y = e.clientY - H / 2 - wy * k; }, {passive: false});
-addEventListener('keydown', e => { if (e.key === 'Escape') { if (st.job && st.job.running && !st.job.min) { st.job.min = true; renderJob(); return; } hidePanel(); $('#modal').classList.add('hidden'); $('#notes').classList.add('hidden'); $('#drawer').classList.add('hidden'); $('#exp-menu').classList.add('hidden'); } });
+addEventListener('keydown', e => { if (e.key === 'Escape') { toggleBell(false); if (st.job && st.job.running && !st.job.min) { st.job.min = true; renderJob(); return; } hidePanel(); $('#modal').classList.add('hidden'); $('#notes').classList.add('hidden'); $('#drawer').classList.add('hidden'); $('#exp-menu').classList.add('hidden'); } });
 
 function select(n, focus = true) {
   st.selected = n; showPanel(n);
@@ -581,7 +581,6 @@ function notesData() {
   const fast = os.filter(o => o.platform_spread.length > 1 && o.platform_spread[1].lag_minutes < 90 && !o.seeding_group);
   fast.slice(0, 2).forEach(o => out.push({t: `Narrative #${o.narrative_id} jumped platforms quickly`, b: `Reached ${o.platform_spread[1].platform} ${fmtLag(o.platform_spread[1].lag_minutes)} after first appearing on ${o.platform_spread[0].platform}.`, nid: o.narrative_id}));
   if (!G.length) out.push({t: 'No coordinated activity detected', b: 'No group of accounts met the evidence thresholds — consistent with organic discussion for this topic and window. That does not prove absence.'});
-  (res.meta.collector_notes || []).forEach(n => out.push({t: 'Data note', b: n}));
   return out;
 }
 function noteHtml(n, i) { return `<div class="note ${n.crit ? 'crit' : ''}"><b>${esc(n.t)}</b>${esc(n.b)}${n.nid !== undefined || n.gid ? ` <a class="go" data-i="${i}">inspect →</a>` : ''}</div>`; }
@@ -975,7 +974,7 @@ const WORDS = [['Post', 'One message, video or comment that someone published.']
 function glossary() {
   return '<div class="analysis-card xp-card wide"><small>WORDS WE USE</small><dl class="gloss">' + WORDS.map(([a, b]) => '<dt>' + a + '</dt><dd>' + b + '</dd>').join('') + '</dl></div>';
 }
-const FILES = [['report.html', 'Report you can read and share', 'One web page with everything. Best to open first.'], ['plain_summary.txt', 'Summary in plain words', 'A short text file anyone can read.'],
+const FILES = [['report.html', 'Report you can read and share', 'One web page with everything. Best to open first.'], ['executive_report.pdf', 'Executive report (PDF)', 'A short report for managers: summary, chart and stories. Print it or send it by email.'], ['plain_summary.txt', 'Summary in plain words', 'A short text file anyone can read.'],
   ['posts.csv', 'All posts (spreadsheet)', 'Text, date, likes and link for every post. Opens in Excel.'], ['daily_counts.csv', 'Posts per day (spreadsheet)', 'How many posts were made on each date.'],
   ['term_mentions.csv', 'Mentions of each keyword (spreadsheet)', 'Hashtags, people, brands and words, counted by day.'], ['narratives.csv', 'Main stories (spreadsheet)', 'What people are saying, grouped.'],
   ['narrative_by_day.csv', 'Stories by day (spreadsheet)', 'Which story was big on which date.'], ['narrative_by_term.csv', 'Stories by keyword (spreadsheet)', 'Which story goes with which keyword.'],
@@ -1181,4 +1180,38 @@ function wireTrend(out, d) {
   out.querySelectorAll('[data-tcopy]').forEach(b => b.onclick = async () => { try { await navigator.clipboard.writeText(b.dataset.tcopy); b.textContent = '✓ Copied'; } catch (e) { b.textContent = 'Press Ctrl+C'; } });
 }
 $('#trend-go').onclick = () => showTrending();
+// ---- notifications (top right): data notes and run messages live here instead of in the report ----
+st.notices = st.notices || [];
+function addNotice(t, b, kind) { st.notices.unshift({t, b, kind: kind || 'info', at: new Date(), read: false}); st.notices.length = Math.min(st.notices.length, 40); renderBell(); }
+function setRunNotices(res) {
+  st.notices = st.notices.filter(n => n.kind !== 'data');
+  (res.meta.collector_notes || []).slice().reverse().forEach(x => st.notices.unshift({t: 'About the data', b: x, kind: 'data', at: new Date(), read: false}));
+  st.notices.unshift({t: 'Results are ready', b: res.meta.n_posts.toLocaleString() + ' posts from ' + res.meta.n_accounts.toLocaleString() + ' accounts for “' + res.meta.topic + '”.', kind: 'info', at: new Date(), read: false});
+  renderBell();
+}
+function renderBell() {
+  const unread = st.notices.filter(n => !n.read).length, n = $('#bell-n');
+  n.textContent = unread > 9 ? '9+' : unread; n.classList.toggle('hidden', !unread);
+  $('#bell').setAttribute('aria-label', 'Notifications' + (unread ? ', ' + unread + ' new' : ''));
+  const icon = {data: 'ⓘ', warn: '⚠', info: '✓'};
+  $('#bell-panel').innerHTML = '<h3>Notifications <button type="button" class="x" id="bell-x" aria-label="Close">✕</button></h3>' + (st.notices.length ? st.notices.map(x => '<div class="bn ' + x.kind + '"><span>' + (icon[x.kind] || 'ⓘ') + '</span><div><b>' + esc(x.t) + '</b><p>' + esc(x.b) + '</p><small>' + x.at.toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'}) + '</small></div></div>').join('') + '<button type="button" class="pill" id="bell-clear">Clear all</button>' : '<p class="mut small">Nothing new. Data notes from your searches appear here.</p>');
+  $('#bell-x').onclick = () => toggleBell(false);
+  const c = $('#bell-clear'); if (c) c.onclick = () => { st.notices = []; renderBell(); };
+}
+function toggleBell(open) {
+  const p = $('#bell-panel'); open = open === undefined ? p.classList.contains('hidden') : open;
+  p.classList.toggle('hidden', !open); $('#bell').setAttribute('aria-expanded', String(open));
+  if (open) { st.notices.forEach(n => n.read = true); const k = $('#bell-n'); k.classList.add('hidden'); }
+}
+$('#bell').onclick = e => { e.stopPropagation(); toggleBell(); };
+document.addEventListener('click', e => { if (!e.target.closest('#bell-wrap')) toggleBell(false); });
+renderBell();
+// the PDF may need a free package: show a plain message instead of saving an error file
+document.addEventListener('click', async e => {
+  const a = e.target.closest('a[href$="executive_report.pdf"]'); if (!a) return;
+  e.preventDefault();
+  try { const r = await fetch(a.href); if (!r.ok) throw new Error((await r.json()).error); const u = URL.createObjectURL(await r.blob()), l = document.createElement('a'); l.href = u; l.download = 'executive_report.pdf'; l.click(); setTimeout(() => URL.revokeObjectURL(u), 4000); }
+  catch (err) { addNotice('PDF not available', String(err.message || err), 'warn'); toggleBell(true); }
+});
+
 })();

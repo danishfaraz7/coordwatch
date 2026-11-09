@@ -370,8 +370,6 @@ def render(result: dict, max_posts: int = 400) -> str:
              f"<h1><span>{e(m['topic'])}</span></h1><div class=chips><span class=chip>{e((m['since'] or '')[:10])} → {e((m['until'] or '')[:10])}</span>"
              + "".join(f"<span class=chip style='border-color:{color(p)}66;color:{color(p)}'>{e(p)}</span>" for p in m["platforms"])
              + f"<span class=chip>generated {e(m['generated_at'][:16].replace('T', ' '))} UTC</span></div>")
-    for note in m.get("collector_notes", []):
-        h.append(f"<div class=warn>⚠ {e(note)}</div>")
     h.append("</section><div class=bento>")
 
     ovb = overview_blocks(result)

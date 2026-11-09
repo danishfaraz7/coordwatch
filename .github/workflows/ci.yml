@@ -22,7 +22,7 @@ jobs:
         with:
           python-version: ${{ matrix.python }}
       - name: Install dependencies (the browser download for X is not needed for tests)
-        run: python -m pip install requests Pillow telethon beautifulsoup4 yt-dlp ddgs pytest
+        run: python -m pip install requests Pillow telethon beautifulsoup4 yt-dlp ddgs reportlab pytest
       - name: Run the tests
         run: python -m pytest -q
       - name: CLI demo run
@@ -38,7 +38,7 @@ jobs:
           python-version: "3.12"
       - name: Install dependencies and Chromium
         run: |
-          python -m pip install requests Pillow telethon beautifulsoup4 yt-dlp ddgs pytest playwright
+          python -m pip install requests Pillow telethon beautifulsoup4 yt-dlp ddgs reportlab pytest playwright
           python -m playwright install --with-deps chromium
       - name: Run the UI tests (layout at 12 screen sizes, menu, dates, views)
         run: python -m pytest tests/test_ui_e2e.py -q

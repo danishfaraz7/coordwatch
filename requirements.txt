@@ -7,3 +7,4 @@ beautifulsoup4>=4.12  # Telegram t.me/s web-preview parser (no login needed)
 yt-dlp>=2025.1.1      # YouTube without an API key
 playwright>=1.45      # X browser-session route (then: playwright install chromium)
 ddgs>=9.0             # --discover (DuckDuckGo search, no key)
+reportlab>=4.0      # executive_report.pdf (optional; without it the PDF is skipped)

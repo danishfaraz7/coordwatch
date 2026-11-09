@@ -91,3 +91,18 @@ class ExpectedOutputs(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class ExecutivePdf(unittest.TestCase):
+    def test_pdf_is_written_and_readable(self):
+        from coordwatch.pdfreport import available
+        if not available():
+            self.skipTest("reportlab not installed")
+        out = tempfile.mkdtemp()
+        env = {**os.environ, "COORDWATCH_HOME": tempfile.mkdtemp(), "PYTHONPATH": ROOT}
+        subprocess.run([sys.executable, "-m", "coordwatch", "run", "--topic", "Acme Bank", "--since", "2026-10-01", "--until", "2026-10-14", "--source", "demo", "--out", out],
+                       check=True, capture_output=True, env=env)
+        f = os.path.join(out, "executive_report.pdf")
+        data = open(f, "rb").read()
+        self.assertTrue(data.startswith(b"%PDF") and len(data) > 5000)
+        self.assertNotIn(b"Data API", open(os.path.join(out, "report.html"), "rb").read())     # no collector warnings in the HTML report

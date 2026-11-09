@@ -1,0 +1,95 @@
+"""Executive PDF: a short, plain-words report a non-technical manager can read in five minutes.
+Needs the free `reportlab` package (pip install reportlab); everything else works without it."""
+from __future__ import annotations
+
+from xml.sax.saxutils import escape as _e
+
+INK, MUTED, ACCENT, LINE = "#1a1f36", "#5b6478", "#5b4fd6", "#d9dce8"
+PCOL = {"youtube": "#e2574c", "telegram": "#1f9d8b", "x": "#3b82f6", "tiktok": "#a855f7", "instagram": "#d946ef", "facebook": "#2563eb"}
+
+
+def available() -> bool:
+    try:
+        import reportlab  # noqa: F401
+        return True
+    except ImportError:
+        return False
+
+
+def build(result: dict, path: str) -> str:
+    from reportlab.graphics.shapes import Drawing, Rect, String
+    from reportlab.lib import colors
+    from reportlab.lib.pagesizes import A4
+    from reportlab.lib.styles import ParagraphStyle
+    from reportlab.lib.units import mm
+    from reportlab.platypus import KeepTogether, ListFlowable, ListItem, Paragraph, SimpleDocTemplate, Spacer, Table, TableStyle
+
+    m, ov = result["meta"], result["overview"]
+    pl = ov["plain"]
+    base = ParagraphStyle("b", fontName="Helvetica", fontSize=10, leading=14.5, textColor=colors.HexColor(INK))
+    small = ParagraphStyle("s", parent=base, fontSize=8.5, leading=11.5, textColor=colors.HexColor(MUTED))
+    h1 = ParagraphStyle("h1", parent=base, fontName="Helvetica-Bold", fontSize=22, leading=26, spaceAfter=4)
+    h2 = ParagraphStyle("h2", parent=base, fontName="Helvetica-Bold", fontSize=13, leading=17, spaceBefore=14, spaceAfter=5, textColor=colors.HexColor(ACCENT))
+    big = ParagraphStyle("big", parent=base, fontName="Helvetica-Bold", fontSize=16, leading=19, alignment=1)
+    cell = ParagraphStyle("c", parent=base, fontSize=9, leading=12)
+    P = lambda t, s=base: Paragraph(_e(str(t)).replace("\n", "<br/>"), s)
+
+    story = [P("Executive report", small), P(m["topic"], h1),
+             P(f"{(m['since'] or '')[:10]} to {(m['until'] or '')[:10]} · {', '.join(m['platforms'])} · generated {m['generated_at'][:16].replace('T', ' ')} UTC", small), Spacer(1, 8)]
+
+    tiles = [[P(f"{m['n_posts']:,}", big), P(f"{m['n_accounts']:,}", big), P(str(m['n_narratives']), big), P(str(m['n_groups']), big)],
+             [P("posts", small), P("accounts", small), P("main stories", small), P("account groups", small)]]
+    t = Table(tiles, colWidths=[43 * mm] * 4)
+    t.setStyle(TableStyle([("BOX", (0, 0), (-1, -1), .6, colors.HexColor(LINE)), ("LINEAFTER", (0, 0), (-2, -1), .6, colors.HexColor(LINE)), ("ALIGN", (0, 0), (-1, -1), "CENTER"),
+                           ("TOPPADDING", (0, 0), (-1, -1), 6), ("BOTTOMPADDING", (0, 0), (-1, -1), 6), ("BACKGROUND", (0, 0), (-1, -1), colors.HexColor("#f5f6fb"))]))
+    story += [t, P("The short answer", h2), ListFlowable([ListItem(P(x)) for x in pl["summary"]], bulletType="bullet", leftIndent=12)]
+
+    # posts per day: bars stacked by platform
+    days, plats = ov["days"], ov["platforms"]
+    if days:
+        W, H, pad = 170 * mm, 52 * mm, 18
+        d = Drawing(W, H + 18)
+        mx = max(x["total"] for x in days) or 1
+        bw = (W - pad) / len(days)
+        for i, day in enumerate(days):
+            y = 14
+            for p in plats:
+                v = day["by_platform"].get(p, 0)
+                hh = v / mx * (H - 6)
+                if hh > 0:
+                    d.add(Rect(pad + i * bw + 1, y, max(bw - 2, 1), hh, fillColor=colors.HexColor(PCOL.get(p, "#888")), strokeColor=None))
+                    y += hh
+            if len(days) <= 16 or i % max(1, len(days) // 12) == 0:
+                d.add(String(pad + i * bw + bw / 2, 3, day["date"][5:], fontSize=6.5, textAnchor="middle", fillColor=colors.HexColor(MUTED)))
+        x0 = pad
+        for p in plats:
+            d.add(Rect(x0, H + 6, 7, 7, fillColor=colors.HexColor(PCOL.get(p, "#888")), strokeColor=None))
+            d.add(String(x0 + 10, H + 7, p, fontSize=7.5, fillColor=colors.HexColor(MUTED)))
+            x0 += 14 + 5 * len(p) + 12
+        d.add(String(W, H + 7, f"peak {mx:,} posts in a day", fontSize=7, textAnchor="end", fillColor=colors.HexColor(MUTED)))
+        story += [KeepTogether([P("Posts per day", h2), d])]
+
+    if ov["terms"]:
+        rows = [[P("Keyword / hashtag / person / brand", small), P("Type", small), P("Posts", small), P("Accounts", small)]] + \
+               [[P(x["term"], cell), P(x["kind"], cell), P(f"{x['posts']:,} ({round(x['share'] * 100)}%)", cell), P(f"{x['accounts']:,}", cell)] for x in ov["terms"][:12]]
+        tt = Table(rows, colWidths=[85 * mm, 25 * mm, 35 * mm, 25 * mm], repeatRows=1)
+        tt.setStyle(TableStyle([("LINEBELOW", (0, 0), (-1, -1), .4, colors.HexColor(LINE)), ("VALIGN", (0, 0), (-1, -1), "TOP")]))
+        story += [P("What was mentioned", h2), tt]
+
+    story.append(P("What people are saying", h2))
+    for n in pl["narratives"][:8]:
+        story.append(KeepTogether([P(f"#{n['id']}  {n['label']}", ParagraphStyle("nl", parent=base, fontName="Helvetica-Bold")), P(n["text"]), Spacer(1, 5)]))
+    story.append(P("Accounts that seem to work together", h2))
+    story += [P(g["text"]) for g in pl["groups"]] or [P("No group of accounts clearly worked together.")]
+    story.append(P("Where each story started and how it spread", h2))
+    for o in pl["origins"][:8]:
+        story.append(KeepTogether([P(f"#{o['narrative_id']}  {o['label']}", ParagraphStyle("ol", parent=base, fontName="Helvetica-Bold")), P(o["text"]), Spacer(1, 5)]))
+    story += [Spacer(1, 10), P("How to read this: groups of accounts that behave alike are a lead for a human to check, not proof that anything is fake. "
+                               "Figures come from the public posts that could be collected for this topic and these dates; they may not cover everything said online. "
+                               "The full detail is in report.html, results.json and the CSV files.", small)]
+
+    def footer(c, doc):
+        c.saveState(); c.setFont("Helvetica", 7.5); c.setFillColor(colors.HexColor(MUTED))
+        c.drawString(20 * mm, 10 * mm, "coordwatch executive report · " + m["topic"][:60]); c.drawRightString(190 * mm, 10 * mm, f"page {doc.page}"); c.restoreState()
+    SimpleDocTemplate(path, pagesize=A4, leftMargin=20 * mm, rightMargin=20 * mm, topMargin=18 * mm, bottomMargin=18 * mm, title=f"Executive report: {m['topic']}", author="coordwatch").build(story, onFirstPage=footer, onLaterPages=footer)
+    return path
