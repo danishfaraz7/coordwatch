@@ -461,3 +461,6 @@ out/example/           pre-generated report, JSON and CSVs
 
 ### Made for non-technical readers
 Plain menu names with tooltips (Summary, Map, What People Say, Accounts Working Together, Where It Started, Download Results), a one-sentence "short answer" on the Summary, big "what to look at next" buttons, jargon-free reasons, a plain-named Download screen covering every export, and a 4-step Help page.
+
+### What's trending
+Under the topic box, **See what's trending** lists suggested terms for your dates from the open internet (Google Trends, Google News, GDELT), YouTube (popular videos about the top topics, via yt-dlp) and Telegram (the public channels you list). Each term has **Add to search** and **Copy**. Free, no keys; each source fails on its own with a plain note. `GET /api/trending?since=&until=&channels=`.

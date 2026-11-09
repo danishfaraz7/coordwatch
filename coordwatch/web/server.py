@@ -275,6 +275,17 @@ class Handler(BaseHTTPRequestHandler):
             return self._send(200, (STATIC / fn).read_bytes(), ct)
         if path == "/api/status":
             return self._json(200, platform_status())
+        if path == "/api/trending":
+            q = parse_qs(urlparse(self.path).query)
+            try:
+                from ..trending import trending
+                a, b = parse_dt(q["since"][0]), parse_dt(q["until"][0])
+                if not a or not b or a > b:
+                    raise ValueError
+            except Exception:
+                return self._json(400, {"error": "choose a valid start and end date"})
+            chans = [c for c in re.split(r"[,\s]+", (q.get("channels") or [""])[0]) if c]
+            return self._json(200, trending(a, b, (q.get("geo") or ["IN"])[0], chans))
         if path == "/api/runs":
             return self._json(200, {"runs": list_runs()})
         if path == "/api/logs":

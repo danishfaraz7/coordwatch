@@ -451,6 +451,26 @@ class UiTests(unittest.TestCase):
         self.assertIn("Type what you want to know about", pg.inner_text("#analysis-cards"))
         self.assertClean()
 
+    def test_24_trending_suggestions_can_be_added_to_the_search(self):
+        pg = self.open()
+        import json as _j
+        payload = {"since": "2026-11-06", "until": "2026-11-08", "sources": [
+            {"id": "web", "label": "Open internet", "note": "n", "items": [{"term": "India vs New Zealand", "score": 5, "example": "e"}, {"term": "#INDvNZ", "score": 3, "example": "e"}]},
+            {"id": "youtube", "label": "YouTube", "note": "n", "items": [{"term": "Kohli century", "score": 2, "example": "e"}]},
+            {"id": "telegram", "label": "Telegram", "note": "n", "items": []}]}
+        pg.route("**/api/trending*", lambda r: r.fulfill(status=200, content_type="application/json", body=_j.dumps(payload)))
+        pg.fill("#since", "2026-11-06"); pg.fill("#until", "2026-11-08")
+        pg.click("#trend-go")
+        pg.wait_for_selector("[data-tadd]")
+        pg.click("[data-tadd] >> nth=0")
+        pg.click("[data-tadd] >> nth=1")
+        self.assertEqual(pg.input_value("#topic"), "India vs New Zealand OR #INDvNZ")
+        pg.click("[data-tsrc=youtube]")
+        self.assertIn("Kohli century", pg.inner_text("#trend-out"))
+        pg.click("[data-tsrc=telegram]")
+        self.assertIn("Nothing found", pg.inner_text("#trend-out"))
+        self.assertClean()
+
     def test_15_keyboard_access(self):
         pg = self.open()
         pg.focus("#sb-toggle")

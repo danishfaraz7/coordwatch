@@ -369,3 +369,8 @@ body.analysis:not([data-view=posts]) #drawer{display:none!important}
 .xp-card p,.plain-list li{font-size:15px;line-height:1.5}
 a.xp-go{display:inline-block;text-decoration:none}
 @media(max-width:720px){.gloss{grid-template-columns:1fr}.bl-text{font-size:17px}}
+
+.trend-box{margin:10px 0}.trend-tabs{display:flex;gap:6px;flex-wrap:wrap;margin:8px 0}.pill.on{background:#9a8cff;color:#111}
+.trend-list{list-style:none;margin:6px 0;padding:0;max-height:260px;overflow:auto}.trend-list li{display:flex;justify-content:space-between;gap:10px;align-items:center;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.08)}
+.trend-list small{display:block;opacity:.7;font-size:12px}.trend-btns{display:flex;gap:6px;flex:none}
+@media(max-width:720px){.trend-list li{flex-direction:column;align-items:flex-start}}

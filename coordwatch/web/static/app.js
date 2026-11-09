@@ -802,11 +802,11 @@ function move(el, target) { if (el && target && el.parentElement !== target) tar
 function stashDates() { const t = $('#top'); ['#since', '#until'].forEach(q => { const e = document.querySelector(q); if (e) t.appendChild(e); }); }   // park the date pickers before a slot is rebuilt, or they would be destroyed with it
 function mountHomeInputs() {
   stashDates();
-  move($('#topic'), $('#home-topic-slot')); move($('#chips'), $('#home-platform-slot'));
+  move($('#topic'), $('#home-topic-slot')); move($('#trend-box'), $('#home-topic-slot')); move($('#chips'), $('#home-platform-slot'));
   const dates=$('#home-date-row'); if(dates){ dates.innerHTML='<label>From</label><label>To</label>'; const a=document.createElement('div'),b=document.createElement('div');a.appendChild($('#since'));b.appendChild($('#until'));dates.append(a,b); }
 }
 function mountWizardInputs(step) {
-  if(step===1){move($('#topic'),$('#wizard-topic-slot'));}
+  if(step===1){move($('#topic'),$('#wizard-topic-slot'));move($('#trend-box'),$('#wizard-topic-slot'));}
   if(step===2){move($('#chips'),$('#wizard-platform-slot'));move($('#tgch'),$('#wizard-platform-slot'));}
   if(step===3){stashDates();const slot=$('#wizard-dates-slot');slot.innerHTML='';const a=document.createElement('label'),b=document.createElement('label');a.textContent='From';b.textContent='To';a.appendChild($('#since'));b.appendChild($('#until'));slot.append(a,b);}
   if(step===4){move($('#depth'),$('#wizard-advanced-slot'));move($('#dv').parentElement,$('#wizard-advanced-slot'));move($('#tgch'),$('#wizard-advanced-slot'));}
@@ -1090,4 +1090,36 @@ addEventListener('resize', () => { if (sbChosen === null) setSidebar(innerWidth 
   $('#landing-go').onclick = () => leave(false); $('#landing-demo').onclick = () => leave(true);
 })();
 window.__cw = st;   // handy for debugging in the browser console
+
+// ---- what's trending: suggestions the user can add to the search with one click ----
+function addToSearch(term) {
+  const t = $('#topic'), cur = t.value.trim();
+  if (cur.toLowerCase().split(/\s+or\s+/).includes(term.toLowerCase())) return false;
+  t.value = cur ? cur + ' OR ' + term : term; t.dispatchEvent(new Event('input', {bubbles: true})); return true;
+}
+function trendHtml(d, active) {
+  const src = d.sources.find(s => s.id === active) || d.sources[0];
+  return '<div class="trend-tabs">' + d.sources.map(s => '<button type="button" class="pill' + (s.id === src.id ? ' on' : '') + '" data-tsrc="' + s.id + '">' + esc(s.label) + ' (' + s.items.length + ')</button>').join('') + '</div>' +
+    '<p class="mut small">' + esc(src.note || '') + '</p>' +
+    (src.items.length ? '<ul class="trend-list">' + src.items.map(i => '<li><span><b>' + esc(i.term) + '</b><small>' + esc(i.example || '') + '</small></span><span class="trend-btns"><button type="button" class="pill" data-tadd="' + esc(i.term) + '">＋ Add to search</button><button type="button" class="pill" data-tcopy="' + esc(i.term) + '">Copy</button></span></li>').join('') + '</ul>'
+      : '<p>Nothing found here right now.</p>');
+}
+async function showTrending(active) {
+  const out = $('#trend-out'), since = $('#since').value, until = $('#until').value;
+  if (!since || !until) { out.innerHTML = '<p class="mut small">Pick the From and To dates first, then press the button again.</p>'; return; }
+  out.innerHTML = '<p class="mut small">Looking… this can take up to 30 seconds.</p>';
+  try {
+    const q = new URLSearchParams({since, until, channels: $('#tgch').value});
+    const d = await api('/api/trending?' + q);
+    out.innerHTML = trendHtml(d, active);
+    out.querySelectorAll('[data-tsrc]').forEach(b => b.onclick = () => { out.innerHTML = trendHtml(d, b.dataset.tsrc); wireTrend(out, d); });
+    wireTrend(out, d);
+  } catch (e) { out.innerHTML = '<p class="mut small">Could not load trends (' + esc(e.message) + '). Check your internet connection.</p>'; }
+}
+function wireTrend(out, d) {
+  out.querySelectorAll('[data-tsrc]').forEach(b => b.onclick = () => { out.innerHTML = trendHtml(d, b.dataset.tsrc); wireTrend(out, d); });
+  out.querySelectorAll('[data-tadd]').forEach(b => b.onclick = () => { b.textContent = addToSearch(b.dataset.tadd) ? '✓ Added' : '✓ Already in search'; });
+  out.querySelectorAll('[data-tcopy]').forEach(b => b.onclick = async () => { try { await navigator.clipboard.writeText(b.dataset.tcopy); b.textContent = '✓ Copied'; } catch (e) { b.textContent = 'Press Ctrl+C'; } });
+}
+$('#trend-go').onclick = () => showTrending();
 })();
