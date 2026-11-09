@@ -22,6 +22,7 @@ from typing import Dict, List, Optional
 from urllib.parse import parse_qs, urlparse
 
 from .. import __version__
+from .. import activity
 from .. import ai
 from .. import runlog
 from .. import validate as V
@@ -80,6 +81,8 @@ def _write_run_log(job: Job):
         (job.dir / "run_log.txt").write_text(
             runlog.build(job.params, job.status, job.error, job.logs, job.result, job.started, datetime.now(timezone.utc), job.notes),
             encoding="utf-8")
+        activity.record("run", run=job.id, status=job.status, topic=job.params.get("topic"), platforms=job.params.get("platforms"),
+                        posts=(job.result or {}).get("meta", {}).get("n_posts"), error=job.error)
         started = job.started or datetime.now(timezone.utc)
         meta = {"id": job.id, "started": started.astimezone(timezone.utc).isoformat(), "topic": job.params.get("topic"),
                 "platforms": job.params.get("platforms"), "since": _day(job.params.get("since")), "until": _day(job.params.get("until")),
@@ -134,7 +137,11 @@ def collect_logs(start: datetime, end: datetime) -> tuple:
             found.append((when, log))
     found.sort(key=lambda x: x[0])
     sep = "\n\n" + "=" * 78 + "\n\n"
-    return sep.join(p.read_text(encoding="utf-8", errors="replace") for _, p in found), len(found)
+    blocks = [p.read_text(encoding="utf-8", errors="replace") for _, p in found]
+    act, n_act = activity.collect(start, end)
+    if act:
+        blocks.append(act)
+    return sep.join(blocks), len(found) + (1 if n_act else 0)
 
 
 def run_job(job: Job):
@@ -294,7 +301,11 @@ class Handler(BaseHTTPRequestHandler):
             except Exception:
                 return self._json(400, {"error": "choose a valid start and end date"})
             chans = [c for c in re.split(r"[,\s]+", (q.get("channels") or [""])[0]) if c]
-            return self._json(200, trending(a, b, (q.get("geo") or ["IN"])[0], chans))
+            out = trending(a, b, (q.get("geo") or ["IN"])[0], chans)
+            activity.record("trending", since=str(a)[:10], until=str(b)[:10], geo=(q.get("geo") or ["IN"])[0], channels=chans or None,
+                            sources={x.get("id") or x.get("name"): (len(x.get("items") or x.get("terms") or []), x.get("error") or x.get("note"))
+                                     for x in out.get("sources", []) if isinstance(x, dict)})
+            return self._json(200, out)
         if path == "/api/runs":
             return self._json(200, {"runs": list_runs()})
         if path == "/api/logs":
@@ -327,7 +338,11 @@ class Handler(BaseHTTPRequestHandler):
             from ..search import search
             job_id = (q.get("job") or [""])[0]
             if job_id != "all":
-                return self._json(200, search(self._result_for(job_id) or {}, text))
+                out = search(self._result_for(job_id) or {}, text)
+                activity.record("search", scope="this run", run=job_id, query=text, understood=out.get("understood"), filters=out.get("filters"),
+                                posts=len(out.get("posts") or []), total_posts=out.get("total_posts"),
+                                stories=len(out.get("narratives") or []), groups=len(out.get("groups") or []))
+                return self._json(200, out)
             hits = []                                                       # application-wide: every saved run, newest first
             for r in list_runs()[:15]:
                 res = self._result_for(r["id"])
@@ -336,6 +351,8 @@ class Handler(BaseHTTPRequestHandler):
                     if out["posts"] or out["groups"] or out["narratives"]:
                         hits.append({"run": {k: r.get(k) for k in ("id", "topic", "since", "until", "n_posts")}, "understood": out["understood"], "total_posts": out["total_posts"],
                                      "posts": out["posts"], "narratives": out["narratives"], "groups": out["groups"]})
+            activity.record("search", scope="all runs", query=text, runs_with_hits=len(hits),
+                            posts=sum(len(h["posts"]) for h in hits), stories=sum(len(h["narratives"]) for h in hits), groups=sum(len(h["groups"]) for h in hits))
             return self._json(200, {"query": text, "runs": hits})
         m = re.fullmatch(r"/api/jobs/([a-f0-9]+)/result", path)
         if m:
@@ -357,6 +374,7 @@ class Handler(BaseHTTPRequestHandler):
                     return self._json(501, {"error": "The PDF needs the free reportlab package. Run: pip install reportlab  (then restart the app and try again)."})
                 build_pdf(json.loads((d / "results.json").read_text(encoding="utf-8")), str(f))
             if f and f.exists():
+                activity.record("download", run=m.group(1), file=m.group(2))
                 disp = "inline" if m.group(2) == "report.html" else f'attachment; filename="{m.group(2)}"'
                 return self._send(200, f.read_bytes(), DOWNLOADS[m.group(2)], {"Content-Disposition": disp})
         self._json(404, {"error": "not found"})
@@ -369,6 +387,7 @@ class Handler(BaseHTTPRequestHandler):
             if url.path == "/api/credentials":
                 body = json.loads(self._body(50_000) or b"{}")
                 S.save({k: v for k, v in body.items() if isinstance(v, (str, type(None)))})
+                activity.record("settings", changed=sorted(k for k, v in body.items() if isinstance(v, (str, type(None)))))   # names only, never values
                 return self._json(200, platform_status())
             if url.path == "/api/upload":
                 q = parse_qs(url.query)
@@ -402,12 +421,15 @@ class Handler(BaseHTTPRequestHandler):
                     return self._json(404, {"error": "unknown job"})
                 j.cancel.set()
                 j.log("abort requested - stopping after the current request…")
+                activity.record("abort", run=j.id)
                 return self._json(200, {"ok": True})
             if url.path == "/api/validate":
                 body = json.loads(self._body(2_000) or b"{}")
                 if body.get("service") not in ("youtube", "gemini", "ai", "x", "telegram"):
                     raise ValueError("Unknown service.")
-                return self._json(200, V.validate(body["service"]))
+                res = V.validate(body["service"])
+                activity.record("validate", service=body["service"], result=str(res.get("message") or res.get("ok") or res)[:200] if isinstance(res, dict) else None)
+                return self._json(200, res)
             if url.path == "/api/ask":
                 body = json.loads(self._body(20_000) or b"{}")
                 if not body.get("ai"):
@@ -421,19 +443,29 @@ class Handler(BaseHTTPRequestHandler):
                 question = str(body.get("question", "")).strip()
                 if not question:
                     raise ValueError("Type a question.")
+                ctx = ai.build_context(job.result)
+                t0 = time.time()
                 try:
-                    text, model = ai.answer(question, ai.build_context(job.result), cfg)
+                    text, model = ai.answer(question, ctx, cfg)
                 except ai.AIError as e:
+                    activity.record("ai", run=job.id, question=question, provider=cfg.get("provider"), ok=False, error=str(e),
+                                    seconds=round(time.time() - t0, 1), context_chars=len(str(ctx)))
                     return self._json(502, {"error": str(e)})
+                activity.record("ai", run=job.id, question=question, provider=cfg.get("provider"), model=model, ok=True,
+                                seconds=round(time.time() - t0, 1), context_chars=len(str(ctx)), answer_chars=len(text), answer=text)
                 return self._json(200, {"answer": text, "model": model})
             if url.path == "/api/run":
                 params = parse_run(json.loads(self._body(100_000) or b"{}"))
                 job = Job(params)
                 with LOCK:
                     JOBS[job.id] = job
+                activity.record("run-start", run=job.id, topic=params.get("topic"), platforms=params.get("platforms"),
+                                since=_day(params.get("since")), until=_day(params.get("until")), demo=params.get("demo") or None)
                 threading.Thread(target=run_job, args=(job,), daemon=True).start()
                 return self._json(200, {"id": job.id})
         except (ValueError, json.JSONDecodeError) as e:
+            if url.path == "/api/ask":
+                activity.record("ai", ok=False, error=str(e), stage="refused before sending")
             return self._json(400, {"error": str(e)})
         self._json(404, {"error": "not found"})
 

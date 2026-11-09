@@ -260,3 +260,22 @@ class CliSmokeTests(unittest.TestCase):
             self.assertEqual(main(["run", "--topic", "Acme Bank", "--since", "2026-10-01", "--until", "2026-10-14",
                                    "--source", "demo", "--out", d]), 0)
             self.assertTrue(os.path.exists(os.path.join(d, "report.html")))
+
+
+class TestActivityLog(unittest.TestCase):
+    def test_events_recorded_and_exported(self):
+        import tempfile, os
+        from datetime import datetime, timedelta, timezone
+        from coordwatch import activity
+        with tempfile.TemporaryDirectory() as d:
+            os.environ["COORDWATCH_HOME"] = d
+            try:
+                activity.record("search", query="nvidia, jensen huang", posts=3, scope="all runs")
+                activity.record("ai", question="summary", ok=False, error="boom", key=None)
+                now = datetime.now(timezone.utc)
+                txt, n = activity.collect(now - timedelta(minutes=1), now + timedelta(minutes=1))
+                self.assertEqual(n, 2)
+                self.assertIn("nvidia, jensen huang", txt)
+                self.assertIn("boom", txt)
+            finally:
+                os.environ.pop("COORDWATCH_HOME", None)
