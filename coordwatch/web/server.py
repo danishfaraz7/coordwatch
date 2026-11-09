@@ -67,6 +67,11 @@ UPLOADS: Dict[str, dict] = {}
 LOCK = threading.Lock()
 
 
+def _day(v):
+    """YYYY-MM-DD for a date or datetime (the run meta must stay JSON-friendly)."""
+    return str(v)[:10] if v else None
+
+
 def _write_run_log(job: Job):
     """Always leave a pasteable run log next to the outputs - on success, failure and abort alike."""
     try:
@@ -76,7 +81,7 @@ def _write_run_log(job: Job):
             encoding="utf-8")
         started = job.started or datetime.now(timezone.utc)
         meta = {"id": job.id, "started": started.astimezone(timezone.utc).isoformat(), "topic": job.params.get("topic"),
-                "platforms": job.params.get("platforms"), "since": job.params.get("since"), "until": job.params.get("until"),
+                "platforms": job.params.get("platforms"), "since": _day(job.params.get("since")), "until": _day(job.params.get("until")),
                 "status": job.status}
         if job.result:
             m = job.result["meta"]
