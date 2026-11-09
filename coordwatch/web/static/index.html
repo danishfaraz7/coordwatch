@@ -38,6 +38,7 @@
     <button class="side-link" data-screen="wizard" title="Search a topic on YouTube, Telegram or X">＋ <span>Start a New Search</span></button>
     <button class="side-link" data-screen="investigations" title="Open a search you ran before">▤ <span>My Past Searches</span></button>
     <div class="side-label">ANALYSIS</div>
+    <button class="side-link" data-screen="search" title="Ask a question in plain words and search every post, story and group">🔍 <span>Search Everything</span></button>
     <button class="side-link" data-screen="overview" title="The short answer, in plain words">▤ <span>Summary</span></button>
     <button class="side-link" data-screen="graph" title="A picture of the topic: dots are stories and account groups">✥ <span>Map</span></button>
     <button class="side-link" data-screen="narratives" title="The main things people are saying">◉ <span>What People Say</span></button>
@@ -53,7 +54,7 @@
   </aside>
   <main id="app-main">
     <header id="app-topbar">
-      <div class="crumb"><span>‹</span> <b id="crumb-main">Home</b> <small id="crumb-sub"></small></div>
+      <div class="crumb"><button type="button" id="crumb-back" class="crumb-back" title="Go back" aria-label="Go back">‹</button> <b id="crumb-main">Home</b> <small id="crumb-sub"></small></div>
       <div class="top-actions"><span class="system-pill"><i></i> System ready</span><button id="top-settings" aria-label="Settings">⚙</button></div>
     </header>
     <section id="landing-view" class="app-screen landing hidden">

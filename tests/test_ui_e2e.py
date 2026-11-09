@@ -474,6 +474,70 @@ class UiTests(unittest.TestCase):
         self.assertIn("Nothing found", pg.inner_text("#trend-out"))
         self.assertClean()
 
+    def test_25_back_arrow_goes_to_previous_screen(self):
+        pg = self.open()
+        pg.click("[data-screen=investigations]")
+        self.assertEqual(pg.inner_text("#crumb-main"), "Investigations")
+        pg.click("#crumb-back")
+        self.assertEqual(pg.evaluate("document.body.dataset.view"), "home")
+        pg.click("[data-screen=wizard]"); pg.click("[data-screen=investigations]")
+        pg.click("#crumb-back")
+        self.assertEqual(pg.evaluate("document.body.dataset.view"), "wizard")
+        pg.click("#crumb-back")
+        self.assertEqual(pg.evaluate("document.body.dataset.view"), "home")
+        pg.click("#crumb-back")                                                  # nothing left: stays on home
+        self.assertEqual(pg.evaluate("document.body.dataset.view"), "home")
+        self.assertClean()
+
+    def test_26_search_everything_in_plain_words(self):
+        pg = self.open()
+        self.run_demo(pg, "overview")
+        pg.click("[data-screen=search]")
+        pg.fill("#sq", "most liked youtube posts about savings")
+        pg.press("#sq", "Enter")
+        pg.wait_for_selector(".sr-post")
+        t = pg.inner_text("#sr-out")
+        self.assertIn("on youtube", t)
+        self.assertIn("most engagement first", t)
+        pg.select_option("#sscope", "all")
+        pg.click("#sform button")
+        pg.wait_for_selector("#sr-out [data-run]")
+        self.assertClean()
+
+    def test_27_ai_summary_is_optional_and_asks_first(self):
+        pg = self.open()
+        import json as _j
+        self.run_demo(pg, "overview")
+        asked = []
+        pg.on("dialog", lambda d: (asked.append(d.message), d.accept()))
+        pg.route("**/api/credentials", lambda r: r.fulfill(status=200, content_type="application/json", body=_j.dumps({**pg.evaluate("window.__cw.status"), "ai": {"ready": True, "local": False, "label": "Pollinations (free)", "provider": "pollinations"}})))
+        pg.route("**/api/ask", lambda r: r.fulfill(status=200, content_type="application/json", body=_j.dumps({"answer": "A short summary.", "model": "openai"})))
+        pg.evaluate("window.__cw.status.ai.ready = false")
+        pg.click("#ai-sum")
+        pg.wait_for_selector(".ai-box")
+        self.assertIn("A short summary.", pg.inner_text("#ai-sum-out"))
+        self.assertTrue(any("Pollinations" in m for m in asked) and any("SUMMARY" in m for m in asked))
+        pg.click("[data-screen=guide]")                                           # Help works without a result too
+        self.assertEqual(pg.locator("#analysis-cards >> text=/^STEP/").count(), 4)
+        self.assertClean()
+
+    def test_28_report_bubbles_filter_the_posts(self):
+        import subprocess, sys, tempfile, os
+        out = tempfile.mkdtemp()
+        env = {**os.environ, "COORDWATCH_HOME": tempfile.mkdtemp(), "PYTHONPATH": os.path.join(os.path.dirname(__file__), "..")}
+        subprocess.run([sys.executable, "-m", "coordwatch", "run", "--topic", "Acme Bank", "--since", "2026-10-01", "--until", "2026-10-14", "--source", "demo", "--out", out], check=True, capture_output=True, env=env)
+        pg = self.open()
+        pg.goto("file://" + os.path.join(out, "report.html"))
+        total = pg.locator("#posts tbody tr:visible").count()
+        self.assertNotIn("A short summary anyone can read", pg.content())
+        for i in range(pg.locator(".bub").count()):
+            pg.locator(".bub").nth(i).click()
+            n = pg.locator("#posts tbody tr:visible").count()
+            self.assertTrue(0 < n < total, f"bubble {i}: {n} of {total}")
+            self.assertIn("selected", pg.inner_text("#pickmsg"))
+            pg.locator(".bub").nth(i).click()
+        self.assertEqual(pg.locator("#posts tbody tr:visible").count(), total)
+
     def test_15_keyboard_access(self):
         pg = self.open()
         pg.focus("#sb-toggle")

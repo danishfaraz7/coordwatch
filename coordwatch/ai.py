@@ -185,6 +185,7 @@ PRESETS = {
     "mistral": {"label": "Mistral (free tier)", "base": "https://api.mistral.ai/v1", "needs_key": True, "hint": "console.mistral.ai"},
     "cerebras": {"label": "Cerebras (free tier)", "base": "https://api.cerebras.ai/v1", "needs_key": True, "hint": "cloud.cerebras.ai"},
     "xai": {"label": "xAI Grok (paid)", "base": "https://api.x.ai/v1", "needs_key": True, "hint": "console.x.ai"},
+    "pollinations": {"label": "Pollinations (free, no login or key · data goes to a third party)", "base": "https://text.pollinations.ai/openai", "needs_key": False, "hint": "no signup; about 1 request per 15 s; the service may be slow or change"},
     "ollama": {"label": "Ollama (local, private, no key)", "base": "http://localhost:11434/v1", "needs_key": False, "hint": "ollama.com - run `ollama pull <model>` first"},
     "custom": {"label": "Custom OpenAI-compatible endpoint", "base": "", "needs_key": True, "hint": "any server with /v1/chat/completions"},
 }
@@ -199,7 +200,7 @@ def current_config() -> dict:
     p = PRESETS[prov]
     base = (S.get("AI_BASE_URL") or p.get("base") or "").strip()
     key = S.get("GEMINI_API_KEY") if prov == "gemini" else S.get("AI_API_KEY")
-    model = (S.get("AI_MODEL") or "").strip()
+    model = (S.get("AI_MODEL") or "").strip() or ("openai" if prov == "pollinations" else "")
     ready = bool(key) if prov == "gemini" else bool(base) and (bool(key) or not p["needs_key"])
     local = prov == "ollama" or base.startswith(("http://localhost", "http://127.0.0.1"))
     return {"provider": prov, "label": p["label"], "base": base, "key": key, "model": model, "ready": ready, "local": local}

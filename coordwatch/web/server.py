@@ -265,6 +265,15 @@ class Handler(BaseHTTPRequestHandler):
             raise ValueError(f"Body too large (limit {limit // (1024 * 1024)} MB).")
         return self.rfile.read(n)
 
+    def _result_for(self, job_id: str):
+        j = JOBS.get(job_id)
+        if j and j.result:
+            return j.result
+        d = run_dir(job_id) if re.fullmatch(r"[a-f0-9]+", job_id or "") else None
+        if d and (d / "results.json").is_file():
+            return json.loads((d / "results.json").read_text(encoding="utf-8"))
+        return None
+
     # ---------------------------------------------------------------- routes
     def do_GET(self):
         if not self._guard(False):
@@ -310,6 +319,24 @@ class Handler(BaseHTTPRequestHandler):
             shown = j.status if (j.log_written or j.status in ("queued", "running")) else "running"
             return self._json(200, {"id": j.id, "status": shown, "log": j.logs, "error": j.error, "elapsed": round(time.time() - j.t0, 1),
                                     "summary": j.result["meta"] if j.result else None})
+        if path == "/api/search":
+            q = parse_qs(urlparse(self.path).query)
+            text = (q.get("q") or [""])[0].strip()[:300]
+            if not text:
+                return self._json(400, {"error": "type something to search for"})
+            from ..search import search
+            job_id = (q.get("job") or [""])[0]
+            if job_id != "all":
+                return self._json(200, search(self._result_for(job_id) or {}, text))
+            hits = []                                                       # application-wide: every saved run, newest first
+            for r in list_runs()[:15]:
+                res = self._result_for(r["id"])
+                if res:
+                    out = search(res, text, limit=5)
+                    if out["posts"] or out["groups"] or out["narratives"]:
+                        hits.append({"run": {k: r.get(k) for k in ("id", "topic", "since", "until", "n_posts")}, "understood": out["understood"], "total_posts": out["total_posts"],
+                                     "posts": out["posts"], "narratives": out["narratives"], "groups": out["groups"]})
+            return self._json(200, {"query": text, "runs": hits})
         m = re.fullmatch(r"/api/jobs/([a-f0-9]+)/result", path)
         if m:
             j = JOBS.get(m.group(1))

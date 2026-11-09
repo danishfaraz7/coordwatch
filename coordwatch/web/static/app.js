@@ -798,6 +798,7 @@ const runDate = r => r.started ? new Date(r.started).toLocaleDateString() : '';
 const runItem = (r, i, long) => '<button class="recent-item" data-run="' + esc(r.id) + '"><span class="recent-icon">✥</span><span><b>' + esc(r.topic || 'Untitled') + '</b><small>' + esc(runDate(r)) + ' · ' + (r.n_posts || 0) + ' posts' + (long ? ' · ' + (r.n_narratives || 0) + ' themes' : '') + '</small></span><span class="recent-status">Open ›</span></button>';
 const wireRuns = el => el.querySelectorAll('[data-run]').forEach(b => b.onclick = () => openRun(b.dataset.run).catch(e => alert('Could not open this run: ' + e.message)));
 let activeScreen = 'home', wizardStep = 1;
+function goBack() { let p = navStack.pop(); while (p === activeScreen && navStack.length) p = navStack.pop(); setScreen(p && p !== activeScreen ? p : 'home', true); }
 function move(el, target) { if (el && target && el.parentElement !== target) target.appendChild(el); }
 function stashDates() { const t = $('#top'); ['#since', '#until'].forEach(q => { const e = document.querySelector(q); if (e) t.appendChild(e); }); }   // park the date pickers before a slot is rebuilt, or they would be destroyed with it
 function mountHomeInputs() {
@@ -811,10 +812,13 @@ function mountWizardInputs(step) {
   if(step===3){stashDates();const slot=$('#wizard-dates-slot');slot.innerHTML='';const a=document.createElement('label'),b=document.createElement('label');a.textContent='From';b.textContent='To';a.appendChild($('#since'));b.appendChild($('#until'));slot.append(a,b);}
   if(step===4){move($('#depth'),$('#wizard-advanced-slot'));move($('#dv').parentElement,$('#wizard-advanced-slot'));move($('#tgch'),$('#wizard-advanced-slot'));}
 }
-function setScreen(screen) {
+const navStack = [];
+function setScreen(screen, fromBack) {
+  if (!fromBack && activeScreen && activeScreen !== screen && !(navStack.length && navStack[navStack.length - 1] === activeScreen)) navStack.push(activeScreen);
+  if (navStack.length > 30) navStack.shift();
   const priorCards=$('#analysis-cards'); if(priorCards) priorCards.remove();
   activeScreen=screen;
-  const analysis=['overview','graph','narratives','groups','spread','cross','posts','exports','guide'].includes(screen);
+  const analysis=['overview','graph','narratives','groups','spread','cross','posts','exports','guide','search'].includes(screen);
   document.body.dataset.view=screen; setTimeout(syncChrome,0); document.body.classList.toggle('analysis',analysis&&!!st.res);
   document.querySelectorAll('.side-link[data-screen]').forEach(b=>b.classList.toggle('active',b.dataset.screen===screen));
   document.querySelectorAll('.app-screen').forEach(x=>x.classList.add('hidden'));
@@ -831,8 +835,8 @@ function setScreen(screen) {
     $('#wizard-view').classList.remove('hidden'); showWizardStep(1);
   } else if(screen==='investigations'){
     $('#investigations-view').classList.remove('hidden'); renderInvestigationList();
-  } else if(['overview','graph','narratives','groups','spread','cross','posts','exports','guide'].includes(screen)){
-    if(!st.res){setScreen('wizard');return;}
+  } else if(['overview','graph','narratives','groups','spread','cross','posts','exports','guide','search'].includes(screen)){
+    if(!st.res&&screen!=='guide'&&screen!=='search'){setScreen('wizard');return;}
     showAnalysisScreen(screen);
   }
 }
@@ -846,6 +850,7 @@ function showWizardStep(n){
   mountWizardInputs(wizardStep);
   if(wizardStep===4){$('#wizard-review').innerHTML='<div class="review-line"><b>Topic</b><span>'+esc($('#topic').value||'Not entered')+'</span></div><div class="review-line"><b>Platforms</b><span>'+[...st.sel].map(p=>esc(LABEL[p]||p)).join(', ')+'</span></div><div class="review-line"><b>Date range</b><span>'+esc($('#since').value)+' – '+esc($('#until').value)+'</span></div><div class="review-line"><b>Collection depth</b><span>'+esc($('#depth').value)+'</span></div>';}
 }
+$('#crumb-back').onclick=goBack;
 $('#wizard-back').onclick=()=>showWizardStep(wizardStep-1);
 $('#wizard-next').onclick=()=>{if(wizardStep===1&&!$('#topic').value.trim()){$('#topic').focus();return;}if(wizardStep===2&&!st.sel.size&&!Object.keys(st.uploads).length){alert('Choose at least one source or import a file.');return;}showWizardStep(wizardStep+1);};
 $('#wizard-launch').onclick=()=>{if(!$('#topic').value.trim())return showWizardStep(1);$('#run').click();};
@@ -874,7 +879,7 @@ function showAnalysisScreen(screen){
   if(screen!=='posts') $('#drawer').classList.add('hidden');
   $('#notes').classList.add('hidden');
   document.querySelectorAll('[data-analysis]').forEach(b=>b.classList.toggle('active',b.dataset.analysis===screen||(b.dataset.analysis==='timeline'&&screen==='spread')));$('#app-topbar').classList.add('hidden');$('#analysis-header').classList.remove('hidden');
-  $('#analysis-title').textContent=({overview:'Summary',graph:'Map',narratives:'What people are saying',groups:'Accounts that seem to work together',spread:'Where it started and how it spread',cross:'How YouTube and Telegram connect',posts:'All posts',exports:'Download your results',guide:'Help: how to use this in 4 steps'})[screen]||'Investigation';
+  $('#analysis-title').textContent=({overview:'Summary',graph:'Map',narratives:'What people are saying',groups:'Accounts that seem to work together',spread:'Where it started and how it spread',cross:'How YouTube and Telegram connect',posts:'All posts',exports:'Download your results',guide:'Help: how to use this in 4 steps',search:'Search everything'})[screen]||'Investigation';
   $('#analysis-subtitle').textContent=({overview:'A plain-words summary, posts per day and mentions of each search term, before you export anything.',cross:'Which Telegram posts and YouTube videos belong to the same discussion, and who moved first.',graph:'Explore the relationships between the topic, narratives and account groups.',narratives:'Select a theme to inspect its posts, accounts and timeline.',groups:'Review the signals behind accounts grouped together.',spread:'Earliest observed posts and cross-platform movement.',posts:'Search and filter the collected evidence.',exports:'Download the data and reports from this investigation.',guide:'Understand the graph and what the evidence can tell you.'})[screen]||'';
   $('#app-main').classList.add('analysis-active');
   if(screen==='graph'){const stale=$('#analysis-cards');if(stale)stale.remove();['#drawer','#notes'].forEach(s=>$(s).classList.add('hidden'));$('#panel').classList.toggle('hidden',!st.selected);$('#graph-tools').classList.remove('hidden');}
@@ -887,6 +892,7 @@ function showAnalysisScreen(screen){
   $('#exp-menu').classList.add('hidden');
   if(screen==='exports')renderAnalysisCards('exports');
   if(screen==='guide')renderAnalysisCards('guide');
+  if(screen==='search')renderAnalysisCards('search');
 }
 document.querySelectorAll('[data-analysis]').forEach(b=>b.addEventListener('click',()=>setScreen(b.dataset.analysis==='timeline'?'spread':b.dataset.analysis)));
 // Telegram <-> YouTube mapping: per discussion theme, the first post on each platform, plus Telegram posts that link to collected videos
@@ -956,7 +962,7 @@ function bottomLine() {
   const a = '<b>' + m.n_posts.toLocaleString() + '</b> posts from <b>' + m.n_accounts.toLocaleString() + '</b> accounts talked about “' + esc(m.topic) + '”. We found <b>' + m.n_narratives + '</b> main ' + (m.n_narratives === 1 ? 'story' : 'stories') + ' people are telling. ';
   const b = gs.length ? 'We also spotted <b>' + gs.length + '</b> ' + (gs.length === 1 ? 'group' : 'groups') + ' of accounts that behave like a team (for example posting the same words at the same time). That is a clue worth a closer look, not proof that anything is fake.'
     : 'We did not find accounts that clearly work together as a team.';
-  return '<div class="analysis-card xp-card wide bottom-line"><small>THE SHORT ANSWER</small><p class="bl-text">' + a + b + '</p></div>';
+  return '<div class="analysis-card xp-card wide bottom-line"><small>THE SHORT ANSWER</small><p class="bl-text">' + a + b + '</p><button type="button" class="pill" id="ai-sum" title="Optional. Sends a short summary (not every post) to an AI service and shows its plain-English summary.">✦ Also get a short AI summary (optional)</button><div id="ai-sum-out"></div></div>';
 }
 function nextSteps() {
   const b = (go, t, d) => '<button class="xp-go next-btn" data-go="' + go + '"><b>' + t + '</b><span>' + d + '</span></button>';
@@ -976,6 +982,56 @@ const FILES = [['report.html', 'Report you can read and share', 'One web page wi
   ['coordinated_groups.csv', 'Accounts working together (spreadsheet)', 'Each group and the reason it was flagged.'], ['origins.csv', 'Where each story started (spreadsheet)', 'The first accounts and posts.'],
   ['cross_platform.csv', 'YouTube and Telegram links (spreadsheet)', 'Which posts on the two sites belong together.'], ['volume_by_platform.csv', 'Posts per site (spreadsheet)', 'Volume per platform over time.'],
   ['results.json', 'Everything, for programmers (JSON)', 'The full data in one file for other tools.'], ['overview.json', 'Summary data, for programmers (JSON)', 'The dashboard numbers in one file.'], ['run_log.txt', 'Technical log', 'Only needed if something went wrong.']];
+
+// ---- optional AI summary: only a compact summary leaves this computer, never the raw posts; always asks first ----
+async function aiSummary() {
+  const out = $('#ai-sum-out'); let ai = st.status.ai;
+  if (!ai.ready) {
+    if (!confirm('No AI service is set up yet.\n\nUse the free no-login service Pollinations?\n\nIt is a third party. It needs no account or key, is slow, and may stop working. You can change this in Settings → AI.')) return;
+    try { st.status = await api('/api/credentials', {method: 'POST', body: JSON.stringify({AI_PROVIDER: 'pollinations', AI_MODEL: '', AI_BASE_URL: ''})}); ai = st.status.ai; }
+    catch (e) { out.innerHTML = '<p class="mut small">Could not switch: ' + esc(e.message) + '</p>'; return; }
+  }
+  if (!ai.local && !confirm('Send a SUMMARY of this run to ' + ai.label.split(' (')[0] + '?\n\nIt contains counts, story keywords, group reasons, about 8 short quotes and the public names of the busiest accounts. It does not contain all posts.')) return;
+  out.innerHTML = '<p class="mut small">✦ Asking ' + esc(ai.label.split(' (')[0]) + '… free services can take up to a minute.</p>';
+  try {
+    const r = await api('/api/ask', {method: 'POST', body: JSON.stringify({ai: true, job_id: st.jobId, question: 'Write a short summary in very simple words (max 5 sentences) that a non-technical person can understand: what people are talking about, which story is biggest, whether any accounts seem to act together, and where it started. Say clearly that coordination is a clue, not proof.'})});
+    out.innerHTML = '<div class="ai-box"><span class="badge b-warn">✦ AI-generated · ' + esc(r.model) + ' · may be wrong</span><p style="white-space:pre-wrap">' + esc(r.answer) + '</p></div>';
+  } catch (e) { out.innerHTML = '<p class="mut small">The AI service did not answer (' + esc(e.message) + '). The summary above is still correct. It was built locally.</p>'; }
+}
+// ---- search everything (natural language, local) ----
+let lastSearch = {q: '', scope: 'run'};
+function searchCards() {
+  return '<div class="analysis-card xp-card wide"><small>ASK IN PLAIN WORDS</small><form id="sform" class="sform"><input id="sq" placeholder="e.g. who posted first about refunds · most liked youtube posts · coordinated groups · telegram 7 nov" aria-label="Search" autocomplete="off" value="' + esc(lastSearch.q) + '">' +
+    '<select id="sscope" aria-label="Where to search"><option value="run"' + (lastSearch.scope === 'run' ? ' selected' : '') + '>This search</option><option value="all"' + (lastSearch.scope === 'all' ? ' selected' : '') + '>All my saved searches</option></select><button class="xp-go" type="submit">Search</button></form>' +
+    '<p class="mut small">It understands sites (YouTube, Telegram, X), dates (7 Nov, 2026-11-07, yesterday), “first”, “latest”, “most liked”, and small typing mistakes.</p></div><div id="sr-out" class="wide"></div>';
+}
+function srPost(p) { return '<div class="sr-post"><b>' + esc(LABEL[p.platform] || p.platform) + '</b> · ' + esc(p.author_name || '') + ' · <small>' + esc(fmtDT(p.created_at)) + ' UTC</small><p>' + esc((p.text || '').replace(/\s+/g, ' ').slice(0, 220)) + '</p>' + (p.url ? '<a href="' + esc(p.url) + '" target="_blank" rel="noopener">Open post ↗</a>' : '') + '</div>'; }
+function srSide(o) {
+  return (o.narratives && o.narratives.length ? '<h4>Stories that match</h4>' + o.narratives.map(n => '<button class="xp-go" data-nar="' + n.id + '">' + esc(n.label) + ' · ' + n.posts + ' posts</button>').join(' ') : '') +
+    (o.groups && o.groups.length ? '<h4>Account groups that match</h4>' + o.groups.map(g => '<div><button class="xp-go" data-grp="' + esc(g.id) + '">' + esc(g.id) + ' · ' + g.size + ' accounts</button> <small>' + esc(simple(g.reasons[0] || '')) + '</small></div>').join('') : '');
+}
+function wireSearch() {
+  const f = $('#sform'); if (!f) return;
+  const run = async () => {
+    const q = $('#sq').value.trim(), scope = $('#sscope').value, out = $('#sr-out'); lastSearch = {q, scope}; if (!q) return;
+    if (scope === 'run' && !st.jobId) { out.innerHTML = '<div class="analysis-card xp-card wide"><p>Open or run a search first, or choose “All my saved searches”.</p></div>'; return; }
+    out.innerHTML = '<p class="mut small">Searching…</p>';
+    try {
+      const d = await api('/api/search?q=' + encodeURIComponent(q) + '&job=' + (scope === 'all' ? 'all' : st.jobId));
+      let h;
+      if (scope === 'all') h = d.runs.length ? d.runs.map(r => '<div class="analysis-card xp-card wide"><small>' + esc(r.run.since || '') + ' → ' + esc(r.run.until || '') + '</small><h3>' + esc(r.run.topic) + '</h3><p class="mut small">' + esc(r.understood) + ' · ' + r.total_posts + ' posts</p>' + r.posts.slice(0, 3).map(srPost).join('') + '<button class="xp-go" data-run="' + esc(r.run.id) + '">Open this search →</button></div>').join('') : '<div class="analysis-card xp-card wide"><h3>Nothing found</h3><p>No saved search matches. Try fewer or different words.</p></div>';
+      else h = '<div class="analysis-card xp-card wide"><p><b>' + esc(d.understood) + '</b> · ' + d.total_posts + ' matching posts' + (d.total_posts > d.posts.length ? ' (showing ' + d.posts.length + ')' : '') + '</p>' + srSide(d) +
+        (d.origins.length ? '<h4>Where the matching stories started</h4>' + d.origins.map(o => '<p>' + esc(o.label) + ': first post by ' + esc(o.first_post.author_name || o.first_post.account || '') + ' on ' + esc(LABEL[o.first_post.platform] || o.first_post.platform) + ' at ' + esc(fmtDT(o.first_post.at)) + ' UTC</p>').join('') : '') +
+        (d.posts.length ? '<h4>Posts</h4>' + d.posts.map(srPost).join('') : '<p>No posts match. Try fewer words or check the spelling.</p>') + '</div>';
+      out.innerHTML = h;
+      out.querySelectorAll('[data-nar]').forEach(b => b.onclick = () => { setScreen('graph'); const n = st.scene.byNar.get(+b.dataset.nar); if (n) select(n); });
+      out.querySelectorAll('[data-grp]').forEach(b => b.onclick = () => { setScreen('graph'); const n = st.scene.nodes.find(x => x.kind === 'grp' && x.id === b.dataset.grp); if (n) select(n); });
+      wireRuns(out);
+    } catch (e) { out.innerHTML = '<div class="analysis-card xp-card wide"><p>Search failed: ' + esc(e.message) + '</p></div>'; }
+  };
+  f.onsubmit = e => { e.preventDefault(); run(); };
+  if (lastSearch.q) run();
+}
 function exportCards() {
   if (!st.jobId || !st.res) return '<div class="analysis-card xp-card wide"><h3>Nothing to download yet</h3><p>Run a search first (Start a New Search), then come back here.</p></div>';
   return '<div class="xp-head wide"><h3>Pick a file to save</h3><p>Not sure? Click the first one. It opens in your browser and you can print or share it.</p></div>' +
@@ -1033,12 +1089,15 @@ function renderAnalysisCards(kind){
   if(kind==='cross')html+=crossCards();
   if(kind==='exports')html+=exportCards();
   if(kind==='guide')html+=guideCards();
+  if(kind==='search')html+=searchCards();
   if(kind==='overview')html+=overviewCards();
   if(kind==='narratives')html+=narrativeCards();
   if(kind==='groups')html+=groupCards();
   if(kind==='spread')html+=spreadCards();
   html+='</section>';let old=$('#analysis-cards');if(old)old.remove();$('#app-main').appendChild(document.createRange().createContextualFragment(html));
-  $('#analysis-cards').querySelectorAll('[data-go]').forEach(b=>b.onclick=()=>setScreen(b.dataset.go));
+  wireSearch();
+   const sum=$('#ai-sum'); if(sum) sum.onclick=aiSummary;
+   $('#analysis-cards').querySelectorAll('[data-go]').forEach(b=>b.onclick=()=>setScreen(b.dataset.go));
    $('#analysis-cards').querySelectorAll('[data-nmode]').forEach(b=>b.onclick=()=>{narMode=b.dataset.nmode;renderAnalysisCards('narratives');});
   $('#analysis-cards').querySelectorAll('[data-nar]').forEach(b=>b.onclick=()=>{setScreen('graph');const n=st.scene.byNar.get(+b.dataset.nar);if(n)select(n);});
   $('#analysis-cards').querySelectorAll('[data-grp]').forEach(b=>b.onclick=()=>{setScreen('graph');const n=st.scene.nodes.find(x=>x.kind==='grp'&&x.id===b.dataset.grp);if(n)select(n);});

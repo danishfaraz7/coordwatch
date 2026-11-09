@@ -464,3 +464,6 @@ Plain menu names with tooltips (Summary, Map, What People Say, Accounts Working 
 
 ### What's trending
 Under the topic box, **See what's trending** lists suggested terms for your dates from the open internet (Google Trends, Google News, GDELT), YouTube (popular videos about the top topics, via yt-dlp) and Telegram (the public channels you list). Each term has **Add to search** and **Copy**. Free, no keys; each source fails on its own with a plain note. `GET /api/trending?since=&until=&channels=`.
+
+### Search and AI summary
+**Search Everything** (sidebar) takes plain questions ("most liked youtube posts about refunds", "who posted first", "telegram 7 nov", "coordinated groups") and works across this run or all saved runs, locally and free (`coordwatch/search.py`, `GET /api/search`). The Summary page has an optional **short AI summary** button: it asks first, sends only a compact summary (never all posts), and can use the free no-login Pollinations service or any provider set in Settings → AI.

@@ -146,6 +146,20 @@ class WebTests(Base):
         finally:
             W.JOBS.update(saved)
 
+    def test_search_endpoint_single_run_and_all_runs(self):
+        jid = json.loads(self.call("POST", "/api/run", {"topic": "Acme Bank", "since": "2026-10-01", "until": "2026-10-14", "demo": True})[1])["id"]
+        self.assertEqual(self._wait(jid)["status"], "done")
+        for _ in range(50):
+            if any(r["id"] == jid for r in json.loads(self.call("GET", "/api/runs")[1])["runs"]):
+                break
+            time.sleep(0.1)
+        one = json.loads(self.call("GET", f"/api/search?job={jid}&q=most+liked+youtube+posts+about+savings")[1])
+        self.assertTrue(one["posts"] and all(p["platform"] == "youtube" for p in one["posts"]))
+        allr = json.loads(self.call("GET", "/api/search?job=all&q=savings")[1])
+        self.assertTrue(any(r["run"]["id"] == jid for r in allr["runs"]))
+        self.assertEqual(self.call("GET", "/api/search?job=all&q=")[0], 400)
+        self.assertEqual(json.loads(self.call("GET", "/api/search?job=zzz&q=savings")[1])["posts"], [])
+
     def test_live_platform_without_keys_degrades_gracefully(self):
         def unconfigured():
             raise RuntimeError("no credentials")

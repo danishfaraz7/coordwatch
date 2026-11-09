@@ -318,10 +318,10 @@ function cnt(el){var t=+el.dataset.count,s=performance.now();function f(n){var p
 if(!matchMedia('(prefers-reduced-motion: reduce)').matches)document.querySelectorAll('[data-count]').forEach(cnt);
 var f=document.getElementById('f'),rows=document.querySelectorAll('#posts tbody tr'),cur=null,cnt_el=document.getElementById('shown');
 function apply(){var q=f.value.toLowerCase(),n=0;rows.forEach(function(r){var ok=(!cur||r.dataset.n===cur)&&r.textContent.toLowerCase().indexOf(q)>=0;r.style.display=ok?'':'none';if(ok)n++});cnt_el.textContent=n;
-document.querySelectorAll('[data-n].bub,[data-n].nrow').forEach(function(b){b.classList.toggle('sel',b.dataset.n===cur)});document.getElementById('clr').style.display=cur?'':'none';document.getElementById('cur').textContent=cur?'narrative #'+cur:''}
-window.pick=function(n){cur=(cur===n)?null:n;apply();if(cur)document.getElementById('posts-tile').scrollIntoView({behavior:'smooth',block:'start'})};
+document.querySelectorAll('[data-n].bub,[data-n].nrow').forEach(function(b){b.classList.toggle('sel',b.dataset.n===cur)});document.getElementById('clr').style.display=cur?'':'none';document.getElementById('cur').textContent=cur?'narrative #'+cur:'';var pm=document.getElementById('pickmsg');if(pm)pm.innerHTML=cur?'<b>Narrative #'+cur+' selected.</b> '+n+' of its posts are listed in the Posts table. <a href="#posts-tile" style="color:inherit;text-decoration:underline">Jump to the posts ↓</a> · <a href="#" id=pclr style="color:inherit;text-decoration:underline">Clear</a>':'';var pc=document.getElementById('pclr');if(pc)pc.onclick=function(ev){ev.preventDefault();cur=null;apply()}}
+window.pick=function(n){cur=(cur===n)?null:n;apply();};
 document.querySelectorAll('[data-n].bub,[data-n].nrow').forEach(function(b){b.addEventListener('click',function(){pick(b.dataset.n)});b.addEventListener('keydown',function(ev){if(ev.key==='Enter')pick(b.dataset.n)})});
-f.addEventListener('input',apply);document.getElementById('clr').addEventListener('click',function(){cur=null;apply()});
+apply();f.addEventListener('input',apply);document.getElementById('clr').addEventListener('click',function(){cur=null;apply()});
 })();
 """
 
@@ -334,7 +334,7 @@ def overview_blocks(result: dict) -> dict:
         return {"top": "", "groups": "", "origins": ""}
     pl = ov["plain"]
     plats, terms, days = ov["platforms"], ov["terms"], ov["days"]
-    top = ["<div class='tile s12'><h2>In plain words</h2><p class=sub>A short summary anyone can read.</p><ul>" + "".join(f"<li>{e(x)}</li>" for x in pl["summary"]) + "</ul></div>"]
+    top = ["<div class='tile s12'><h2>In plain words</h2><ul>" + "".join(f"<li>{e(x)}</li>" for x in pl["summary"]) + "</ul></div>"]
     peak = max((d["total"] for d in days), default=1) or 1
     rows = "".join(f"<tr><td>{e(d['date'])}</td><td><div style='background:var(--cyan,#5ac8fa);height:8px;border-radius:4px;width:{d['total'] / peak * 100:.0f}%;min-width:{1 if d['total'] else 0}px'></div></td>"
                    f"<td><b>{d['total']:,}</b></td>" + "".join(f"<td>{d['by_platform'].get(k, 0):,}</td>" for k in plats) +
@@ -390,7 +390,7 @@ def render(result: dict, max_posts: int = 400) -> str:
              f"{streamgraph(result['volume']['by_platform'])}</div>")
 
     # --- narratives: bubbles + ranked list
-    h.append(f"<div class='tile s7'><h2>Narrative map</h2><p class=sub>Each bubble is a storyline. Click one to filter the posts below.</p>{bubble_map(nars)}</div>")
+    h.append(f"<div class='tile s7'><h2>Narrative map</h2><p class=sub>Each bubble is a storyline. Click one to filter the posts below.</p>{bubble_map(nars)}<p id=pickmsg class=sub role=status></p></div>")
     h.append("<div class='tile s5'><h2>Main narratives</h2><p class=sub>Ranked by volume</p><div class=nl>")
     for n in nars:
         if n["id"] < 0:
@@ -483,7 +483,16 @@ def render(result: dict, max_posts: int = 400) -> str:
     h.append(f"<div class='tile s12' id=posts-tile><h2>Posts</h2><p class=sub>Showing <b id=shown>{min(len(posts), max_posts)}</b> of {len(posts)} · full set in <code>posts.csv</code> / <code>results.json</code></p>"
              "<div class=tools><input id=f placeholder='filter posts…' aria-label='filter posts'><span class='badge b-warn' id=clr style='display:none;cursor:pointer'>✕ clear <span id=cur></span></span></div>"
              "<div class=tbl><table id=posts><thead><tr><th>Date (UTC)</th><th>Platform</th><th>Account</th><th>Text</th><th>Media</th><th>♥</th><th>↻</th><th>💬</th><th>Narr.</th><th>Group</th></tr></thead><tbody>")
-    for p in sorted(posts, key=lambda p: -p["engagement"])[:max_posts]:
+    by_eng = sorted(posts, key=lambda p: -p["engagement"])
+    shown_posts, seen_ids, per_n = [], set(), {}
+    for p in by_eng:                                                    # top posts overall, but never leave a narrative with an empty filter
+        if len(shown_posts) < max_posts:
+            shown_posts.append(p); seen_ids.add(id(p)); per_n[p["narrative_id"]] = per_n.get(p["narrative_id"], 0) + 1
+    for p in by_eng:
+        if id(p) not in seen_ids and per_n.get(p["narrative_id"], 0) < 25:
+            shown_posts.append(p); seen_ids.add(id(p)); per_n[p["narrative_id"]] = per_n.get(p["narrative_id"], 0) + 1
+    shown_posts.sort(key=lambda p: -p["engagement"])
+    for p in shown_posts:
         media = " ".join(f'<a href="{e(mm["url"])}" rel="noreferrer noopener">{e(mm["type"])}</a>' for mm in p["media"] if mm["url"].startswith("http"))
         when = e(p["created_at"][:16].replace("T", " "))
         link = f'<a href="{e(p["url"])}" rel="noreferrer noopener">{when}</a>' if p["url"].startswith("http") else when
