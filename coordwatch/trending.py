@@ -34,7 +34,7 @@ def terms_from(texts: List[tuple], top: int = 12) -> List[dict]:
     score, example = Counter(), {}
     for text, w in texts:
         found = set(t.lower() for t in _TAG.findall(text))
-        for m in _CAP.findall(text):
+        for m in _CAP.findall(_TAG.sub(' ', text)):
             m = re.sub(r"\s+", " ", m).strip(" .-&")
             words = m.split()
             if not words or len(m) < 4 or all(x.lower() in STOP for x in words) or (len(words) == 1 and words[0].lower() in STOP):
@@ -46,7 +46,7 @@ def terms_from(texts: List[tuple], top: int = 12) -> List[dict]:
             example.setdefault(key, (t if t.startswith("#") else t, text.strip()[:110]))
     out, seen = [], []
     for key, sc in score.most_common(80):
-        if any(key != o and (key in o or o in key) for o in seen):        # drop "India" when "India vs New Zealand" is already there
+        if not key.startswith('#') and any(key != o and (key in o or o in key) for o in seen if not o.startswith('#')):        # drop "India" when "India vs New Zealand" is already there
             continue
         seen.append(key)
         out.append({"term": example[key][0], "score": round(sc), "example": example[key][1], "kind": "hashtag" if key.startswith("#") else "phrase"})
