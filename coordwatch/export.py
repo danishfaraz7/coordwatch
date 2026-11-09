@@ -76,4 +76,38 @@ def export_all(result: dict, out_dir: str) -> list:
         with open(p, "w", encoding="utf-8") as f:
             f.write("\n".join("- " + x for x in cp["summary"]) + "\n")
         paths.append(p)
+    ov = result.get("overview")
+    if ov:
+        plats, terms = ov["platforms"], [t["term"] for t in ov["terms"]]
+        p = os.path.join(out_dir, "daily_counts.csv")
+        _w(p, [{"date": d["date"], "total_posts": d["total"], **{f"posts_{k}": d["by_platform"].get(k, 0) for k in plats},
+                **{f"mentions_{t}": d["by_term"].get(t, 0) for t in terms}} for d in ov["days"]],
+           ["date", "total_posts"] + [f"posts_{k}" for k in plats] + [f"mentions_{t}" for t in terms])
+        paths.append(p)
+        p = os.path.join(out_dir, "term_mentions.csv")
+        _w(p, [{"term": t["term"], "type": t["kind"], "posts": t["posts"], "share_of_all_posts": t["share"], "accounts": t["accounts"],
+                **{f"posts_{k}": t["by_platform"].get(k, 0) for k in plats}, "first_mention": t["first"], "last_mention": t["last"]} for t in ov["terms"]],
+           ["term", "type", "posts", "share_of_all_posts", "accounts"] + [f"posts_{k}" for k in plats] + ["first_mention", "last_mention"])
+        paths.append(p)
+        days = [d["date"] for d in ov["days"]]
+        p = os.path.join(out_dir, "narrative_by_day.csv")
+        _w(p, [{"narrative_id": n["id"], "label": n["label"], "total_posts": n["posts"], **{d: n["by_day"].get(d, 0) for d in days}} for n in ov["narratives"]],
+           ["narrative_id", "label", "total_posts"] + days)
+        paths.append(p)
+        p = os.path.join(out_dir, "narrative_by_term.csv")
+        _w(p, [{"narrative_id": n["id"], "label": n["label"], "total_posts": n["posts"], **{t: n["by_term"].get(t, 0) for t in terms}} for n in ov["narratives"]],
+           ["narrative_id", "label", "total_posts"] + terms)
+        paths.append(p)
+        p = os.path.join(out_dir, "plain_summary.txt")
+        pl = ov["plain"]
+        with open(p, "w", encoding="utf-8") as f:
+            f.write("SUMMARY IN SIMPLE WORDS\n" + "\n".join("- " + s for s in pl["summary"]) + "\n\nWHAT PEOPLE ARE SAYING (main stories)\n" +
+                    "\n".join(f"- #{n['id']} {n['label']}: {n['text']}" for n in pl["narratives"]) + "\n\nGROUPS OF ACCOUNTS THAT SEEM TO WORK TOGETHER\n" +
+                    ("\n".join(f"- {g['text']}" for g in pl["groups"]) or "- None found.") + "\n\nWHERE EACH STORY STARTED AND HOW IT SPREAD\n" +
+                    "\n".join(f"- #{o['narrative_id']} {o['label']}: {o['text']}" for o in pl["origins"]) + "\n")
+        paths.append(p)
+        p = os.path.join(out_dir, "overview.json")
+        with open(p, "w", encoding="utf-8") as f:
+            json.dump(ov, f, indent=2, ensure_ascii=False)
+        paths.append(p)
     return paths

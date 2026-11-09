@@ -326,6 +326,37 @@ f.addEventListener('input',apply);document.getElementById('clr').addEventListene
 """
 
 
+
+def overview_blocks(result: dict) -> dict:
+    """HTML tiles for the plain-language overview, daily counts, per-term mentions and narratives-by-day."""
+    ov = result.get("overview")
+    if not ov:
+        return {"top": "", "groups": "", "origins": ""}
+    pl = ov["plain"]
+    plats, terms, days = ov["platforms"], ov["terms"], ov["days"]
+    top = ["<div class='tile s12'><h2>In plain words</h2><p class=sub>A short summary anyone can read.</p><ul>" + "".join(f"<li>{e(x)}</li>" for x in pl["summary"]) + "</ul></div>"]
+    peak = max((d["total"] for d in days), default=1) or 1
+    rows = "".join(f"<tr><td>{e(d['date'])}</td><td><div style='background:var(--cyan,#5ac8fa);height:8px;border-radius:4px;width:{d['total'] / peak * 100:.0f}%;min-width:{1 if d['total'] else 0}px'></div></td>"
+                   f"<td><b>{d['total']:,}</b></td>" + "".join(f"<td>{d['by_platform'].get(k, 0):,}</td>" for k in plats) +
+                   "".join(f"<td>{d['by_term'].get(t['term'], 0):,}</td>" for t in terms) + "</tr>" for d in days)
+    top.append("<div class='tile s12'><h2>Posts per day</h2><p class=sub>How many posts were made on each day of the time frame, per platform, and how many mentioned each search term.</p><div class=tbl><table><thead><tr><th>Date</th><th></th><th>Posts</th>" +
+               "".join(f"<th>{e(k)}</th>" for k in plats) + "".join(f"<th>“{e(t['term'])}”</th>" for t in terms) + f"</tr></thead><tbody>{rows}</tbody></table></div></div>")
+    trows = "".join(f"<tr><td><b>{e(t['term'])}</b></td><td>{e(t['kind'])}</td><td><b>{t['posts']:,}</b></td><td>{t['share']:.0%}</td><td>{t['accounts']:,}</td>" +
+                    "".join(f"<td>{t['by_platform'].get(k, 0):,}</td>" for k in plats) + "</tr>" for t in terms)
+    top.append("<div class='tile s12'><h2>Mentions per keyword, hashtag, person, brand or event</h2><div class=tbl><table><thead><tr><th>Search term</th><th>Type</th><th>Posts</th><th>Share</th><th>Accounts</th>" +
+               "".join(f"<th>{e(k)}</th>" for k in plats) + f"</tr></thead><tbody>{trows}</tbody></table></div></div>")
+    nmax = max((v for n in ov["narratives"] for v in n["by_day"].values()), default=1) or 1
+    nrows = "".join(f"<tr><td style='white-space:nowrap'>#{n['id']} {e(n['label'])}</td><td><b>{n['posts']:,}</b></td>" +
+                    "".join(f"<td style='text-align:center;background:rgba(90,200,250,{0.08 + 0.7 * n['by_day'].get(d['date'], 0) / nmax if n['by_day'].get(d['date'], 0) else 0:.2f})'>{n['by_day'].get(d['date'], 0) or ''}</td>" for d in days) +
+                    "".join(f"<td>{n['by_term'].get(t['term'], 0):,}</td>" for t in terms) + "</tr>" for n in ov["narratives"])
+    top.append("<div class='tile s12'><h2>What is being said, day by day and term by term</h2><ul>" + "".join(f"<li><b>#{n['id']}</b> {e(n['text'])}</li>" for n in pl["narratives"]) +
+               "</ul><p class=sub>Posts per narrative on each date, then per search term.</p><div class=tbl><table><thead><tr><th>Narrative</th><th>Posts</th>" +
+               "".join(f"<th>{e(d['date'][5:])}</th>" for d in days) + "".join(f"<th>“{e(t['term'])}”</th>" for t in terms) + f"</tr></thead><tbody>{nrows}</tbody></table></div></div>")
+    groups = ("<div class='tile s12'><h2>Groups in simple words</h2><ul>" + ("".join(f"<li>{e(g['text'])}</li>" for g in pl["groups"]) or "<li>No group of accounts met the evidence thresholds.</li>") + "</ul></div>")
+    origins = ("<div class='tile s12'><h2>Where each story started, in simple words</h2><ul>" + "".join(f"<li><b>#{o['narrative_id']} {e(o['label'])}</b><br>{e(o['text'])}</li>" for o in pl["origins"][:12]) + "</ul></div>")
+    return {"top": "".join(top), "groups": groups, "origins": origins}
+
+
 def render(result: dict, max_posts: int = 400) -> str:
     m = result["meta"]
     nars, posts, groups, origins = result["narratives"], result["posts"], result["coordinated_groups"], result["origins"]
@@ -343,6 +374,7 @@ def render(result: dict, max_posts: int = 400) -> str:
         h.append(f"<div class=warn>⚠ {e(note)}</div>")
     h.append("</section><div class=bento>")
 
+    ovb = overview_blocks(result)
     # --- stat tiles
     h.append(f"<div class='tile s3 stat'><h2>Posts</h2><div class=big data-count={m['n_posts']}>{m['n_posts']}</div><div class=lbl>from {m['n_accounts']:,} accounts</div></div>")
     h.append(f"<div class='tile s3 stat'><h2>Narratives</h2><div class=big data-count={m['n_narratives']}>{m['n_narratives']}</div><div class=lbl>distinct storylines found</div></div>")
@@ -353,6 +385,7 @@ def render(result: dict, max_posts: int = 400) -> str:
              f"<div class=sh-d>{donut(plat_counts, 44)}<span class=muted>{len(plat_counts)} platform(s)</span></div></div></div>")
 
     # --- streamgraph
+    h.append(ovb["top"])
     h.append(f"<div class='tile s12'><h2>Volume over time</h2><p class=sub>Posts per {e(m['bucket'])}, stacked by platform — hover a column for exact counts.</p>"
              f"{streamgraph(result['volume']['by_platform'])}</div>")
 
@@ -371,6 +404,7 @@ def render(result: dict, max_posts: int = 400) -> str:
     h.append("</div></div>")
 
     # --- coordinated groups
+    h.append(ovb["groups"])
     h.append("<div class='tile s12'><h2>Accounts acting together</h2>")
     if not groups:
         h.append("<p class=sub>No group of accounts met the evidence thresholds for this topic and window.</p>")
@@ -413,6 +447,7 @@ def render(result: dict, max_posts: int = 400) -> str:
         h.append("</div>")
 
     # --- origins / spread
+    h.append(ovb["origins"])
     h.append("<div class='tile s12'><h2>Where each narrative started &amp; how it spread</h2><p class=sub>Glowing dots are the first appearance per platform; dashed arcs show the hop and its delay. Small bars show hourly volume after origin.</p>")
     top_orig = sorted(origins, key=lambda o: (o["seeding_group"] is None, -o["early_wave_coordinated_share"]))[:6]
     for o in top_orig:

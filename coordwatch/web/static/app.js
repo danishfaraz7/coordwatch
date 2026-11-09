@@ -339,7 +339,7 @@ function loadResult() {
     .map(([a, b, c]) => `<div><small>${a}</small><b>${b}${c}</b></div>`).join('');
   $('#exp-menu').innerHTML = ['report.html', 'results.json', 'posts.csv', 'narratives.csv', 'coordinated_groups.csv', 'origins.csv', 'cross_platform.csv', 'cross_platform_summary.txt', 'volume_by_platform.csv', 'run_log.txt']
     .map(f => `<a href="/api/jobs/${st.jobId}/download/${f}" ${f === 'report.html' ? 'target="_blank" rel="noopener"' : ''}>${f === 'report.html' ? '↗ Static report (HTML)' : '⭳ ' + f}</a>`).join('');
-  setScreen('graph'); fitCamera(); renderNotes(); fillPosts();
+  setScreen('overview'); fitCamera(); renderNotes(); fillPosts();
   $('#notes').classList.add('hidden');
   refreshRuns().then(renderHome);
 }
@@ -814,7 +814,7 @@ function mountWizardInputs(step) {
 function setScreen(screen) {
   const priorCards=$('#analysis-cards'); if(priorCards) priorCards.remove();
   activeScreen=screen;
-  const analysis=['graph','narratives','groups','spread','cross','posts','exports','guide'].includes(screen);
+  const analysis=['overview','graph','narratives','groups','spread','cross','posts','exports','guide'].includes(screen);
   document.body.dataset.view=screen; setTimeout(syncChrome,0); document.body.classList.toggle('analysis',analysis&&!!st.res);
   document.querySelectorAll('.side-link[data-screen]').forEach(b=>b.classList.toggle('active',b.dataset.screen===screen));
   document.querySelectorAll('.app-screen').forEach(x=>x.classList.add('hidden'));
@@ -831,7 +831,7 @@ function setScreen(screen) {
     $('#wizard-view').classList.remove('hidden'); showWizardStep(1);
   } else if(screen==='investigations'){
     $('#investigations-view').classList.remove('hidden'); renderInvestigationList();
-  } else if(['graph','narratives','groups','spread','cross','posts','exports','guide'].includes(screen)){
+  } else if(['overview','graph','narratives','groups','spread','cross','posts','exports','guide'].includes(screen)){
     if(!st.res){setScreen('wizard');return;}
     showAnalysisScreen(screen);
   }
@@ -874,11 +874,12 @@ function showAnalysisScreen(screen){
   if(screen!=='posts') $('#drawer').classList.add('hidden');
   $('#notes').classList.add('hidden');
   document.querySelectorAll('[data-analysis]').forEach(b=>b.classList.toggle('active',b.dataset.analysis===screen||(b.dataset.analysis==='timeline'&&screen==='spread')));$('#app-topbar').classList.add('hidden');$('#analysis-header').classList.remove('hidden');
-  $('#analysis-title').textContent=({graph:'Constellation',narratives:'Discussion themes',groups:'Accounts acting together',spread:'How the discussion spread',cross:'Cross-platform map',posts:'Posts Explorer',exports:'Exports',guide:'Help & Guide'})[screen]||'Investigation';
-  $('#analysis-subtitle').textContent=({cross:'Which Telegram posts and YouTube videos belong to the same discussion, and who moved first.',graph:'Explore the relationships between the topic, narratives and account groups.',narratives:'Select a theme to inspect its posts, accounts and timeline.',groups:'Review the signals behind accounts grouped together.',spread:'Earliest observed posts and cross-platform movement.',posts:'Search and filter the collected evidence.',exports:'Download the data and reports from this investigation.',guide:'Understand the graph and what the evidence can tell you.'})[screen]||'';
+  $('#analysis-title').textContent=({overview:'Dashboard',graph:'Constellation',narratives:'Discussion themes',groups:'Accounts acting together',spread:'How the discussion spread',cross:'Cross-platform map',posts:'Posts Explorer',exports:'Exports',guide:'Help & Guide'})[screen]||'Investigation';
+  $('#analysis-subtitle').textContent=({overview:'A plain-words summary, posts per day and mentions of each search term, before you export anything.',cross:'Which Telegram posts and YouTube videos belong to the same discussion, and who moved first.',graph:'Explore the relationships between the topic, narratives and account groups.',narratives:'Select a theme to inspect its posts, accounts and timeline.',groups:'Review the signals behind accounts grouped together.',spread:'Earliest observed posts and cross-platform movement.',posts:'Search and filter the collected evidence.',exports:'Download the data and reports from this investigation.',guide:'Understand the graph and what the evidence can tell you.'})[screen]||'';
   $('#app-main').classList.add('analysis-active');
   if(screen==='graph'){const stale=$('#analysis-cards');if(stale)stale.remove();['#drawer','#notes'].forEach(s=>$(s).classList.add('hidden'));$('#panel').classList.toggle('hidden',!st.selected);$('#graph-tools').classList.remove('hidden');}
   if(screen==='posts'){openPosts('');}
+  if(screen==='overview')renderAnalysisCards('overview');
   if(screen==='narratives')renderAnalysisCards('narratives');
   if(screen==='groups')renderAnalysisCards('groups');
   if(screen==='spread')renderAnalysisCards('spread');
@@ -918,13 +919,72 @@ function crossCards() {
   if (copies.length) html += '<div class="analysis-card xp-card"><small>COPIED TEXT</small><h3>Near-identical posts across platforms</h3><p>' + copies.map(x => x.posts + ' posts on ' + x.platforms.map(p => LABEL[p] || p).join(' + ')).map(esc).join(' · ') + '</p></div>';
   return html;
 }
+// ------------------------------------------------------------------ dashboard: summary, per-day counts, mentions per term
+const NO_OV = '<div class="analysis-card xp-card wide"><h3>No overview in this run</h3><p>This run was saved before the overview existed. Start the search again to get it.</p></div>';
+const plainOf = (list, key, id) => ((list || []).find(x => x[key] === id) || {}).text || '';
+function dayBars(days, plats) {
+  if (!days.length) return '';
+  const W = 720, H = 130, bw = W / days.length, mx = Math.max(...days.map(d => d.total), 1);
+  let g = '', lab = '';
+  days.forEach((d, i) => {
+    let y = H;
+    plats.forEach(p => { const v = d.by_platform[p] || 0; if (!v) return; const h = (H - 6) * v / mx; y -= h; g += '<rect x="' + (i * bw + 1).toFixed(1) + '" y="' + y.toFixed(1) + '" width="' + Math.max(bw - 2, 1).toFixed(1) + '" height="' + h.toFixed(1) + '" rx="2" fill="' + pcol(p) + '"><title>' + esc(d.date) + ' · ' + esc(LABEL[p] || p) + ': ' + v + '</title></rect>'; });
+    if (days.length <= 16 || i % Math.ceil(days.length / 12) === 0) lab += '<text x="' + (i * bw + bw / 2).toFixed(1) + '" y="' + (H + 14) + '" text-anchor="middle" font-size="9" fill="#9fb0c8">' + esc(d.date.slice(5)) + '</text>';
+  });
+  return '<svg viewBox="0 0 ' + W + ' ' + (H + 20) + '" style="width:100%;max-height:230px" role="img" aria-label="Posts per day">' + g + lab + '</svg><div class="xp-legend">' + plats.map(p => '<span><i style="background:' + pcol(p) + '"></i>' + esc(LABEL[p] || p) + '</span>').join('') + '</div>';
+}
+function spark(by, color) {
+  const v = Object.values(by), mx = Math.max(...v, 1), w = 160, h = 34, bw = w / Math.max(v.length, 1);
+  return '<svg viewBox="0 0 ' + w + ' ' + h + '" style="width:100%;height:34px">' + v.map((x, i) => '<rect x="' + (i * bw + .5).toFixed(1) + '" y="' + (h - 1 - (h - 3) * x / mx).toFixed(1) + '" width="' + Math.max(bw - 1, 1).toFixed(1) + '" height="' + Math.max((h - 3) * x / mx, x ? 1 : 0).toFixed(1) + '" fill="' + color + '"/>').join('') + '</svg>';
+}
+function heatTable(rowsHtml, head) { return '<div class="xp-scroll"><table class="xp-table"><thead><tr>' + head + '</tr></thead><tbody>' + rowsHtml + '</tbody></table></div>'; }
+function overviewCards() {
+  const ov = st.res.overview; if (!ov) return NO_OV;
+  let h = '<div class="analysis-card xp-card wide"><small>IN SIMPLE WORDS</small><h3>' + esc(st.res.meta.topic) + '</h3><ul class="plain-list">' + ov.plain.summary.map(x => '<li>' + esc(x) + '</li>').join('') + '</ul></div>';
+  h += '<div class="analysis-card xp-card wide"><small>POSTS PER DAY</small><h3>How many posts were made on each day</h3>' + dayBars(ov.days, ov.platforms) +
+    '<details><summary>Show the numbers</summary>' + heatTable(ov.days.map(d => '<tr><td>' + esc(d.date) + '</td><td><b>' + d.total.toLocaleString() + '</b></td>' + ov.platforms.map(p => '<td>' + (d.by_platform[p] || 0) + '</td>').join('') + ov.terms.map(t => '<td>' + (d.by_term[t.term] || 0) + '</td>').join('') + '</tr>').join(''),
+      '<th>Date</th><th>Posts</th>' + ov.platforms.map(p => '<th>' + esc(LABEL[p] || p) + '</th>').join('') + ov.terms.map(t => '<th>“' + esc(t.term) + '”</th>').join('')) + '</details></div>';
+  h += '<div class="xp-head wide"><h3>Mentions of each keyword, hashtag, person, brand or event</h3><p>How many posts mention each term you searched for, and when.</p></div>';
+  h += ov.terms.map(t => '<div class="analysis-card xp-card"><small>' + esc(t.kind.toUpperCase()) + '</small><h3>' + esc(t.term) + '</h3><p><b class="big-n">' + t.posts.toLocaleString() + '</b> posts · ' + Math.round(t.share * 100) + '% of all · ' + t.accounts.toLocaleString() + ' accounts</p>' + spark(t.by_day, '#9a8cff') +
+    '<p>' + ov.platforms.map(p => esc(LABEL[p] || p) + ' ' + (t.by_platform[p] || 0)).join(' · ') + '</p></div>').join('');
+  return h;
+}
+let narMode = 'theme';
+function narrativeCards() {
+  const ov = st.res.overview, tabs = [['theme', 'By theme'], ['day', 'By date'], ['term', 'By keyword / hashtag / person / brand']];
+  let h = '<div class="xp-tabs wide">' + tabs.map(([k, l]) => '<button class="xp-tab' + (narMode === k ? ' on' : '') + '" data-nmode="' + k + '">' + l + '</button>').join('') + '</div>';
+  const nars = st.res.narratives.filter(n => n.id >= 0);
+  if (narMode === 'day' || narMode === 'term') {
+    if (!ov) return h + NO_OV;
+    const cols = narMode === 'day' ? ov.days.map(d => d.date) : ov.terms.map(t => t.term), get = (n, c) => narMode === 'day' ? n.by_day[c] || 0 : n.by_term[c] || 0;
+    const mx = Math.max(1, ...ov.narratives.flatMap(n => cols.map(c => get(n, c))));
+    return h + '<div class="analysis-card xp-card wide"><small>' + (narMode === 'day' ? 'POSTS PER THEME, DAY BY DAY' : 'POSTS PER THEME, TERM BY TERM') + '</small><h3>' + (narMode === 'day' ? 'What was being said on each date' : 'What is said about each keyword, hashtag, person, brand or event') + '</h3>' +
+      heatTable(ov.narratives.map(n => '<tr><th class="rowh"><button class="xp-link" data-nar="' + n.id + '">#' + n.id + ' ' + esc(title(n.label)) + '</button></th><td><b>' + n.posts + '</b></td>' + cols.map(c => { const v = get(n, c); return '<td style="background:rgba(154,140,255,' + (v ? (.12 + .7 * v / mx).toFixed(2) : 0) + ')">' + (v || '') + '</td>'; }).join('') + '</tr>').join(''),
+        '<th>Theme</th><th>Posts</th>' + cols.map(c => '<th>' + esc(narMode === 'day' ? c.slice(5) : '“' + c + '”') + '</th>').join('')) + '</div>';
+  }
+  return h + nars.map(n => '<div class="analysis-card xp-card"><small>DISCUSSION THEME #' + n.id + '</small><h3>' + esc(title(n.label)) + '</h3><p>' + esc(plainOf(ov && ov.plain.narratives, 'id', n.id) || (n.posts + ' posts · ' + n.accounts + ' accounts')) + '</p>' +
+    volChart(n.volume_by_platform) + '<p>' + Object.entries(n.platforms).map(([p, v]) => esc(LABEL[p] || p) + ' ' + v).join(' · ') + '</p><button class="xp-go" data-nar="' + n.id + '">Inspect theme in the constellation →</button></div>').join('');
+}
+function groupCards() {
+  const ov = st.res.overview, gs = st.res.coordinated_groups;
+  if (!gs.length) return '<div class="analysis-card xp-card wide"><h3>No groups found</h3><p>No set of accounts met the evidence thresholds for this topic and time frame.</p></div>';
+  return gs.map(g => '<div class="analysis-card xp-card"><small>GROUP ' + esc(g.id) + ' · ' + esc(g.confidence.toUpperCase()) + ' CONFIDENCE</small><h3>' + g.size + ' accounts · ' + g.posts + ' posts</h3><p>' + esc(plainOf(ov && ov.plain.groups, 'id', g.id)) + '</p>' +
+    '<p><b>The evidence:</b></p><ul class="plain-list">' + g.reasons.map(r => '<li>' + esc(r) + '</li>').join('') + '</ul><button class="xp-go" data-grp="' + esc(g.id) + '">Inspect signals →</button></div>').join('');
+}
+function spreadCards() {
+  const ov = st.res.overview;
+  return st.res.origins.map(o => '<div class="analysis-card xp-card wide"><small>THEME #' + o.narrative_id + '</small><h3>' + esc(o.label) + '</h3><p>' + esc(plainOf(ov && ov.plain.origins, 'narrative_id', o.narrative_id)) + '</p>' +
+    '<p class="small">First post: ' + esc(o.first_post.platform) + ' · ' + esc(fmtDT(o.first_post.at)) + ' UTC' + (o.first_post.url ? ' · <a href="' + esc(o.first_post.url) + '" target="_blank" rel="noopener">open ↗</a>' : '') + ' · ' + esc(o.verdict) + '</p><button class="xp-go" data-nar="' + o.narrative_id + '">Inspect timeline →</button></div>').join('');
+}
 function renderAnalysisCards(kind){
   let html='<section id="analysis-cards" class="analysis-cards">';
   if(kind==='cross')html+=crossCards();
-  if(kind==='narratives')html+=st.res.narratives.filter(n=>n.id>=0).map(n=>'<button class="analysis-card" data-nar="'+n.id+'"><small>DISCUSSION THEME #'+n.id+'</small><h3>'+esc(title(n.label))+'</h3><p>'+n.posts+' posts · '+n.accounts+' accounts · '+Math.round((n.coordinated_post_share||0)*100)+'% from flagged accounts</p><span>Inspect evidence →</span></button>').join('');
-  if(kind==='groups')html+=st.res.coordinated_groups.map(g=>'<button class="analysis-card" data-grp="'+esc(g.id)+'"><small>GROUP '+esc(g.id)+'</small><h3>'+g.size+' accounts · '+esc(g.confidence)+' confidence</h3><p>'+esc(g.reasons.slice(0,2).join(' · '))+'</p><span>Inspect signals →</span></button>').join('')||'<p>No account groups met the current evidence thresholds.</p>';
-  if(kind==='spread')html+=st.res.origins.map(o=>'<button class="analysis-card" data-nar="'+o.narrative_id+'"><small>THEME #'+o.narrative_id+'</small><h3>'+esc(o.label)+'</h3><p>First observed: '+esc(o.first_post.platform)+' · '+esc(fmtDT(o.first_post.at))+' UTC</p><p>'+esc(o.verdict)+'</p><span>Inspect timeline →</span></button>').join('');
+  if(kind==='overview')html+=overviewCards();
+  if(kind==='narratives')html+=narrativeCards();
+  if(kind==='groups')html+=groupCards();
+  if(kind==='spread')html+=spreadCards();
   html+='</section>';let old=$('#analysis-cards');if(old)old.remove();$('#app-main').appendChild(document.createRange().createContextualFragment(html));
+  $('#analysis-cards').querySelectorAll('[data-nmode]').forEach(b=>b.onclick=()=>{narMode=b.dataset.nmode;renderAnalysisCards('narratives');});
   $('#analysis-cards').querySelectorAll('[data-nar]').forEach(b=>b.onclick=()=>{setScreen('graph');const n=st.scene.byNar.get(+b.dataset.nar);if(n)select(n);});
   $('#analysis-cards').querySelectorAll('[data-grp]').forEach(b=>b.onclick=()=>{setScreen('graph');const n=st.scene.nodes.find(x=>x.kind==='grp'&&x.id===b.dataset.grp);if(n)select(n);});
 }

@@ -66,6 +66,22 @@ class ExpectedOutputs(unittest.TestCase):
         self.assertIn("first_account", self.rows("origins.csv")[0])
         self.assertIn("how it spread", self.html)
 
+    def test_6_dashboard_summary_daily_counts_terms_and_plain_words_are_exported(self):
+        ov = self.res["overview"]
+        self.assertEqual(len(ov["days"]), 14)
+        self.assertEqual(sum(d["total"] for d in ov["days"]), len(self.res["posts"]))
+        self.assertEqual(ov["terms"][0]["posts"], len(self.res["posts"]))                 # every demo post mentions "acme bank"
+        self.assertTrue(ov["plain"]["summary"] and ov["plain"]["narratives"] and ov["plain"]["groups"] and ov["plain"]["origins"])
+        daily = self.rows("daily_counts.csv")
+        self.assertEqual(len(daily), 14)
+        self.assertIn("total_posts", daily[0])
+        self.assertTrue(self.rows("term_mentions.csv") and self.rows("narrative_by_day.csv") and self.rows("narrative_by_term.csv"))
+        txt = open(os.path.join(self.out, "plain_summary.txt"), encoding="utf-8").read()
+        for head in ("SUMMARY IN SIMPLE WORDS", "WHAT PEOPLE ARE SAYING", "GROUPS OF ACCOUNTS", "WHERE EACH STORY STARTED"):
+            self.assertIn(head, txt)
+        for h in ("In plain words", "Posts per day", "Mentions per keyword", "Groups in simple words", "Where each story started"):
+            self.assertIn(h, self.html)                                                   # also in the HTML report
+
     def test_5_exports_and_html_report(self):
         for f in ("results.json", "posts.csv", "narratives.csv", "coordinated_groups.csv", "origins.csv", "report.html"):
             self.assertTrue(os.path.getsize(os.path.join(self.out, f)) > 100, f)

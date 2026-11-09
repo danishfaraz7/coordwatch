@@ -78,9 +78,12 @@ class UiTests(unittest.TestCase):
         pg.wait_for_selector("#home-view:not(.hidden) #since", timeout=15000)
         return pg
 
-    def run_demo(self, pg):
+    def run_demo(self, pg, view="graph"):
         pg.click("#home-demo")
         pg.wait_for_selector("#analysis-header:not(.hidden)", timeout=30000)
+        pg.wait_for_selector("#analysis-cards", timeout=10000)                  # a finished run opens on the dashboard
+        if view != "overview":
+            pg.click(f"[data-screen={view}]")
         pg.wait_for_timeout(1500)
 
     def assertClean(self):
@@ -172,7 +175,7 @@ class UiTests(unittest.TestCase):
         pg = self.open()
         self.run_demo(pg)
         pg.click("[data-screen=narratives]")
-        pg.locator("#analysis-cards .analysis-card").first.click()
+        pg.locator("#analysis-cards [data-nar]").first.click()
         pg.wait_for_selector("#panel:not(.hidden)")
         self.assertGreater(len(pg.inner_text("#panel")), 50)
         self.assertTrue(pg.is_visible("#panel"))
@@ -206,7 +209,7 @@ class UiTests(unittest.TestCase):
             self._assert_no_overlaps(pg, pairs, f"{w}x{h} graph")
             # with the details panel open on the right
             pg.click("[data-screen=narratives]")
-            pg.locator("#analysis-cards .analysis-card").first.click()
+            pg.locator("#analysis-cards [data-nar]").first.click()
             pg.wait_for_selector("#panel:not(.hidden)")
             pairs2 = pairs + [("#panel", "#legend"), ("#panel", "#graph-tools"), ("#panel", "#dock"), ("#panel", "#analysis-header")]
             self._assert_no_overlaps(pg, pairs2, f"{w}x{h} graph+panel")
@@ -338,7 +341,7 @@ class UiTests(unittest.TestCase):
                 self._assert_no_overlaps(pg, [("#analysis-cards", "#analysis-header"), ("#drawer", "#analysis-header"), ("#analysis-cards", "#app-sidebar"), ("#drawer", "#app-sidebar")] if w > 720 else
                                          [("#analysis-cards", "#analysis-header"), ("#drawer", "#analysis-header")], f"{label} {screen}")
             pg.evaluate("document.querySelector('.side-link[data-screen=narratives]').click()")
-            pg.locator("#analysis-cards .analysis-card").first.click()
+            pg.locator("#analysis-cards [data-nar]").first.click()
             pg.wait_for_selector("#panel:not(.hidden)")
             self._fits(pg, chrome, label + " panel")
             self._assert_no_overlaps(pg, [("#panel", "#analysis-header"), ("#panel", "#graph-tools"), ("#panel", "#dock"), ("#panel", "#legend")] + ([("#panel", "#app-sidebar")] if w > 720 else []), label + " panel")
@@ -386,6 +389,48 @@ class UiTests(unittest.TestCase):
         pg.wait_for_selector("#boot", state="detached", timeout=15000)
         pg.wait_for_selector("#home-view:not(.hidden)")                                  # not shown again
         self.assertFalse(pg.is_visible("#landing-view"))
+
+    def test_20_dashboard_gives_the_summary_before_any_export(self):
+        pg = self.open()
+        self.run_demo(pg, view="overview")
+        self.assertEqual(pg.evaluate("document.body.dataset.view"), "overview")
+        text = pg.inner_text("#analysis-cards")
+        self.assertIn("IN SIMPLE WORDS", text)
+        self.assertIn("busiest day", text)                                       # posts per day, in words
+        self.assertIn("POSTS PER DAY", text)
+        self.assertGreater(pg.locator("#analysis-cards svg rect").count(), 10)     # the per-day chart
+        ndays = pg.evaluate("window.__cw.res.overview.days.length")
+        self.assertEqual(ndays, 14)                                                 # every day of the 1-14 Oct window, even empty ones
+        self.assertIn("MENTIONS", text.upper())
+        self.assertGreaterEqual(pg.locator("#analysis-cards .big-n").count(), 1)  # mentions per search term
+        self.assertClean()
+
+    def test_21_narratives_by_theme_date_and_term(self):
+        pg = self.open()
+        self.run_demo(pg)
+        pg.click("[data-screen=narratives]")
+        self.assertGreater(pg.locator("#analysis-cards .xp-card").count(), 3)
+        self.assertIn("posts from", pg.inner_text("#analysis-cards"))                  # plain-words description per theme
+        pg.click("[data-nmode=day]")
+        self.assertEqual(pg.locator("#analysis-cards table thead th").count(), 2 + 14)
+        pg.click("[data-nmode=term]")
+        self.assertGreaterEqual(pg.locator("#analysis-cards table thead th").count(), 3)
+        pg.click("[data-nmode=theme]")
+        self.assertGreater(pg.locator("#analysis-cards svg").count(), 3)               # volume chart per theme
+        self.assertClean()
+
+    def test_22_groups_and_origins_are_explained_in_simple_words(self):
+        pg = self.open()
+        self.run_demo(pg)
+        pg.click("[data-screen=groups]")
+        g = pg.inner_text("#analysis-cards")
+        self.assertIn("Why we think so", g)
+        self.assertIn("same or almost the same words", g)
+        pg.click("[data-screen=spread]")
+        o = pg.inner_text("#analysis-cards")
+        self.assertIn("first showed up on", o)
+        self.assertIn("After that it reached", o)
+        self.assertClean()
 
     def test_15_keyboard_access(self):
         pg = self.open()
