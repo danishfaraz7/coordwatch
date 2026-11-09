@@ -453,7 +453,8 @@ class Handler(BaseHTTPRequestHandler):
                     return self._json(502, {"error": str(e)})
                 activity.record("ai", run=job.id, question=question, provider=cfg.get("provider"), model=model, ok=True,
                                 seconds=round(time.time() - t0, 1), context_chars=len(str(ctx)), answer_chars=len(text), answer=text)
-                return self._json(200, {"answer": text, "model": model})
+                refs = ai.cited(text, ai.build_sources(job.result))
+                return self._json(200, {"answer": text, "model": model, "sources": refs})
             if url.path == "/api/run":
                 params = parse_run(json.loads(self._body(100_000) or b"{}"))
                 job = Job(params)

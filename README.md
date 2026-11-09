@@ -473,3 +473,9 @@ Under the topic box, **See what's trending** lists suggested terms for your date
 
 ### Stories, combined terms, AI
 Stories are numbered from 1 (Story 1 = the biggest). A topic with several plain terms (`Nvidia, Jensen Huang, Chinese spy`) is searched term by term **and** all together (one extra combined query for YouTube, Telegram and X), and the Summary lists an *all terms together* row (posts that mention every term). The AI summary buttons are one click with no pop-ups; if no AI is configured they use the free no-login Pollinations service. Only a compact summary of the run is sent, and the box says so.
+
+
+## Activity log, references and map upgrade
+- **Activity log**: every search, AI summary, trending lookup, download, settings change (key names only, never values) and run is written to `~/.coordwatch/activity.jsonl` and appended to Settings → Run logs, so one export shows what ran and what was looked up afterwards.
+- **References**: AI answers cite numbered source posts like [1]; a References list under the answer links to each post.
+- **Map**: platform-mix ring on every story, radar pulses, richer hover cards, a headline-insights strip, and an animated side panel (count-up tiles, platform donut, area chart with peak marker, most active accounts).

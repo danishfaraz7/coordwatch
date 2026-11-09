@@ -51,8 +51,8 @@ class AITests(unittest.TestCase):
     def test_context_is_a_summary_not_the_full_dataset(self):
         ctx = ai.build_context(RES)
         self.assertLess(len(ctx), 14000)
-        self.assertLess(ctx.count("example_quotes"), 2)
-        self.assertLessEqual(len(json.loads(ctx)["example_quotes"]), 8)
+        self.assertLess(ctx.count("\"sources\""), 2)
+        self.assertLessEqual(len(json.loads(ctx)["sources"]), 14)
         self.assertNotIn("avatar_hash", ctx)                          # no account metadata beyond aggregates
 
     def test_request_shape_key_in_header_and_injection_guard(self):
@@ -164,7 +164,9 @@ class AskEndpointTests(unittest.TestCase):
         orig = ai.ask
         try:
             ai.ask = lambda key, q, ctx, **kw: ("answer", "gemini-x")
-            self.assertEqual(self.post({"ai": True, "job_id": self.jid, "question": "hi"}), (200, {"answer": "answer", "model": "gemini-x"}))
+            code, body = self.post({"ai": True, "job_id": self.jid, "question": "hi"})
+            self.assertEqual((code, body["answer"], body["model"]), (200, "answer", "gemini-x"))
+            self.assertTrue(body["sources"] and body["sources"][0]["n"] == 1)      # references are always returned
             ai.ask = lambda *a, **k: (_ for _ in ()).throw(ai.AIError("Gemini free-tier rate limit reached"))
             code, body = self.post({"ai": True, "job_id": self.jid, "question": "hi"})
             self.assertEqual(code, 502)

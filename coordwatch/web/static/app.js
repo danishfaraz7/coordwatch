@@ -323,7 +323,7 @@ function buildScene(res) {
 function fitCamera() {
   const sc = st.scene; let m = 200; sc.nodes.forEach(n => { m = Math.max(m, Math.abs(n.x) + n.r + 90, (Math.abs(n.y) + n.r + 60) * 1.35); });
   const L = innerWidth <= 720 ? 8 : $('#app-sidebar').offsetWidth + 84, R = innerWidth <= 720 ? 8 : (st.selected ? 404 : 14);   // space taken by the menu + timeline and by the details panel
-  const avail = Math.min(W - L - R, (H - 190) * 1.5); st.cam.tk = clamp(avail / (2 * m), .35, 1.25); st.cam.tx = (L - R) / 2; st.cam.ty = -10;
+  const avail = Math.min(W - L - R, (H - 250) * 1.5); st.cam.tk = clamp(avail / (2 * m), .35, 1.25); st.cam.tx = (L - R) / 2; st.cam.ty = 28;
   st.cam.k = st.cam.tk * .6; st.cam.x = st.cam.tx; st.cam.y = st.cam.ty;
 }
 
@@ -339,7 +339,7 @@ function loadResult() {
     .map(([a, b, c]) => `<div><small>${a}</small><b>${b}${c}</b></div>`).join('');
   $('#exp-menu').innerHTML = ['report.html', 'results.json', 'posts.csv', 'narratives.csv', 'coordinated_groups.csv', 'origins.csv', 'cross_platform.csv', 'cross_platform_summary.txt', 'volume_by_platform.csv', 'run_log.txt', 'executive_report.pdf', 'plain_summary.txt', 'daily_counts.csv', 'term_mentions.csv', 'narrative_by_day.csv', 'narrative_by_term.csv', 'overview.json']
     .map(f => `<a href="/api/jobs/${st.jobId}/download/${f}" ${f === 'report.html' ? 'target="_blank" rel="noopener"' : ''}>${f === 'report.html' ? '↗ Static report (HTML)' : '⭳ ' + f}</a>`).join('');
-  setScreen('overview'); fitCamera(); renderNotes(); fillPosts();
+  setScreen('overview'); fitCamera(); renderNotes(); fillPosts(); renderInsights();
   $('#notes').classList.add('hidden');
   refreshRuns().then(renderHome); setRunNotices(res);
 }
@@ -435,6 +435,8 @@ function frame(now) {
       ctx.globalCompositeOperation = 'lighter'; glow(n.x, n.y, r * (hot ? 1.1 + .15 * Math.sin(T * 2.2 + n.id) : 1), col, hot ? .5 : .32); ctx.globalCompositeOperation = 'source-over';
       orb(n.x, n.y, r, hot ? '#ffb4a8' : '#ffc3d6', hot ? '#a8281d' : '#8d2c52');
       ctx.strokeStyle = rgba('#ffe9d6', .75); ctx.lineWidth = 1.4; ctx.beginPath(); ctx.arc(n.x, n.y, r + 3, 0, 7); ctx.stroke();
+      { const pl = n.d.platforms || {}, tot = Object.values(pl).reduce((a, b) => a + b, 0) || 1; let a0 = -Math.PI / 2 + T * .12; ctx.lineWidth = 3.4; ctx.lineCap = 'butt';
+        for (const [pn, v] of Object.entries(pl)) { const a1 = a0 + v / tot * 6.2832; ctx.strokeStyle = rgba(pcol(pn), .95); ctx.beginPath(); ctx.arc(n.x, n.y, r + 7, a0 + .05, Math.max(a0 + .06, a1 - .05)); ctx.stroke(); a0 = a1; } }
       if (hot) { ctx.setLineDash([3, 5]); ctx.lineDashOffset = -T * 8; ctx.strokeStyle = rgba(HOT, .8); ctx.beginPath(); ctx.arc(n.x, n.y, r + 9, 0, 7); ctx.stroke(); ctx.setLineDash([]); }
       const labelled = n.rank < 10 || hot || isSel || isHov || cam.k > 1.35 || related(n) && st.selected;
       if (!labelled) { txt('#' + n.id, n.x, n.y + 3.5, 10, 'rgba(255,255,255,.8)', 700, 'center'); } else {
@@ -452,6 +454,7 @@ function frame(now) {
   }
   // core
   { const c = sc.core, pulse = 1 + .04 * Math.sin(T * 1.6);
+    for (let k = 0; k < 3; k++) { const f = ((T * .16) + k / 3) % 1; ctx.strokeStyle = rgba(GOLD, .26 * (1 - f) * (1 - f)); ctx.lineWidth = 1.6; ctx.beginPath(); ctx.arc(0, 0, c.r + 16 + f * 360, 0, 7); ctx.stroke(); }
     ctx.globalCompositeOperation = 'lighter'; glow(0, 0, c.r * 1.6 * pulse, GOLD, .6); ctx.globalCompositeOperation = 'source-over';
     orb(0, 0, c.r, '#fff6dc', '#b9792a');
     for (let i = 0; i < 3; i++) { ctx.setLineDash([2 + i * 3, 4 + i * 2]); ctx.lineDashOffset = T * (6 + i * 3) * (i % 2 ? -1 : 1); ctx.strokeStyle = rgba('#ffe2a6', .75 - i * .18); ctx.lineWidth = 1.5; ctx.beginPath(); ctx.arc(0, 0, c.r + 7 + i * 7, 0, 7); ctx.stroke(); }
@@ -473,11 +476,19 @@ function hit(sx, sy) {
   }
   return null;
 }
+function narTip(n) {
+  const d = n.d, tot = Object.values(d.platforms).reduce((a, b) => a + b, 0) || 1, o = st.res.origins.find(x => x.narrative_id === d.id);
+  const top = st.scene.posts.filter(p => p.narrative_id === d.id).sort((a, b) => b.engagement - a.engagement)[0];
+  return `<div class="tip-h"><b>Story ${d.id}</b> ${esc(title(d.label))}</div><div class="tip-bar">${Object.entries(d.platforms).map(([p, v]) => `<i style="width:${v / tot * 100}%;background:${pcol(p)}"></i>`).join('')}</div>
+    <div class="tip-g"><span><b>${d.posts}</b> posts</span><span><b>${d.accounts}</b> accounts</span><span><b>${Math.round(n.share * 100)}%</b> coordinated</span><span><b>${d.engagement.toLocaleString()}</b> engagement</span></div>
+    ${o ? `<div class="mut">Started ${esc(fmtDT(o.first_post.at))} UTC on ${esc(LABEL[o.first_post.platform] || o.first_post.platform)}</div>` : ''}
+    ${top ? `<div class="tip-q">“${esc(short(top.text, 110))}”</div>` : ''}<div class="mut">Click to open</div>`;
+}
 cv.addEventListener('mousemove', e => {
   if (st.drag) { st.cam.tx = st.cam.x = st.drag.cx + e.clientX - st.drag.x; st.cam.ty = st.cam.y = st.drag.cy + e.clientY - st.drag.y; return; }
   const n = hit(e.clientX, e.clientY); st.hover = n; cv.classList.toggle('pt', !!n);
   const tip = $('#tip');
-  if (n) { tip.innerHTML = n.kind === 'nar' ? `<b>#${n.id}</b> ${esc(n.d.label)}<br><span class="mut">${n.d.posts} posts · ${n.d.accounts} accounts · ${Math.round(n.share * 100)}% coordinated</span>`
+  if (n) { tip.innerHTML = n.kind === 'nar' ? narTip(n)
       : n.kind === 'grp' ? `<b>${esc(n.id)}</b> coordinated group<br><span class="mut">${n.d.size} accounts · ${esc(n.d.confidence)} confidence</span>` : `<b>${esc(st.res.meta.topic)}</b><br><span class="mut">click for overview</span>`;
     tip.style.left = Math.min(e.clientX + 16, W - 300) + 'px'; tip.style.top = (e.clientY + 14) + 'px'; tip.classList.remove('hidden'); } else tip.classList.add('hidden');
 });
@@ -515,16 +526,66 @@ function crossHtml(c) {
   const rows = (c.narrative_overlap || []).slice(0, 5).map(o => `<li>#${o.narrative_id} ${esc(o.label)}: ${Object.entries(o.by_platform).map(([p, v]) => `${esc(LABEL[p] || p)} ${v}`).join(', ')} · first on ${esc(LABEL[o.first_platform] || o.first_platform)}</li>`).join('');
   return `<div class="sec"><h5>Cross-platform summary</h5>${c.summary.map(x => `<p class="small">${esc(x)}</p>`).join('')}${rows ? `<ul class="small st-list">${rows}</ul>` : ''}</div>`;
 }
+// ---- headline insights strip above the map, count-up numbers, animated charts
+function renderInsights() {
+  const sc = st.scene, res = st.res, el = $('#insights'); if (!sc || !el) return;
+  const chips = [], big = sc.nars[0];
+  if (big) chips.push({ic: '🔥', k: 'Biggest story', v: 'Story ' + big.id + ' · ' + big.posts + ' posts', nid: big.id});
+  const early = [...sc.nars].sort((a, b) => Date.parse(a.first_seen) - Date.parse(b.first_seen))[0];
+  if (early) chips.push({ic: '🕐', k: 'Started first', v: 'Story ' + early.id + ' · ' + fmtDT(early.first_seen).slice(5) + ' UTC', nid: early.id});
+  const hot = [...sc.nars].sort((a, b) => (b.coordinated_post_share || 0) - (a.coordinated_post_share || 0))[0];
+  chips.push(hot && hot.coordinated_post_share > 0 ? {ic: '🕸', k: 'Most coordinated', v: 'Story ' + hot.id + ' · ' + Math.round(hot.coordinated_post_share * 100) + '%', nid: hot.id} : {ic: '🌿', k: 'Coordination', v: 'none found · looks organic'});
+  const jump = res.origins.filter(o => o.platform_spread.length > 1).sort((a, b) => a.platform_spread[1].lag_minutes - b.platform_spread[1].lag_minutes)[0];
+  if (jump) chips.push({ic: '⚡', k: 'Fastest jump', v: 'Story ' + jump.narrative_id + ' → ' + (LABEL[jump.platform_spread[1].platform] || jump.platform_spread[1].platform) + ' in ' + fmtLag(jump.platform_spread[1].lag_minutes), nid: jump.narrative_id});
+  const day = {}; sc.posts.forEach(p => { const k = p.created_at.slice(0, 10); day[k] = (day[k] || 0) + 1; });
+  const pk = Object.entries(day).sort((a, b) => b[1] - a[1])[0]; if (pk) chips.push({ic: '📈', k: 'Busiest day', v: pk[0].slice(5) + ' · ' + pk[1] + ' posts'});
+  el.innerHTML = chips.map((c, i) => '<button type="button" class="ins" style="animation-delay:' + (i * 90) + 'ms"' + (c.nid ? ' data-nid="' + c.nid + '"' : ' tabindex="-1"') + '><i>' + c.ic + '</i><span><small>' + esc(c.k) + '</small><b>' + esc(c.v) + '</b></span></button>').join('');
+  el.querySelectorAll('[data-nid]').forEach(b => b.onclick = () => { const n = sc.byNar.get(+b.dataset.nid); if (n) select(n); });
+}
+function countUp(root) {
+  root.querySelectorAll('[data-count]').forEach(el => {
+    const to = +el.dataset.count, suf = el.dataset.suf || '', t0 = performance.now(), dur = 800;
+    const step = now => { const f = Math.min(1, (now - t0) / dur), e = 1 - Math.pow(1 - f, 3); el.textContent = Math.round(to * e).toLocaleString() + suf; if (f < 1) requestAnimationFrame(step); };
+    requestAnimationFrame(step);
+  });
+}
+function donut(map) {
+  const tot = Object.values(map).reduce((a, b) => a + b, 0) || 1, R = 38, C = 2 * Math.PI * R; let off = 0;
+  const arcs = Object.entries(map).map(([p, v]) => { const len = v / tot * C, a = '<circle cx="50" cy="50" r="' + R + '" fill="none" stroke="' + pcol(p) + '" stroke-width="11" stroke-dasharray="0 ' + C.toFixed(1) + '" stroke-dashoffset="' + (-off).toFixed(1) + '" transform="rotate(-90 50 50)" class="dn-arc" style="--len:' + len.toFixed(1) + ';--gap:' + (C - len).toFixed(1) + '"><title>' + esc(LABEL[p] || p) + ' ' + v + '</title></circle>'; off += len; return a; }).join('');
+  return '<div class="donut"><svg viewBox="0 0 100 100">' + arcs + '<text x="50" y="48" text-anchor="middle" class="dn-n">' + tot.toLocaleString() + '</text><text x="50" y="60" text-anchor="middle" class="dn-s">posts</text></svg><ul>' +
+    Object.entries(map).map(([p, v]) => '<li><i style="background:' + pcol(p) + '"></i>' + esc(LABEL[p] || p) + ' <b>' + v + '</b> <small>' + Math.round(v / tot * 100) + '%</small></li>').join('') + '</ul></div>';
+}
+function volArea(vbp) {
+  const buckets = [...new Set(Object.values(vbp).flatMap(o => Object.keys(o)))].sort(); if (buckets.length < 3) return volChart(vbp);
+  const plats = Object.keys(vbp), w = 340, h = 96, px = i => 6 + i * (w - 12) / (buckets.length - 1), tot = buckets.map(b => plats.reduce((s, p) => s + (vbp[p][b] || 0), 0)), mx = Math.max(...tot, 1), py = v => h - 14 - (h - 26) * v / mx;
+  const stack = buckets.map(() => 0); let paths = '';
+  plats.forEach(p => {
+    const top = buckets.map((b, i) => stack[i] + (vbp[p][b] || 0)), base = stack.slice();
+    const up = top.map((v, i) => (i ? 'L' : 'M') + px(i).toFixed(1) + ' ' + py(v).toFixed(1)).join(' '), dn = base.map((v, i) => 'L' + px(i).toFixed(1) + ' ' + py(v).toFixed(1)).reverse().join(' ');
+    paths += '<path d="' + up + ' ' + dn + ' Z" fill="' + pcol(p) + '" opacity=".55"/><path d="' + up + '" fill="none" stroke="' + pcol(p) + '" stroke-width="1.6" stroke-linejoin="round"/>';
+    top.forEach((v, i) => stack[i] = v);
+  });
+  const pi = tot.indexOf(mx), hit = buckets.map((b, i) => '<rect x="' + (px(i) - (w / buckets.length) / 2).toFixed(1) + '" y="0" width="' + (w / buckets.length).toFixed(1) + '" height="' + h + '" fill="transparent"><title>' + esc(b.slice(0, 13).replace('T', ' ')) + ' · ' + tot[i] + ' posts</title></rect>').join('');
+  return '<svg viewBox="0 0 ' + w + ' ' + h + '" class="area-reveal" style="width:100%"><line x1="6" x2="' + (w - 6) + '" y1="' + (h - 14) + '" y2="' + (h - 14) + '" stroke="#ffffff22"/>' + paths +
+    '<circle cx="' + px(pi).toFixed(1) + '" cy="' + py(mx).toFixed(1) + '" r="3.4" fill="#fff" class="peak"/><text x="' + Math.min(Math.max(px(pi), 34), w - 34).toFixed(1) + '" y="' + Math.max(py(mx) - 7, 9).toFixed(1) + '" text-anchor="middle" class="pk-t">peak ' + mx + '</text>' +
+    '<text x="6" y="' + (h - 2) + '" class="ax">' + esc(buckets[0].slice(5, 13).replace('T', ' ')) + '</text><text x="' + (w - 6) + '" y="' + (h - 2) + '" text-anchor="end" class="ax">' + esc(buckets[buckets.length - 1].slice(5, 13).replace('T', ' ')) + '</text>' + hit + '</svg>';
+}
+function statTile(n, label, suf, col) { return '<div class="stat tile" style="--c:' + col + '"><b data-count="' + n + '" data-suf="' + (suf || '') + '">0</b><small>' + label + '</small><span class="tile-glow"></span></div>'; }
+function topAccounts(n = 5) {
+  const agg = new Map(); st.scene.posts.forEach(p => { const k = p.platform + ':' + p.account; let a = agg.get(k); if (!a) agg.set(k, a = {name: p.author_name || p.account, platform: p.platform, account: p.account, n: 0, e: 0}); a.n++; a.e += p.engagement; });
+  const list = [...agg.values()].sort((a, b) => b.n - a.n || b.e - a.e).slice(0, n), mx = Math.max(1, ...list.map(a => a.n));
+  return list.map(a => '<div class="lb"><span>' + acctLink(a.platform, a.account, a.name) + '</span><div class="lb-b"><i style="width:' + (a.n / mx * 100) + '%;background:' + pcol(a.platform) + '"></i></div><em>' + a.n + '</em></div>').join('');
+}
 function showPanel(n) {
   if (st.panelNode !== n) { st.platPick = ''; st.panelNode = n; }
   const el = $('#panel'), res = st.res; let h = '<button class="x" aria-label="Close" id="p-x">✕</button>';
   if (n.kind === 'core') {
     const m = res.meta;
     h += `<div class="p-eye"><i style="background:${GOLD}"></i>Topic overview</div><h2>${esc(m.topic)}</h2>
-      <div class="stats"><div class="stat"><b>${m.n_posts}</b><small>posts</small></div><div class="stat"><b>${m.n_accounts}</b><small>accounts</small></div>
-      <div class="stat"><b>${m.n_narratives}</b><small>narratives</small></div><div class="stat"><b>${Math.round(m.coordinated_post_share * 100)}%</b><small>posts from coordinated accounts</small></div></div>
-      <div class="sec"><h5>Platforms</h5>${platBars(countBy(st.scene.posts, 'platform'), m.n_posts)}</div>
-      <div class="sec"><h5>Volume over time</h5>${volChart(res.volume.by_platform)}</div>
+      <div class="stats">${statTile(m.n_posts, 'posts', '', '#9fe8ff')}${statTile(m.n_accounts, 'accounts', '', '#c9b8ff')}${statTile(m.n_narratives, 'stories', '', '#ffc3d6')}${statTile(Math.round(m.coordinated_post_share * 100), 'posts from coordinated accounts', '%', '#ffd98a')}</div>
+      <div class="sec"><h5>Where the posts are</h5>${donut(countBy(st.scene.posts, 'platform'))}</div>
+      <div class="sec"><h5>Posts over time <small class="mut">hover for numbers</small></h5>${volArea(res.volume.by_platform)}</div>
+      <div class="sec"><h5>Most active accounts</h5>${topAccounts()}</div>
       ${crossHtml(res.cross_platform)}
       ${(m.collector_notes || []).map(x => `<div class="note"><b>Data note</b>${esc(x)}</div>`).join('')}`;
   } else if (n.kind === 'nar') {
@@ -532,9 +593,8 @@ function showPanel(n) {
     h += `<div class="p-eye"><i style="background:${hot ? HOT : PINK}"></i>Story ${d.id}</div><h2>${esc(title(d.label))}</h2>
       <span class="badge ${hot ? 'b-hot' : n.share > 0 ? 'b-warn' : 'b-ok'}">${hot ? 'Pushed by coordinated accounts' : n.share > 0 ? 'Partly coordinated' : 'Looks organic'}</span>
       <div class="sec"><h5>In short</h5><p class="nar-short">${esc(plainOf(res.overview && res.overview.plain.narratives, 'id', d.id) || '')}</p><button type="button" class="btn wide" id="nar-ai">✦ AI summary of this story</button><div id="nar-ai-out"></div></div>
-      <div class="stats"><div class="stat"><b>${d.posts}</b><small>posts</small></div><div class="stat"><b>${d.accounts}</b><small>accounts</small></div>
-      <div class="stat"><b>${Math.round(n.share * 100)}%</b><small>from coordinated accounts</small></div><div class="stat"><b>${d.engagement.toLocaleString()}</b><small>engagement</small></div></div>
-      <div class="sec"><h5>Volume (${esc(d.bucket)})</h5>${volChart(d.volume_by_platform)}</div><div class="sec"><h5>Platforms <small class="mut">click one to filter</small></h5>${platBars(d.platforms, d.posts, true)}</div>`;
+      <div class="stats">${statTile(d.posts, 'posts', '', '#9fe8ff')}${statTile(d.accounts, 'accounts', '', '#c9b8ff')}${statTile(Math.round(n.share * 100), 'from coordinated accounts', '%', hot ? '#ff9a90' : '#ffd98a')}${statTile(d.engagement, 'engagement', '', '#9ff0c9')}</div>
+      <div class="sec"><h5>Posts over time (${esc(d.bucket)})</h5>${volArea(d.volume_by_platform)}</div><div class="sec"><h5>Platforms <small class="mut">click one to filter</small></h5>${platBars(d.platforms, d.posts, true)}</div>`;
     if (o) {
       h += `<div class="sec"><h5>Where it started</h5><div class="note ${o.seeding_group ? 'crit' : ''}"><b>${esc(o.verdict)}</b>First seen ${esc(fmtDT(o.first_post.at))} UTC on ${esc(LABEL[o.first_post.platform] || o.first_post.platform)} by ${acctLink(o.first_post.platform, o.first_post.account, o.first_post.name)}.${/^https?:/.test(o.first_post.url || '') ? ` <a href="${esc(o.first_post.url)}" target="_blank" rel="noopener noreferrer">Open the first post ↗</a>` : ''}</div>
         <div class="hop">${o.platform_spread.map((s, i) => `${i ? `<em>→ ${esc(fmtLag(s.lag_minutes))}</em>` : ''}<span style="color:${pcol(s.platform)}">${esc(LABEL[s.platform] || s.platform)}</span>`).join('')}</div></div>
@@ -563,6 +623,7 @@ function showPanel(n) {
   el.innerHTML = h; el.classList.remove('hidden'); el.scrollTop = 0;
   $('#p-x').onclick = hidePanel;
   el.querySelectorAll('[data-n]').forEach(a => a.onclick = e => { e.preventDefault(); const t = st.scene.byNar.get(+a.dataset.n); if (t) select(t); });
+  countUp(el); el.classList.remove('pop'); void el.offsetWidth; el.classList.add('pop');
   el.querySelectorAll('[data-g]').forEach(a => a.onclick = e => { e.preventDefault(); const t = st.scene.nodes.find(x => x.kind === 'grp' && x.id === a.dataset.g); if (t) select(t); });
   el.querySelectorAll('[data-posts]').forEach(b => b.onclick = () => openPosts(b.dataset.posts));
   el.querySelectorAll('[data-plat]').forEach(b => b.onclick = () => { st.platPick = st.platPick === b.dataset.plat ? '' : b.dataset.plat; showPanel(n); });
@@ -576,7 +637,7 @@ function notesData() {
   const seeded = os.filter(o => o.seeding_group);
   for (const o of seeded.slice(0, 3)) {
     const hops = o.platform_spread.map(s => `${LABEL[s.platform] || s.platform}${s.lag_minutes ? ' ' + fmtLag(s.lag_minutes) : ''}`).join(' → ');
-    out.push({crit: true, t: `Narrative #${o.narrative_id} looks seeded`, b: `${o.verdict} Spread: ${hops}.`, nid: o.narrative_id});
+    out.push({crit: true, t: `Story ${o.narrative_id} looks seeded`, b: `${o.verdict} Spread: ${hops}.`, nid: o.narrative_id});
   }
   if (seeded.length > 3) out.push({t: `${seeded.length - 3} more narratives look seeded`, b: 'Click a red narrative in the map to inspect it.'});
   const sizes = G.map(g => g.size).sort((a, b) => a - b), med = sizes.length ? sizes[sizes.length >> 1] : 0;
@@ -584,7 +645,7 @@ function notesData() {
   for (const g of G.slice(0, 3)) out.push({crit: g.confidence === 'high' && g.size >= 5, t: `${g.id}: ${g.size} accounts, ${g.confidence} confidence`, b: g.reasons.slice(0, 2).join(' · '), gid: g.id});
   if (G.length > 3) out.push({t: `${G.length - 3} more coordinated groups`, b: 'Purple orbs in the map; click one to see its evidence.'});
   const fast = os.filter(o => o.platform_spread.length > 1 && o.platform_spread[1].lag_minutes < 90 && !o.seeding_group);
-  fast.slice(0, 2).forEach(o => out.push({t: `Narrative #${o.narrative_id} jumped platforms quickly`, b: `Reached ${o.platform_spread[1].platform} ${fmtLag(o.platform_spread[1].lag_minutes)} after first appearing on ${o.platform_spread[0].platform}.`, nid: o.narrative_id}));
+  fast.slice(0, 2).forEach(o => out.push({t: `Story ${o.narrative_id} jumped platforms quickly`, b: `Reached ${o.platform_spread[1].platform} ${fmtLag(o.platform_spread[1].lag_minutes)} after first appearing on ${o.platform_spread[0].platform}.`, nid: o.narrative_id}));
   if (!G.length) out.push({t: 'No coordinated activity detected', b: 'No group of accounts met the evidence thresholds — consistent with organic discussion for this topic and window. That does not prove absence.'});
   return out;
 }
@@ -615,7 +676,7 @@ $('#ask-form').addEventListener('submit', async e => {
   show(`<div class="note q"><b>${esc(q)}</b><span class="mut">✦ asking ${esc(st.status.ai.label.split(' (')[0])}… (retries automatically if it is busy)</span></div>`);
   try {
     const r = await api('/api/ask', {method: 'POST', body: JSON.stringify({ai: true, job_id: st.jobId, question: q})});
-    show(`<div class="note q"><b>${esc(q)}</b><span class="badge b-warn">✦ AI-generated · ${esc(r.model)} · may be wrong</span><div style="white-space:pre-wrap;margin-top:6px">${esc(r.answer)}</div></div>`);
+    show(`<div class="note q"><b>${esc(q)}</b><span class="badge b-warn">✦ AI-generated · ${esc(r.model)} · may be wrong</span><div style="margin-top:6px">${aiHtml(r.answer, r.sources)}</div></div>`);
   } catch (err) {
     show(`<div class="note q"><b>${esc(q)}</b><span class="badge b-hot">AI unavailable</span> <span class="mut">${esc(err.message)}</span><div style="margin-top:8px"><span class="mut">Answer from local rules:</span><br>${answer(q)}</div></div>`);
   }
@@ -1000,6 +1061,12 @@ function acctLink(platform, account, name, extra) {
   const u = acctUrl(platform, account, name), t = esc(name || String(account).split(':').slice(1).join(':')) + (extra || '');
   return u ? '<a href="' + esc(u) + '" target="_blank" rel="noopener noreferrer" title="Open this account on ' + esc(LABEL[platform] || platform) + '">' + t + ' ↗</a>' : '<span>' + t + '</span>';
 }
+function aiHtml(text, sources) {                        // answer text with [n] marks, then the numbered references with links
+  const body = esc(cleanAI(text)).replace(/\[(\d{1,2})\]/g, '<sup class="cite">[$1]</sup>');
+  const refs = (sources || []).map(s => '<li value="' + s.n + '"><b>' + esc(LABEL[s.platform] || s.platform) + '</b> · ' + esc(s.account) + ' · <small>' + esc(s.at.replace('T', ' ')) + ' UTC · Story ' + s.story + ' · ' + esc(s.why) + '</small><br>' +
+    (/^https?:/.test(s.url) ? '<a href="' + esc(s.url) + '" target="_blank" rel="noopener noreferrer">' + esc(s.text) + ' ↗</a>' : esc(s.text)) + '</li>').join('');
+  return '<p style="white-space:pre-wrap">' + body + '</p>' + (refs ? '<div class="refs"><h5>References <small class="mut">posts behind this answer</small></h5><ol>' + refs + '</ol></div>' : '');
+}
 function cleanAI(t) {                                   // some free models answer in JSON or echo the <data> tags: show plain text only
   t = String(t || '').replace(/<\/?data>/g, '').trim();
   try { const o = JSON.parse(t); if (o && typeof o === 'object') t = Object.values(o).filter(v => typeof v === 'string').join('\n\n') || t; } catch (e) { /* plain text already */ }
@@ -1011,7 +1078,7 @@ async function aiAsk(question, out) {
   try {
     if (!st.status.ai.ready) st.status = await api('/api/credentials', {method: 'POST', body: JSON.stringify({AI_PROVIDER: 'pollinations', AI_MODEL: '', AI_BASE_URL: ''})});
     const r = await api('/api/ask', {method: 'POST', body: JSON.stringify({ai: true, job_id: st.jobId, question})});
-    out.innerHTML = '<div class="ai-box"><span class="badge b-warn">✦ AI summary · ' + esc(st.status.ai.label.split(' (')[0]) + ' · a summary of this run was sent · may be wrong</span><p style="white-space:pre-wrap">' + esc(cleanAI(r.answer)) + '</p></div>';
+    out.innerHTML = '<div class="ai-box"><span class="badge b-warn">✦ AI summary · ' + esc(st.status.ai.label.split(' (')[0]) + ' · a summary of this run was sent · may be wrong</span>' + aiHtml(r.answer, r.sources) + '</div>';
   } catch (e) { out.innerHTML = '<p class="mut small">The AI service did not answer (' + esc(e.message) + '). Everything else on this page was built locally and is still correct.</p>'; }
 }
 // ---- optional AI summary: only a compact summary leaves this computer, never the raw posts; always asks first ----
