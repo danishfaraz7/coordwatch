@@ -30,7 +30,7 @@ WEIGHTS = {"text_dup": 0.70, "sync": 0.70, "amplify": 0.40, "avatar": 0.40, "cre
 
 
 def _hamming(a: str, b: str) -> int:
-    return (int(a, 16) ^ int(b, 16)).bit_count()
+    return bin(int(a, 16) ^ int(b, 16)).count("1")
 
 
 def _pair(a: str, b: str) -> Tuple[str, str]:
