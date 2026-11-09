@@ -47,6 +47,28 @@
   <div class="mut">Gold beam = topic → narrative · Teal line = group pushed narrative</div>
 </section>
 
+<nav id="workspace-nav" class="glass hidden" aria-label="Investigation navigation">
+  <button type="button" data-view="graph" aria-label="Show constellation graph">◎ <span>Graph</span></button>
+  <button type="button" data-view="posts" aria-label="Explore collected posts">▤ <span>Posts</span></button>
+  <button type="button" data-view="notes" aria-label="View analyst notes">✦ <span>Insights</span></button>
+  <button type="button" data-view="export" aria-label="Open export options">⇩ <span>Export</span></button>
+  <button type="button" data-view="help" aria-label="Open graph help">? <span>Guide</span></button>
+</nav>
+<div id="graph-tools" class="glass hidden" role="toolbar" aria-label="Graph controls">
+  <button type="button" id="graph-fit" title="Fit all items in view" aria-label="Fit graph">Fit</button>
+  <button type="button" id="graph-zoom-in" title="Zoom in" aria-label="Zoom in">+</button>
+  <button type="button" id="graph-zoom-out" title="Zoom out" aria-label="Zoom out">−</button>
+  <button type="button" id="graph-legend" title="Show or hide the legend" aria-label="Toggle legend">Legend</button>
+</div>
+<section id="graph-help" class="glass hidden" role="dialog" aria-modal="false" aria-labelledby="graph-help-title">
+  <button type="button" class="x" id="graph-help-close" aria-label="Close guide">✕</button>
+  <h3 id="graph-help-title">How to explore this graph</h3>
+  <p><b>Choose a node:</b> select a narrative or group to see its details.</p>
+  <p><b>Move around:</b> drag empty space to pan; use the + and − buttons or your scroll wheel to zoom.</p>
+  <p><b>See the evidence:</b> use the details panel to open related posts and inspect the signals behind a group.</p>
+  <p><b>Replay activity:</b> use the timeline to move through the date range, or press Play.</p>
+  <p class="mut small">Coordination signals are investigative leads, not proof of inauthenticity.</p>
+</section>
 <section id="panel" class="glass hidden"></section>
 
 <section id="notes" class="glass hidden"></section>
