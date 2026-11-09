@@ -18,13 +18,9 @@ os.environ["COORDWATCH_HOME"] = _TMP
 for _k in ("X_BEARER_TOKEN", "YOUTUBE_API_KEY", "TELEGRAM_API_ID", "TELEGRAM_API_HASH", "X_COOKIES_FILE"):
     os.environ.pop(_k, None)
 
-try:
-    from playwright.sync_api import sync_playwright
-    _PW = sync_playwright().start()
-    _BROWSER = _PW.chromium.launch()
-except Exception as _e:                                   # no playwright / no browser binary
-    _PW = _BROWSER = None
-    _WHY = str(_e).splitlines()[0] if str(_e) else "playwright unavailable"
+import importlib.util
+_HAVE_PW = importlib.util.find_spec("playwright") is not None
+_PW = _BROWSER = None          # started in setUpClass: a running Playwright loop would break other test modules that call asyncio.run
 
 from coordwatch.web import server as W
 
@@ -38,10 +34,20 @@ def overlaps(a, b, tol=1):
     return a and b and a[0] < b[2] - tol and b[0] < a[2] - tol and a[1] < b[3] - tol and b[1] < a[3] - tol
 
 
-@unittest.skipIf(_BROWSER is None, "Playwright/Chromium not available")
+@unittest.skipUnless(_HAVE_PW, "Playwright not installed")
 class UiTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
+        global _PW, _BROWSER
+        try:
+            from playwright.sync_api import sync_playwright
+            _PW = sync_playwright().start()
+            _BROWSER = _PW.chromium.launch()
+        except Exception as e:                                   # no browser binary: python -m playwright install chromium
+            if _PW:
+                _PW.stop()
+            _PW = _BROWSER = None
+            raise unittest.SkipTest("Chromium not available: " + (str(e).splitlines() or ["?"])[0])
         W.Handler.allow_hosts = []
         cls.srv = ThreadingHTTPServer(("127.0.0.1", 0), W.Handler)
         cls.url = f"http://127.0.0.1:{cls.srv.server_port}/"
@@ -50,9 +56,10 @@ class UiTests(unittest.TestCase):
     @classmethod
     def tearDownClass(cls):
         cls.srv.shutdown()
-        if _BROWSER:
-            _BROWSER.close()
-            _PW.stop()
+        global _PW, _BROWSER
+        _BROWSER.close()
+        _PW.stop()
+        _PW = _BROWSER = None
 
     def open(self, w=1440, h=900, fresh_storage=True):
         self.ctx = _BROWSER.new_context(viewport={"width": w, "height": h})
