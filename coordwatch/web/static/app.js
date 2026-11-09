@@ -800,7 +800,7 @@ function mountWizardInputs(step) {
   if(step===1){move($('#topic'),$('#wizard-topic-slot'));}
   if(step===2){move($('#chips'),$('#wizard-platform-slot'));move($('#tgch'),$('#wizard-platform-slot'));}
   if(step===3){const slot=$('#wizard-dates-slot');slot.innerHTML='';const a=document.createElement('label'),b=document.createElement('label');a.textContent='From';b.textContent='To';a.appendChild($('#since'));b.appendChild($('#until'));slot.append(a,b);}
-  if(step===4){move($('#depth'),$('#wizard-advanced-slot'));move($('#dv'),$('#wizard-advanced-slot'));move($('#tgch'),$('#wizard-advanced-slot'));}
+  if(step===4){move($('#depth'),$('#wizard-advanced-slot'));move($('#dv').parentElement,$('#wizard-advanced-slot'));move($('#tgch'),$('#wizard-advanced-slot'));}
 }
 function setScreen(screen) {
   const priorCards=$('#analysis-cards'); if(priorCards) priorCards.remove();
