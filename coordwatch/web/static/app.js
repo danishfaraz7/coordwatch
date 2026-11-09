@@ -803,6 +803,7 @@ function mountWizardInputs(step) {
   if(step===4){move($('#depth'),$('#wizard-advanced-slot'));move($('#dv'),$('#wizard-advanced-slot'));move($('#tgch'),$('#wizard-advanced-slot'));}
 }
 function setScreen(screen) {
+  const priorCards=$('#analysis-cards'); if(priorCards) priorCards.remove();
   activeScreen=screen;
   document.querySelectorAll('.side-link[data-screen]').forEach(b=>b.classList.toggle('active',b.dataset.screen===screen));
   document.querySelectorAll('.app-screen').forEach(x=>x.classList.add('hidden'));
@@ -860,7 +861,7 @@ function showAnalysisScreen(screen){
   $('#analysis-title').textContent=({graph:'Constellation',narratives:'Discussion themes',groups:'Accounts acting together',spread:'How the discussion spread',posts:'Posts Explorer',exports:'Exports',guide:'Help & Guide'})[screen]||'Investigation';
   $('#analysis-subtitle').textContent=({graph:'Explore the relationships between the topic, narratives and account groups.',narratives:'Select a theme to inspect its posts, accounts and timeline.',groups:'Review the signals behind accounts grouped together.',spread:'Earliest observed posts and cross-platform movement.',posts:'Search and filter the collected evidence.',exports:'Download the data and reports from this investigation.',guide:'Understand the graph and what the evidence can tell you.'})[screen]||'';
   $('#app-main').classList.add('analysis-active');
-  if(screen==='graph'){['#drawer','#notes'].forEach(s=>$(s).classList.add('hidden'));$('#panel').classList.toggle('hidden',!st.selected);$('#graph-tools').classList.remove('hidden');}
+  if(screen==='graph'){const stale=$('#analysis-cards');if(stale)stale.remove();['#drawer','#notes'].forEach(s=>$(s).classList.add('hidden'));$('#panel').classList.toggle('hidden',!st.selected);$('#graph-tools').classList.remove('hidden');}
   if(screen==='posts'){openPosts('');}
   if(screen==='narratives')renderAnalysisCards('narratives');
   if(screen==='groups')renderAnalysisCards('groups');
