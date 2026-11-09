@@ -108,10 +108,10 @@ class PipelineTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as d:
             paths = export_all(RESULT, d)
             self.assertTrue(all(os.path.getsize(p) > 0 for p in paths))
-            with open(os.path.join(d, "posts.csv"), newline="") as f:
+            with open(os.path.join(d, "posts.csv"), newline="", encoding="utf-8-sig") as f:
                 rows = list(csv.DictReader(f))
             self.assertEqual(len(rows), RESULT["meta"]["n_posts"])
-            self.assertEqual(json.load(open(os.path.join(d, "results.json")))["meta"]["topic"], "Acme Bank")
+            self.assertEqual(json.load(open(os.path.join(d, "results.json"), encoding="utf-8"))["meta"]["topic"], "Acme Bank")
 
 
 class CollectorTests(unittest.TestCase):

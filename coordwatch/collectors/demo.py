@@ -246,8 +246,8 @@ def write_sample(dir_: str, seed: int = 42):
     import os
     os.makedirs(dir_, exist_ok=True)
     posts, truth = generate(seed)
-    with open(os.path.join(dir_, "acme_bank_demo_posts.json"), "w") as f:
+    with open(os.path.join(dir_, "acme_bank_demo_posts.json"), "w", encoding="utf-8") as f:
         json.dump([p.to_dict() for p in posts], f, indent=1)
-    with open(os.path.join(dir_, "acme_bank_demo_ground_truth.json"), "w") as f:
+    with open(os.path.join(dir_, "acme_bank_demo_ground_truth.json"), "w", encoding="utf-8") as f:
         json.dump(truth, f, indent=1)
     return posts, truth
