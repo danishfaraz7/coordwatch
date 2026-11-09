@@ -180,7 +180,9 @@ class TelegramCollector(Collector):
         1. channels.searchPosts - Telegram's public post / hashtag search (newer API; free quota is small, may be paid).
         2. channel directory   - contacts.search finds public channels/groups whose name or @username matches the topic words,
                                  then each is searched server-side.
-        3. messages.searchGlobal - only reaches chats this account already knows, but costs nothing to try."""
+        3. messages.searchGlobal - Telegram's own global message search over public channels and groups (not limited to the account's
+                                 subscriptions; results depend on Telegram's index and ranking).
+        The account's own subscribed chats are never enumerated or read."""
         seen = set()
         for name, fn in (("public post search", self._search_posts), ("channel directory", self._search_directory),
                          ("searchGlobal", self._search_global)):
