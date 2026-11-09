@@ -874,7 +874,8 @@ function showAnalysisScreen(screen){
   if(screen==='exports')$('#exp-menu').classList.remove('hidden');
   if(screen==='guide'){$('#graph-help').classList.remove('hidden');}
 }
-document.querySelectorAll('[data-analysis]').forEach(b=>b.addEventListener('click',()=>setScreen(b.dataset.analysis==='timeline'?'spread':b.dataset.analysis)));\nfunction renderAnalysisCards(kind){
+document.querySelectorAll('[data-analysis]').forEach(b=>b.addEventListener('click',()=>setScreen(b.dataset.analysis==='timeline'?'spread':b.dataset.analysis)));
+function renderAnalysisCards(kind){
   let html='<section id="analysis-cards" class="analysis-cards">';
   if(kind==='narratives')html+=st.res.narratives.filter(n=>n.id>=0).map(n=>'<button class="analysis-card" data-nar="'+n.id+'"><small>DISCUSSION THEME #'+n.id+'</small><h3>'+esc(title(n.label))+'</h3><p>'+n.posts+' posts · '+n.accounts+' accounts · '+Math.round((n.coordinated_post_share||0)*100)+'% from flagged accounts</p><span>Inspect evidence →</span></button>').join('');
   if(kind==='groups')html+=st.res.coordinated_groups.map(g=>'<button class="analysis-card" data-grp="'+esc(g.id)+'"><small>GROUP '+esc(g.id)+'</small><h3>'+g.size+' accounts · '+esc(g.confidence)+' confidence</h3><p>'+esc(g.reasons.slice(0,2).join(' · '))+'</p><span>Inspect signals →</span></button>').join('')||'<p>No account groups met the current evidence thresholds.</p>';
