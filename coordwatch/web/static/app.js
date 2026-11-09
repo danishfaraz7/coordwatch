@@ -788,6 +788,63 @@ function runBoot() {
   });
 }
 
+// ------------------------------------------------------------------ accessible workspace navigation + graph controls
+function setWorkspaceView(view) {
+  const nav = $('#workspace-nav');
+  nav.querySelectorAll('button[data-view]').forEach(b => b.setAttribute('aria-current', b.dataset.view === view ? 'true' : 'false'));
+  if (view === 'graph') {
+    $('#drawer').classList.add('hidden'); $('#notes').classList.add('hidden'); $('#graph-help').classList.add('hidden');
+    if (st.scene) { $('#panel').classList.toggle('hidden', !st.selected); $('#graph-tools').classList.remove('hidden'); }
+  } else if (view === 'posts') {
+    $('#notes').classList.add('hidden'); $('#graph-help').classList.add('hidden');
+    if (st.scene) openPosts('');
+  } else if (view === 'notes') {
+    $('#drawer').classList.add('hidden'); $('#graph-help').classList.add('hidden');
+    if (st.scene) { renderNotes(); $('#notes').classList.remove('hidden'); }
+  } else if (view === 'export') {
+    $('#exp-menu').classList.toggle('hidden');
+  } else if (view === 'help') {
+    $('#graph-help').classList.toggle('hidden');
+  }
+}
+$('#workspace-nav').addEventListener('click', e => {
+  const b = e.target.closest('button[data-view]'); if (b) setWorkspaceView(b.dataset.view);
+});
+$('#graph-fit').onclick = () => { if (st.scene) fitCamera(); };
+$('#graph-zoom-in').onclick = () => { st.cam.tk = clamp(st.cam.tk * 1.22, .3, 3.2); };
+$('#graph-zoom-out').onclick = () => { st.cam.tk = clamp(st.cam.tk / 1.22, .3, 3.2); };
+$('#graph-legend').onclick = () => $('#legend').classList.toggle('hidden');
+$('#graph-help-close').onclick = () => $('#graph-help').classList.add('hidden');
+function showWorkspaceChrome(on) {
+  $('#workspace-nav').classList.toggle('hidden', !on);
+  $('#graph-tools').classList.toggle('hidden', !on);
+  if (!on) { $('#graph-help').classList.add('hidden'); $('#workspace-nav').querySelectorAll('button').forEach(b => b.removeAttribute('aria-current')); }
+}
+const originalSetIdle = setIdle;
+setIdle = function(on) { originalSetIdle(on); showWorkspaceChrome(!on); };
+const originalLoadResult = loadResult;
+loadResult = function() { originalLoadResult(); showWorkspaceChrome(true); setWorkspaceView('graph'); };
+
+// Touch support for graph pan and node selection. Mouse interaction remains unchanged.
+let touchStart = null;
+cv.addEventListener('touchstart', e => {
+  if (!st.scene || e.touches.length !== 1) return;
+  const t = e.touches[0], n = hit(t.clientX, t.clientY);
+  touchStart = {x:t.clientX,y:t.clientY,lastX:t.clientX,lastY:t.clientY,node:n,moved:false};
+}, {passive:true});
+cv.addEventListener('touchmove', e => {
+  if (!touchStart || e.touches.length !== 1) return;
+  const t=e.touches[0], dx=t.clientX-touchStart.lastX, dy=t.clientY-touchStart.lastY;
+  if (Math.hypot(t.clientX-touchStart.x,t.clientY-touchStart.y)>7) touchStart.moved=true;
+  if (touchStart.moved && !touchStart.node) { st.cam.tx += dx; st.cam.ty += dy; st.cam.x=st.cam.tx; st.cam.y=st.cam.ty; }
+  touchStart.lastX=t.clientX; touchStart.lastY=t.clientY;
+}, {passive:true});
+cv.addEventListener('touchend', e => {
+  if (!touchStart) return;
+  if (!touchStart.moved && touchStart.node) select(touchStart.node);
+  touchStart=null;
+}, {passive:true});
+
 // ------------------------------------------------------------------ init
 (async () => {
   setDefaultDates();
