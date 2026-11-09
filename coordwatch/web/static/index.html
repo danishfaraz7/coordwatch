@@ -30,6 +30,65 @@
   <button id="gear" class="btn ico" title="Settings &amp; connections">⚙</button>
   <input type="file" id="fi" class="hidden" accept=".json,.jsonl,.ndjson,.csv">
 </header>
+<div id="app-shell">
+  <aside id="app-sidebar" aria-label="Main navigation">
+    <div class="side-brand"><span class="side-mark">✣</span><span><b>coordwatch</b><small>Social Coordination Analysis</small></span></div>
+    <button class="side-link active" data-screen="home">⌂ <span>Home</span></button>
+    <button class="side-link" data-screen="wizard">＋ <span>New Investigation</span></button>
+    <button class="side-link" data-screen="investigations">▤ <span>Investigations</span></button>
+    <div class="side-label">ANALYSIS</div>
+    <button class="side-link" data-screen="graph">✥ <span>Constellation</span></button>
+    <button class="side-link" data-screen="narratives">◉ <span>Narratives</span></button>
+    <button class="side-link" data-screen="groups">◎ <span>Coordinated Groups</span></button>
+    <button class="side-link" data-screen="spread">↗ <span>Origin &amp; Spread</span></button>
+    <button class="side-link" data-screen="posts">▦ <span>Posts Explorer</span></button>
+    <div class="side-spacer"></div>
+    <button class="side-link" data-screen="exports">⇩ <span>Exports</span></button>
+    <button class="side-link" data-screen="settings">⚙ <span>Settings</span></button>
+    <button class="side-link" data-screen="guide">? <span>Help &amp; Guide</span></button>
+    <div class="local-pill"><i></i> Local Mode</div>
+  </aside>
+  <main id="app-main">
+    <header id="app-topbar">
+      <div class="crumb"><span>‹</span> <b id="crumb-main">Home</b> <small id="crumb-sub"></small></div>
+      <div class="top-actions"><span class="system-pill"><i></i> System ready</span><button id="top-settings" aria-label="Settings">⚙</button></div>
+    </header>
+    <section id="home-view" class="app-screen">
+      <div class="welcome-row"><div><p class="eyebrow">YOUR WORKSPACE</p><h1>Good evening, Analyst 👋</h1><p>Here's what's happening with your investigations.</p></div><button class="btn primary" id="home-new">＋ New Investigation</button></div>
+      <div class="home-kpis">
+        <article class="home-stat"><small>Total investigations</small><b id="home-total">0</b><span id="home-total-note">Start your first investigation</span></article>
+        <article class="home-stat"><small>Active collection</small><b id="home-active">Ready</b><span id="home-active-note">No collection running</span></article>
+        <article class="home-stat"><small>Posts collected</small><b id="home-posts">—</b><span>Across your investigations</span></article>
+        <article class="home-stat"><small>System status</small><b class="status-good">All Good</b><span><i class="status-dot"></i> Local instance</span></article>
+      </div>
+      <div class="home-grid">
+        <article class="home-card new-card"><div class="card-heading"><div><h2>Start a New Investigation</h2><p>Enter a topic and choose where to look.</p></div><span class="card-icon">⌕</span></div>
+          <div id="home-topic-slot"></div>
+          <div class="quick-platforms" id="home-platform-slot"></div>
+          <div class="home-date-row"><label>From <span id="home-from-label">Last 7 days</span></label><label>To <span id="home-to-label">Today</span></label></div>
+          <div class="home-card-actions"><button class="btn primary" id="home-start">Start Investigation →</button><button class="btn" id="home-demo">Try Demo</button></div>
+        </article>
+        <article class="home-card recent-card"><div class="card-heading"><div><h2>Recent Investigations</h2><p>Pick up where you left off.</p></div><button class="text-link" id="view-investigations">View all →</button></div><div id="recent-list" class="recent-list"><div class="empty-state">Your completed investigations will appear here.</div></div></article>
+        <article class="home-card platform-card"><h2>Collection sources</h2><p>Connect public sources or import your own exports.</p><div id="home-connectors"></div><button class="btn" id="home-manage-settings">Manage connections</button></article>
+        <article class="home-card privacy-card"><span class="privacy-symbol">⬡</span><div><h2>Private by design</h2><p>Collection, analysis and saved credentials stay on your machine. Optional AI answers are off by default.</p></div></article>
+      </div>
+      <footer class="home-footer"><span>✥ Easy to use</span><span>♧ Accessible</span><span>⬡ Local &amp; Private</span><span>▣ Multi-Platform</span><span>? Help &amp; Guide</span><b>coordwatch</b></footer>
+    </section>
+    <section id="wizard-view" class="app-screen hidden">
+      <div class="wizard-heading"><p class="eyebrow">NEW INVESTIGATION</p><h1>Let's find out what's happening.</h1><p>Follow these steps. You can review everything before collection begins.</p></div>
+      <div class="wizard-progress"><span class="step active"><b>1</b> Topic</span><i></i><span class="step"><b>2</b> Platforms</span><i></i><span class="step"><b>3</b> Date range</span><i></i><span class="step"><b>4</b> Review</span></div>
+      <div class="wizard-layout"><article class="home-card wizard-card">
+        <div class="wizard-step-panel" data-step="1"><h2>What should we investigate?</h2><p>Enter a keyword, hashtag, person or event to start.</p><div id="wizard-topic-slot"></div><div class="example-tags"><button data-example="#Gaza">#Gaza</button><button data-example="#Election">#Election</button><button data-example="Climate Change">Climate Change</button><button data-example="#Crypto">#Crypto</button></div></div>
+        <div class="wizard-step-panel hidden" data-step="2"><h2>Where should we look?</h2><p>Select one or more public sources. Import-only platforms accept exported files.</p><div id="wizard-platform-slot"></div></div>
+        <div class="wizard-step-panel hidden" data-step="3"><h2>Choose a date range</h2><p>Use a focused window to keep collection relevant.</p><div id="wizard-dates-slot"></div></div>
+        <div class="wizard-step-panel hidden" data-step="4"><h2>Review your investigation</h2><div id="wizard-review"></div><details class="advanced-options"><summary>Advanced options</summary><div id="wizard-advanced-slot"></div></details></div>
+        <div class="wizard-actions"><button class="btn" id="wizard-back">Back</button><button class="btn primary" id="wizard-next">Next →</button><button class="btn primary hidden" id="wizard-launch">Start Investigation →</button></div>
+      </article><aside class="home-card wizard-help"><h3>What happens next?</h3><p>✓ Collect public posts from your selected sources</p><p>✓ Group similar discussions into narratives</p><p>✓ Find accounts that appear to work together</p><p>✓ Show how conversations spread over time</p><p>✓ Explore the evidence and export your results</p><hr><h3>Collection methods</h3><div id="wizard-methods"></div><p class="muted-note">Results are investigative leads, not proof of coordination or attribution.</p></aside></div>
+    </section>
+    <section id="investigations-view" class="app-screen hidden"><div class="welcome-row"><div><p class="eyebrow">YOUR WORK</p><h1>Investigations</h1><p>Runs created in this session.</p></div><button class="btn primary" id="investigations-new">＋ New Investigation</button></div><div id="investigations-list" class="home-card"></div></section>
+    <section id="analysis-header" class="hidden"><div><p class="eyebrow">INVESTIGATION RESULTS</p><h1 id="analysis-title">Constellation</h1><p id="analysis-subtitle">Explore the narratives, accounts and evidence.</p></div><div class="analysis-tabs"><button data-analysis="graph" class="active">Graph</button><button data-analysis="narratives">Narratives</button><button data-analysis="timeline">Timeline</button></div></section>
+  </main>
+</div>
 <div id="exp-menu" class="glass hidden"></div>
 
 <aside id="tl" class="hidden">
