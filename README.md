@@ -418,7 +418,7 @@ No third-party analysis libraries: MinHash-LSH, TF-IDF, union-find, dHash are ~1
      Narratives were over-fragmented (37 clusters for 9 topics) → threshold sweep.
   3. **Stress test** (10 seeds × 5 scenarios) exposed two real defects: creation-time coincidence among *old* accounts created false groups
      (fixed with the "fresh account" condition), and paraphrase-ring recall of 0.5–0.67 (improved by same-narrative short-window synchrony).
-  4. 145 tests, including adversarial cases (default avatars, XSS in scraped text, 403 not retried, cache correctness).
+  4. about 125 tests, including adversarial cases (default avatars, XSS in scraped text, 403 not retried, cache correctness).
   5. API parsers are tested against payloads shaped like the documented responses – **not against live APIs** (no keys in this repo's CI).
      Treat the live collectors as unverified until you run them with your keys. The free routes (yt-dlp, t.me/s, X browser, DuckDuckGo) are likewise tested only on recorded-shape fixtures and a fake search backend - smoke-test each once on a real machine before the demo.
 * **Caveat I want to be explicit about:** I iterated thresholds against my own generator, so the numbers below show the *method's behaviour*, not real-world accuracy.
@@ -465,7 +465,7 @@ paraphrasing + mutual-reshare ring; decoys = 5 verified newswire outlets, 40-use
 coordwatch/            package: web/ (server + map UI), collect.py, collectors/ (youtube, telegram, x, yt-dlp, web previews), discovery.py, narratives.py, coordination.py, origin.py,
                        crossplatform.py, overview.py, pipeline.py, subset.py (report for chosen stories), report.py (HTML), pdfreport.py, export.py, search.py (plain-language search),
                        trending.py, ai.py (providers, sources/references), activity.py (activity log), runlog.py, evaluate.py, cli.py
-tests/                 about 145 tests (pytest): unit, web API, and Playwright browser tests (UI tests skip if Chromium is not installed)
+tests/                 about 125 tests (pytest): unit, web API, and Playwright browser tests (UI tests skip if Chromium is not installed)
 scripts/stress.py      multi-seed accuracy + ablation table
 sample_data/           synthetic posts + ground truth JSON (importable via --source file)
 out/example/           pre-generated report, JSON and CSVs
@@ -488,6 +488,15 @@ Under the topic box, **See what's trending** lists suggested terms for your date
 ### Stories, combined terms, AI
 Stories are numbered from 1 (Story 1 = the biggest). A topic with several plain terms (`Nvidia, Jensen Huang, Chinese spy`) is searched term by term **and** all together (one extra combined query for YouTube, Telegram and X), and the Summary lists an *all terms together* row (posts that mention every term). The AI summary buttons are one click with no pop-ups; if no AI is configured they use the free no-login Pollinations service. Only a compact summary of the run is sent, and the box says so.
 
+
+### Story titles you control
+Each story gets a clean default title built from the search keywords (a multi-word name such as a person or brand when one dominates, otherwise the top three keywords). Nothing is copied from posts. **Rename** on any story card saves your own title for that run (`POST /api/jobs/<id>/titles`); in the **Report builder** each story row has a title box ("Use existing" puts the default back) and custom titles apply to that one report only. An optional "suggest titles with AI" tickbox (off by default) can propose titles and summaries; failures never block a run.
+
+### AI behaviour
+Pollinations (free, no login) is the default whenever an AI button is used; with a Gemini key set, Gemini is used instead. There are no prompts about AI. On a rate limit or error the app waits the stated cooldown, shows a countdown and retries automatically (up to 6 tries).
+
+### Free X route
+With no X key or cookies, X posts come from public posts found through web search (time decoded from the post id; no likes/shares). Order tried: X API, browser session, public posts. Also: Telegram posts are tagged joined / not joined, the app shows a friendly "No matches found" card with example searches, finished runs can be minimised, and the HTML report has a navigation bar, key findings, top posts and accounts, and a "how to read this" section.
 
 ### Activity log, references, map and report builder
 - **Activity log**: every search, AI summary, trending lookup, download, settings change (key names only, never values) and run is written to `~/.coordwatch/activity.jsonl` and appended to Settings → Run logs, so one export shows what ran and what was looked up afterwards.

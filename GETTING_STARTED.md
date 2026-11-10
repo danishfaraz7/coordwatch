@@ -66,7 +66,7 @@ You should see: `coordwatch web app -> http://localhost:8000`. **Leave this term
 You now see the coordwatch start screen.
 
 ### Step 9. Try it with the built-in demo
-Click **Demo**. It analyses fake data, so you can see what the results look like before connecting anything.
+Click **Try Demo**. It analyses fake data, so you can see what the results look like before connecting anything.
 
 ### Step 10. Stop and restart later
 * **Stop the app:** click in the terminal and press `Ctrl+C`.
@@ -142,6 +142,39 @@ Open your browser and go to **<http://localhost:8000>**. Click **Demo** to see i
 
 ---
 
+## Take the tour (5 minutes, after the demo or a real search)
+
+The menu on the left is the whole app. Go through it from top to bottom:
+
+| Menu item | What you see | What to try |
+|---|---|---|
+| **Home** | the search box (topic, dates, platforms) and "what's trending" | click a trending term, then **Add to search** |
+| **Start a New Search** | same box, clean | type a topic such as `Acme Bank`, pick dates, tick platforms, press **Analyse** |
+| **My Past Searches** | every earlier run | click one to reopen it (even after a restart) |
+| **Search Everything** | ask in plain words | try `most liked youtube posts` or `who posted first` |
+| **Summary** | a one-sentence answer and the key numbers | read the short answer first; use the big buttons for what to look at next |
+| **Map** | the "constellation": topic in the middle, stories around it, groups as linked orbs | click a story; drag the time bar to replay the spread |
+| **What People Say** | one card per story, with a title, who posted, when and where | click **Rename** on a card to give it your own title |
+| **Working Together** | accounts that appear to act together, and the reasons | open a group to see the evidence |
+| **Where It Started** | the first posts of each story and how it moved between platforms | |
+| **Across Platforms** | stories that appear on more than one platform, and which led | |
+| **All Posts** | every post, filterable (platform, joined/not joined for Telegram) | click a post's link to open the original |
+| **Download Results** | ready-made files and the report builder | see below |
+| **Settings** | keys, AI, run logs | only needed for real platforms |
+
+**Story titles.** By default each story is titled with its top keywords (for example `Bank Run Rumour`). You are in control: click **Rename** on a story card to type your own title (it is kept for that run), or change the title for one report only in **Download Results → Build your own report**.
+
+**Getting a report.** Go to **Download Results**.
+1. Easiest: click **Open report** (a web page you can print or share).
+2. Want a custom one? In **Build your own report** choose all stories or only some, edit any titles, pick **Web page** or **PDF**, press **Build report**.
+3. For managers: **Executive report (PDF)**, a short plain-words summary. Spreadsheets (CSV) open in Excel.
+
+**If nothing matches.** The app says "No matches found" and shows example searches. Try another keyword, a hashtag, a person, a brand or an event, or widen the dates.
+
+**AI is optional.** The app never asks you about it. If you click an AI button it uses a free service and, if the service is busy, it waits and retries by itself with a countdown.
+
+---
+
 ## Connect real platforms (when you are ready)
 
 The demo needs nothing. For real data, connect the platforms you want. In the app click the **gear icon (⚙) → Settings**.
@@ -164,7 +197,7 @@ The demo needs nothing. For real data, connect the platforms you want. In the ap
 4. Stop the app (`Ctrl+C`) and start it again.
 
 ### X (Twitter)
-Needs a paid API token or a spare account, so skip it unless you have one. YouTube + Telegram is enough.
+Works with **no key at all**: the app collects a free sample of public X posts (time and text only, no likes or replies). For full X data you would need a paid API token; that is optional. YouTube + Telegram + free X is enough.
 
 ## Run your first real search
 1. Topic: something with recent activity, for example `MrBeast` (use commas for several terms: `MrBeast, #MrBeast`).
