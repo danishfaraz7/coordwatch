@@ -543,7 +543,7 @@ function renderInsights() {
   const early = [...sc.nars].sort((a, b) => Date.parse(a.first_seen) - Date.parse(b.first_seen))[0];
   if (early) chips.push({ic: '🕐', k: 'Started first', v: 'Story ' + early.id + ' · ' + fmtDT(early.first_seen).slice(5) + ' UTC', nid: early.id});
   const hot = [...sc.nars].sort((a, b) => (b.coordinated_post_share || 0) - (a.coordinated_post_share || 0))[0];
-  chips.push(hot && hot.coordinated_post_share > 0 ? {ic: '🕸', k: 'Most coordinated', v: 'Story ' + hot.id + ' · ' + Math.round(hot.coordinated_post_share * 100) + '%', nid: hot.id} : {ic: '🌿', k: 'Coordination', v: 'none found · looks organic'});
+  chips.push(hot && hot.coordinated_post_share > 0 ? {ic: '🕸', k: 'Most coordinated', v: 'Story ' + hot.id + ' · ' + Math.round(hot.coordinated_post_share * 100) + '%', nid: hot.id} : {ic: '🌿', k: 'Coordination', v: (res.posts || []).length < 40 ? 'too few posts to judge' : 'none found · looks organic'});
   const jump = res.origins.filter(o => o.platform_spread.length > 1).sort((a, b) => a.platform_spread[1].lag_minutes - b.platform_spread[1].lag_minutes)[0];
   if (jump) chips.push({ic: '⚡', k: 'Fastest jump', v: 'Story ' + jump.narrative_id + ' → ' + (LABEL[jump.platform_spread[1].platform] || jump.platform_spread[1].platform) + ' in ' + fmtLag(jump.platform_spread[1].lag_minutes), nid: jump.narrative_id});
   const day = {}; sc.posts.forEach(p => { const k = p.created_at.slice(0, 10); day[k] = (day[k] || 0) + 1; });
@@ -1251,7 +1251,7 @@ function narrativeCards() {
 }
 function groupCards() {
   const ov = st.res.overview, gs = st.res.coordinated_groups;
-  if (!gs.length) return '<div class="analysis-card xp-card wide"><h3>No groups found</h3><p>No set of accounts met the evidence thresholds for this topic and time frame.</p></div>';
+  if (!gs.length) return '<div class="analysis-card xp-card wide"><h3>No groups found</h3><p>' + ((st.res.posts || []).length < 40 ? 'Only ' + (st.res.posts || []).length + ' posts were collected, which is too few to tell. Groups need repeated or near-identical text, or posts within minutes of each other, so try a longer date range or more platforms (YouTube and Telegram return far more posts than free X).' : 'No set of accounts met the evidence thresholds for this topic and time frame.') + '</p></div>';
   return gs.map(g => '<div class="analysis-card xp-card"><small>GROUP ' + esc(g.id) + ' · ' + esc(g.confidence.toUpperCase()) + ' CONFIDENCE</small><h3>' + g.size + ' accounts · ' + g.posts + ' posts</h3><p>' + esc(plainOf(ov && ov.plain.groups, 'id', g.id)) + '</p>' +
     '<p><b>The evidence:</b></p><ul class="plain-list">' + g.reasons.map(r => '<li>' + esc(simple(r)) + '</li>').join('') + '</ul><button class="xp-go" data-grp="' + esc(g.id) + '">Inspect signals →</button></div>').join('');
 }
