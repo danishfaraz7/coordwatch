@@ -194,7 +194,7 @@ async function startRun(demo) {
   if (!topic) { $('#topic').focus(); return; }
   st.demo = demo;
   const body = {topic, since: $('#since').value, until: $('#until').value, platforms: [...st.sel], depth: $('#depth').value,
-    upload_ids: Object.values(st.uploads).map(u => u.id), demo, telegram_channels: $('#tgch').value, discount_verified: $('#dv').checked};
+    upload_ids: Object.values(st.uploads).map(u => u.id), demo, telegram_channels: $('#tgch').value, discount_verified: $('#dv').checked, ai_names: $('#ainames').checked};
   let id;
   try { ({id} = await api('/api/run', {method: 'POST', body: JSON.stringify(body)})); }
   catch (err) { st.job = {id: null, running: false, min: false, status: 'error', log: [], error: err.message, topic, t0: Date.now(), lastChange: Date.now()}; renderJob(); return; }
@@ -272,7 +272,14 @@ addEventListener('resize', resize); resize();
 function mulberry(a) { return () => { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
 function upperBound(arr, x) { let lo = 0, hi = arr.length; while (lo < hi) { const m = (lo + hi) >> 1; if (arr[m] <= x) lo = m + 1; else hi = m; } return lo; }
 
+function readableLabels(res) {      // use each story's readable headline (or AI title) in place of its keyword string, everywhere the UI shows a label
+  const by = {}; (res.narratives || []).forEach(n => { if (n.id >= 0 && n.headline && !n._kw) { n._kw = n.label; by[n.id] = n.headline; n.label = n.headline; } });
+  (res.origins || []).forEach(o => { if (by[o.narrative_id]) o.label = by[o.narrative_id]; });
+  ((res.cross_platform || {}).narrative_overlap || []).forEach(o => { if (by[o.narrative_id]) o.label = by[o.narrative_id]; });
+  return res;
+}
 function buildScene(res) {
+  readableLabels(res);
   const rnd = mulberry(7);
   const posts = res.posts.map(p => Object.assign({}, p, {ts: Date.parse(p.created_at)}));
   let t0 = Infinity, t1 = -Infinity; posts.forEach(p => { if (p.ts < t0) t0 = p.ts; if (p.ts > t1) t1 = p.ts; });

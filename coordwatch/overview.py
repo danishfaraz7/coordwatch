@@ -2,6 +2,7 @@
 explanations of groups and origins.  Everything here is derived from the analysed posts (no extra collection)."""
 from __future__ import annotations
 
+import re
 from collections import Counter, defaultdict
 from datetime import date, datetime, timedelta
 from typing import Dict, List, Optional
@@ -70,6 +71,28 @@ def _days_between(since: Optional[datetime], until: Optional[datetime], posts) -
     return [_day(lo + timedelta(days=i)) for i in range((hi - lo).days + 1)]
 
 
+_URL = re.compile(r"https?://\S+|www\.\S+")
+_NOISE = re.compile(r"(^|\s)(RT|rt)\s+@\w+:?|@\w+|#\w+|[\U0001F000-\U0001FAFF\u2600-\u27BF\u2B00-\u2BFF]+")
+
+
+def headline(nar: dict, by_id: dict, width: int = 90) -> str:
+    """A readable one-line gist of a story: the cleaned first sentence of its most representative post."""
+    for pid in nar.get("representative_posts") or []:
+        p = by_id.get(pid)
+        if not p:
+            continue
+        t = _NOISE.sub(" ", _URL.sub(" ", p.text or ""))
+        t = " ".join(t.split()).strip(" -|:·•")
+        m = re.match(r"(.{25,}?[.!?])(\s|$)", t)
+        t = m.group(1) if m else t
+        if len(t) < 12:
+            continue
+        if len(t) > width:
+            t = t[:width].rsplit(" ", 1)[0].rstrip(",;:-") + "…"
+        return t[0].upper() + t[1:]
+    return ""
+
+
 def build(posts, assign, narratives, groups, origins, topic: str, since: Optional[datetime], until: Optional[datetime]) -> dict:
     days = _days_between(since, until, posts)
     base = topic_terms(topic) or [topic.lower()]
@@ -113,11 +136,15 @@ def build(posts, assign, narratives, groups, origins, topic: str, since: Optiona
                           "by_platform": {p: term_pl[t].get(p, 0) for p in plats}, "by_day": {d: term_day[t].get(d, 0) for d in days},
                           "first": min((posts[i].created_at for i in pst), default=None) and min(posts[i].created_at for i in pst).isoformat(),
                           "last": max((posts[i].created_at for i in pst), default=None) and max(posts[i].created_at for i in pst).isoformat()})
+    by_id = {p.id: p for p in posts}
+    for nar in narratives:
+        if nar["id"] >= 0:
+            nar["headline"] = headline(nar, by_id)
     nar_rows = []
     for nar in narratives:
         if nar["id"] < 0:
             continue
-        nar_rows.append({"id": nar["id"], "label": nar["label"], "posts": nar["posts"],
+        nar_rows.append({"id": nar["id"], "label": nar["label"], "headline": nar.get("headline", ""), "posts": nar["posts"],
                          "by_day": {d: nar_day[nar["id"]].get(d, 0) for d in days},
                          "by_term": {t: nar_term[nar["id"]].get(t, 0) for t in terms},
                          "by_platform": nar.get("volume_by_platform") and {p: sum(v.values()) for p, v in nar["volume_by_platform"].items()}})
@@ -135,7 +162,13 @@ def build(posts, assign, narratives, groups, origins, topic: str, since: Optiona
     for r in term_rows:
         summary.append(f"“{r['term']}” ({r['kind']}) was mentioned in {r['posts']:,} posts ({round(100 * r['share'])}% of everything) by {r['accounts']:,} accounts.")
     if top:
-        summary.append(f"People are talking about {len(top)} main things. The biggest is “{top[0]['label']}”, with {top[0]['posts']:,} posts.")
+        b = top[0]
+        bp = sorted((b.get("platforms") or {}).items(), key=lambda kv: -kv[1])
+        about = f"“{b['headline']}”" if b.get("headline") else f"“{b['label']}”"
+        summary.append(f"People are talking about {len(top)} main things. The biggest (Story {b['id']}) is about {about}: {b['posts']:,} posts from {b['accounts']:,} accounts"
+                       + (f", mostly on {_pl(bp[0][0])}" if bp else "") + f", {round(100 * b['posts'] / n)}% of everything.")
+        if len(top) > 1:
+            summary.append("The next biggest: " + "; ".join(f"Story {x['id']} “{x.get('headline') or x['label']}” ({x['posts']:,} posts)" for x in top[1:4]) + ".")
     if groups:
         summary.append(f"We found {len(groups)} group(s) of accounts that seem to work together. Together they wrote about {coord_share}% of all the posts.")
     else:
@@ -147,13 +180,28 @@ def build(posts, assign, narratives, groups, origins, topic: str, since: Optiona
         peak = max(r["by_day"].items(), key=lambda kv: kv[1])[0] if any(r["by_day"].values()) else None
         pls = sorted((r["by_platform"] or {}).items(), key=lambda kv: -kv[1])
         kw = ", ".join(nar.get("keywords", [])[:5])
-        t = f"{nar['posts']:,} posts from {nar['accounts']:,} accounts talk about: {kw or nar['label']}."
+        mem = [by_id[i] for i in nar.get("post_ids", []) if i in by_id]
+        t = f"{nar['posts']:,} posts from {nar['accounts']:,} accounts"
         if pls:
-            t += " Mostly on " + " and ".join(_pl(p) for p, _ in pls[:2]) + "."
+            t += " (" + ", ".join(f"{_pl(p)} {v:,}" for p, v in pls[:3]) + ")"
+        t += "."
+        if nar.get("headline"):
+            t += f" A typical post says: “{nar['headline']}”."
+        if mem:
+            first = min(mem, key=lambda x: x.created_at)
+            t += f" First seen {first.created_at.strftime('%Y-%m-%d')} on {_pl(first.platform)}."
         if peak:
-            t += f" It was loudest on {peak}."
+            t += f" Loudest on {peak} ({r['by_day'][peak]:,} posts)."
+        if mem:
+            cnt = Counter(x.author_name or x.account for x in mem)
+            who, k = cnt.most_common(1)[0]
+            t += f" Most active: {who} ({k} post{'s' if k != 1 else ''})."
+            eng = sum(x.engagement for x in mem)
+            t += f" {eng:,} likes, shares and replies in total."
+        if kw:
+            t += f" Key words: {kw}."
         sh = round(100 * nar.get("coordinated_post_share", 0))
-        t += f" {sh}% of these posts come from accounts that seem to work together." if sh else " It looks like normal people talking."
+        t += f" {sh}% of these posts come from accounts that seem to work together." if sh else " No sign of coordination: it looks like normal people talking."
         nar_plain.append({"id": nar["id"], "label": nar["label"], "text": t})
 
     grp_plain = []

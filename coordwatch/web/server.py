@@ -22,7 +22,7 @@ from typing import Dict, List, Optional
 from urllib.parse import parse_qs, urlparse
 
 from .. import __version__
-from .. import activity
+from .. import activity, naming
 from .. import ai
 from .. import runlog
 from .. import validate as V
@@ -165,6 +165,18 @@ def _run_job(job: Job, p: dict):
         cfg = Config(discount_verified=p["discount_verified"])
         result = analyse(posts, p["topic"], p["since"], p["until"], None, cfg, notes, topic_filter=False)
         job.log(f"{result['meta']['n_narratives']} narratives, {result['meta']['n_groups']} coordinated group(s)")
+        if p.get("ai_names"):
+            try:
+                acfg = ai.current_config()
+                if not acfg["ready"]:
+                    job.log("AI story names skipped: no AI provider is configured (Settings)")
+                else:
+                    job.log(f"naming stories with AI ({acfg['label']})…")
+                    k = naming.name_stories(result, acfg)
+                    job.log(f"AI named {k} stor{'y' if k == 1 else 'ies'}" if k else "AI story names: the model did not return usable titles; keeping keyword labels")
+                    activity.record("ai_names", run_id=job.id, named=k, provider=acfg["provider"])
+            except Exception as ex:
+                job.log(f"AI story names skipped ({type(ex).__name__}: {str(ex)[:120]}); keeping keyword labels")
         export_all(result, str(job.dir))
         (job.dir / "report.html").write_text(render(result), encoding="utf-8")
         job.result, job.status = result, "done"
@@ -230,7 +242,7 @@ def parse_run(body: dict) -> dict:
     return {"topic": topic, "since": since.astimezone(timezone.utc), "until": until.astimezone(timezone.utc),
             "platforms": plats, "upload_ids": ups, "demo": demo, "telegram_channels": str(body.get("telegram_channels", ""))[:500],
             "limit": max(50, min(int(body.get("limit") or 500), 5000)),
-            "depth": body.get("depth") if body.get("depth") in ("quick", "standard", "deep") else "standard", "discount_verified": bool(body.get("discount_verified"))}
+            "depth": body.get("depth") if body.get("depth") in ("quick", "standard", "deep") else "standard", "discount_verified": bool(body.get("discount_verified")), "ai_names": bool(body.get("ai_names"))}
 
 
 class Handler(BaseHTTPRequestHandler):

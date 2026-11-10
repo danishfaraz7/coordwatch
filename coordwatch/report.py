@@ -366,7 +366,7 @@ def overview_blocks(result: dict) -> dict:
     top.append("<details class=fold><summary>Mentions per keyword, hashtag, person, brand or event</summary><div class=tbl><table class=num><thead><tr><th>Search term</th><th>Type</th><th>Posts</th><th>Share</th><th>Accounts</th>" +
                "".join(f"<th>{e(k)}</th>" for k in plats) + f"</tr></thead><tbody>{trows}</tbody></table></div></details>")
     nmax = max((v for n in ov["narratives"] for v in n["by_day"].values()), default=1) or 1
-    nrows = "".join(f"<tr><td style='white-space:nowrap'>Story {n['id']}: {e(n['label'])}</td><td><b>{n['posts']:,}</b></td>" +
+    nrows = "".join(f"<tr><td style='white-space:nowrap' title='{e(n['label'])}'>Story {n['id']}: {e(n.get('headline') or n['label'])}</td><td><b>{n['posts']:,}</b></td>" +
                     "".join(f"<td style='text-align:center;background:rgba(90,200,250,{0.08 + 0.7 * n['by_day'].get(d['date'], 0) / nmax if n['by_day'].get(d['date'], 0) else 0:.2f})'>{n['by_day'].get(d['date'], 0) or ''}</td>" for d in days) +
                     "".join(f"<td>{n['by_term'].get(t['term'], 0):,}</td>" for t in terms) + "</tr>" for n in ov["narratives"])
     top.append("<details class=fold><summary>What is being said, day by day and term by term</summary><ul class=plain>" + "".join(f"<li><b>Story {n['id']}</b> {e(n['text'])}</li>" for n in pl["narratives"]) +
@@ -378,6 +378,10 @@ def overview_blocks(result: dict) -> dict:
     return {"top": "".join(top), "plain": plain, "tables": tables, "groups": groups, "origins": origins}
 
 
+def disp(n: dict) -> str:
+    return n.get("headline") or n["label"]
+
+
 def key_findings(result: dict, plat_counts: Dict[str, int]) -> str:
     """Five at-a-glance cards: the facts an analyst wants first."""
     m, nars, groups, origins, posts = result["meta"], result["narratives"], result["coordinated_groups"], result["origins"], result["posts"]
@@ -385,7 +389,7 @@ def key_findings(result: dict, plat_counts: Dict[str, int]) -> str:
     real = [n for n in nars if n["id"] >= 0]
     if real:
         b = max(real, key=lambda n: n["posts"])
-        cards.append(("Biggest story", f"Story {b['id']}: {e(b['label'])}", f"{b['posts']:,} posts from {b['accounts']:,} accounts ({b['posts'] / max(1, m['n_posts']):.0%} of all posts)", ""))
+        cards.append(("Biggest story", f"Story {b['id']}: {e(disp(b))}", f"{b['posts']:,} posts from {b['accounts']:,} accounts ({b['posts'] / max(1, m['n_posts']):.0%} of all posts)", ""))
     days: Dict[str, int] = {}
     for p in posts:
         days[p["created_at"][:10]] = days.get(p["created_at"][:10], 0) + 1
@@ -500,8 +504,8 @@ def render(result: dict, max_posts: int = 400, ai: dict = None) -> str:
         badge = (f"<span class='badge b-hot'>{share:.0%} coord.</span>" if share >= 0.5 else
                  f"<span class='badge b-warn'>{share:.0%} coord.</span>" if share > 0 else "<span class='badge b-ok'>organic</span>")
         mix = "".join(f"<i style='width:{v / n['posts'] * 100:.1f}%;background:{color(k)}' title='{e(k)} {v}'></i>" for k, v in n["platforms"].items())
-        h.append(f"<div class=nrow data-n='{n['id']}' title='Click to filter posts'><span class=i>{n['id']}</span><div><b>{e(n['label'])}</b>"
-                 f"<span class=muted style='font-size:12px'>{n['posts']} posts · {n['accounts']} accounts</span><div class=mix>{mix}</div></div>{badge}</div>")
+        h.append(f"<div class=nrow data-n='{n['id']}' title='Click to filter posts'><span class=i>{n['id']}</span><div><b title='{e(n['label'])}' style='white-space:normal'>{e(disp(n))}</b>"
+                 f"<span class=muted style='font-size:12px'>{n['posts']} posts · {n['accounts']} accounts · {e(n['label'])}</span><div class=mix>{mix}</div></div>{badge}</div>")
     h.append("</div></div>")
 
     # --- coordinated groups

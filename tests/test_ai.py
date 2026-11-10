@@ -178,3 +178,23 @@ class AskEndpointTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class TestStoryNaming(unittest.TestCase):
+    def test_parse_and_apply_titles(self):
+        from coordwatch import naming
+        t = naming.parse_titles('Sure! {"1": "Rumour the bank is insolvent [1]", "2": "x", "x3": "Outage fix confirmed"}')
+        self.assertEqual(t, {1: "Rumour the bank is insolvent", 3: "Outage fix confirmed"})
+        res = {"narratives": [{"id": 1, "label": "insolvent / withdraw"}], "origins": [{"narrative_id": 1, "label": "insolvent / withdraw"}],
+               "cross_platform": {"summary": ['The largest, "insolvent / withdraw", is on x'], "narrative_overlap": [{"narrative_id": 1, "label": "insolvent / withdraw"}]},
+               "overview": {"narratives": [{"id": 1, "label": "insolvent / withdraw"}], "plain": {"summary": ["Biggest is “insolvent / withdraw”"]}}, "posts": []}
+        self.assertEqual(naming.apply(res, {1: "Rumour the bank is insolvent"}), 1)
+        self.assertEqual(res["origins"][0]["label"], "Rumour the bank is insolvent")
+        self.assertIn("Rumour the bank is insolvent", res["cross_platform"]["summary"][0])
+        self.assertEqual(res["narratives"][0]["keyword_label"], "insolvent / withdraw")
+
+    def test_name_stories_survives_garbage(self):
+        from coordwatch import naming
+        res = {"narratives": [{"id": 1, "label": "a / b", "posts": 3, "keywords": ["a"], "representative_posts": []}], "posts": []}
+        self.assertEqual(naming.name_stories(res, {}, answer=lambda q, c, cfg: ("no json here", "m")), 0)
+        self.assertEqual(res["narratives"][0]["label"], "a / b")
