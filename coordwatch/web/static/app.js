@@ -286,7 +286,8 @@ function buildScene(res) {
   if (t1 === t0) t1 = t0 + 3600e3;
   const acct = new Map(), narTs = new Map(), narAcct = new Map();
   for (const p of posts) {
-    let a = acct.get(p.account); if (!a) acct.set(p.account, a = {id: p.account, name: p.author_name, platform: p.platform, first: p.ts, n: 0, group: p.coordinated_group});
+    let a = acct.get(p.account); if (!a) acct.set(p.account, a = {id: p.account, name: p.author_name, platform: p.platform, first: p.ts, n: 0, group: p.coordinated_group, aid: p.author_id, post: p.url || ''});
+    if (!a.post && p.url) a.post = p.url;
     a.n++; a.first = Math.min(a.first, p.ts);
     if (p.narrative_id >= 0) {
       (narTs.get(p.narrative_id) || narTs.set(p.narrative_id, []).get(p.narrative_id)).push(p.ts);
@@ -623,9 +624,10 @@ function showPanel(n) {
         return `<div class="sig"><span>${esc(SIGNAL[s] || s)}</span><div class="b"><i style="width:${f * 100}%"></i></div><em>${Math.round(f * 100)}%</em></div>`; }).join('')}</div>
       <div class="sec"><h5>Evidence</h5>${g.evidence.slice(0, 4).map(ev => ev.type === 'near_duplicate'
         ? `<div class="q">${esc(short(ev.text, 190))}<small>near-verbatim from ${ev.accounts} accounts · ${esc(fmtDT(ev.first))} → ${esc(fmtDT(ev.last))}</small></div>`
-        : `<div class="q"><small>${Math.round(ev.lag_seconds)}s apart</small>${esc(ev.a.account)}: ${esc(short(ev.a.text, 90))}<br>${esc(ev.b.account)}: ${esc(short(ev.b.text, 90))}</div>`).join('')}</div>
+        : `<div class="q"><small>${Math.round(ev.lag_seconds)}s apart</small>${esc(accName(ev.a.account))}: ${esc(short(ev.a.text, 90))}<br>${esc(accName(ev.b.account))}: ${esc(short(ev.b.text, 90))}</div>`).join('')}</div>
       <div class="sec"><h5>Narratives it pushed</h5><div class="chipl">${Object.entries(g.narratives || {}).map(([nid, c]) => `<a href="#" data-n="${esc(nid)}">Story ${esc(nid)} · ${c} posts</a>`).join('')}</div></div>
-      <div class="sec"><h5>Members (${g.size})</h5><div class="chipl">${g.accounts.slice(0, 24).map(a => `<span style="color:${pcol(a.split(':')[0])}">${esc(a.split(':').slice(1).join(':').slice(0, 14))}</span>`).join('')}${g.size > 24 ? `<span>+${g.size - 24}</span>` : ''}</div></div>
+      <div class="sec"><h5>Members (${g.size})</h5><div class="chipl">${g.accounts.slice(0, 24).map(id => { const a = st.scene.acct.get(id) || {}, pl = id.split(':')[0];
+        return acctLink(pl, id, a.name, ` · ${a.n || 0} post${a.n === 1 ? '' : 's'}`, a.post); }).join('')}${g.size > 24 ? `<span>+${g.size - 24}</span>` : ''}</div></div>
       <button class="btn wide" data-posts="g:${esc(g.id)}">Show group's posts</button>`;
   }
   el.innerHTML = h; el.classList.remove('hidden'); el.scrollTop = 0;
@@ -1061,15 +1063,20 @@ const FILES = [['report.html', 'Report you can read and share', 'One web page wi
   ['results.json', 'Everything, for programmers (JSON)', 'The full data in one file for other tools.'], ['overview.json', 'Summary data, for programmers (JSON)', 'The dashboard numbers in one file.'], ['run_log.txt', 'Technical log', 'Only needed if something went wrong.']];
 
 
-function acctUrl(platform, account, name) {
-  const id = String(account || '').split(':').slice(1).join(':'), nm = String(name || '').replace(/^@/, '');
-  if (platform === 'youtube') return id.startsWith('UC') ? 'https://www.youtube.com/channel/' + id : (nm ? 'https://www.youtube.com/@' + encodeURIComponent(nm) : '');
-  if (platform === 'telegram') return /^[A-Za-z0-9_]{4,}$/.test(nm) ? 'https://t.me/' + nm : '';
-  if (platform === 'x') return nm ? 'https://x.com/' + encodeURIComponent(nm) : '';
-  return '';
+function accName(id) { const a = st.scene && st.scene.acct.get(id); return (a && a.name) || String(id).split(':').slice(1).join(':'); }
+function acctUrl(platform, account, name, post) {
+  const id = String(account || '').split(':').slice(1).join(':'), nm = String(name || '').replace(/^@/, ''), pu = /^https?:/.test(post || '') ? post : '';
+  if (platform === 'youtube') return id.startsWith('UC') ? 'https://www.youtube.com/channel/' + id : (nm ? 'https://www.youtube.com/@' + encodeURIComponent(nm) : pu);
+  if (platform === 'telegram') {
+    const m = pu.match(/^https?:\/\/t\.me\/([A-Za-z][A-Za-z0-9_]{3,})\/\d+/);       // public channel username from a post link
+    if (m) return 'https://t.me/' + m[1];
+    return /^[A-Za-z0-9_]{4,}$/.test(nm) ? 'https://t.me/' + nm : pu;                // else the post itself
+  }
+  if (platform === 'x') { const m = pu.match(/^https?:\/\/(?:x|twitter)\.com\/(\w{1,15})\/status\//); return m && m[1] !== 'i' ? 'https://x.com/' + m[1] : (/^\w{1,15}$/.test(nm) ? 'https://x.com/' + nm : pu); }
+  return pu;
 }
-function acctLink(platform, account, name, extra) {
-  const u = acctUrl(platform, account, name), t = esc(name || String(account).split(':').slice(1).join(':')) + (extra || '');
+function acctLink(platform, account, name, extra, post) {
+  const u = acctUrl(platform, account, name, post), t = esc(name || String(account).split(':').slice(1).join(':')) + (extra || '');
   return u ? '<a href="' + esc(u) + '" target="_blank" rel="noopener noreferrer" title="Open this account on ' + esc(LABEL[platform] || platform) + '">' + t + ' ↗</a>' : '<span>' + t + '</span>';
 }
 function aiHtml(text, sources) {                        // answer text with [n] marks, then the numbered references with links

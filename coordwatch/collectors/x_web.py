@@ -42,7 +42,7 @@ class XWeb(Collector):
     notes = ["X posts are a free, no-login sample of public posts: text may be shortened, with no likes/shares/replies "
              "and no account profile data. Use the X API or browser-session route for full coverage."]
 
-    def __init__(self, backend=None, max_queries: int = 8, pause: float = 2.0):
+    def __init__(self, backend=None, max_queries: int = 12, pause: float = 2.0):
         self.backend, self.max_queries, self.pause = backend, max_queries, pause
 
     def _backend(self):
@@ -61,13 +61,17 @@ class XWeb(Collector):
         queries = []
         for t in terms:
             q = t if t.startswith("#") or " " not in t else f'"{t}"'
+            # looser forms first: "inurl:status" often makes search engines return nothing, so it is only a last resort
             for site in ("x.com", "twitter.com"):
-                queries.append(f"site:{site} inurl:status {q}")
+                queries.append(f"site:{site} {q}")
+            queries.append(f"{q} x.com/status")
+        from ..discovery import timelimit_for
+        tl = timelimit_for(since)
         for q in queries[: self.max_queries]:
             self._check()
-            self.log(f"x: looking for public posts ({q.split(' ',2)[-1]})…")
+            self.log(f"x: looking for public posts ({q})…")
             try:
-                rows = be.text(q, None, 50) or []
+                rows = be.text(q, tl, 50) or []
             except Exception as e:
                 self.log(f"x: public-post lookup skipped ({type(e).__name__}: {str(e)[:100]})")
                 continue

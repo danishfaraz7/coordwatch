@@ -42,8 +42,21 @@ class DdgsBackend:
         from ddgs import DDGS
         self._d = DDGS(timeout=20)
 
+    ENGINES = ("auto", "bing", "brave", "yahoo", "mojeek")
+
     def text(self, query, timelimit, max_results):
-        return self._d.text(query, timelimit=timelimit, max_results=max_results)
+        """Try several free search engines in turn and return the first that has results (one engine being blocked or empty is common)."""
+        last = None
+        for eng in self.ENGINES:
+            try:
+                rows = self._d.text(query, timelimit=timelimit, max_results=max_results, backend=eng)
+                if rows:
+                    return rows
+            except Exception as e:      # blocked / no results / network: try the next engine
+                last = e
+        if last:
+            raise last
+        return []
 
     def news(self, query, timelimit, max_results):
         return self._d.news(query, timelimit=timelimit if timelimit in ("d", "w", "m") else None, max_results=max_results)
