@@ -64,7 +64,11 @@ def _chain(pl: str, telegram_channels: str, x_archive: bool, depth: str):
         def browser():
             from .collectors.x_browser import XBrowser
             return XBrowser(cookies_file=S.get("X_COOKIES_FILE"), max_scrolls={"quick": 15, "standard": 40, "deep": 80}.get(depth, 40))
-        return [("X API (paid tier)", api), ("X browser session (free, experimental)", browser)]
+        def web_index():
+            from .collectors.x_web import XWeb
+            return XWeb()
+        return [("X API (paid tier)", api), ("X browser session (free, experimental)", browser),
+                ("X via web search index (free, no login, sample only)", web_index)]
     if pl == "youtube":
         def api():
             from .collectors.youtube import YouTubeCollector

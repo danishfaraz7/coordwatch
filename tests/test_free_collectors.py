@@ -294,3 +294,23 @@ class Probe(unittest.TestCase):
         self.assertGreater(r["old"]["days_since_last_post"], 365 * 4)
         self.assertEqual(r["live"]["messages_on_first_page"], 2)
         self.assertFalse(r["empty"]["ok"])
+
+
+class TestXWeb(unittest.TestCase):
+    def test_snowflake_time_and_parsing(self):
+        from coordwatch.collectors.x_web import snowflake_time, parse_hit, XWeb
+        want = datetime(2026, 11, 5, 12, 0, tzinfo=timezone.utc)
+        tid = str((int(want.timestamp() * 1000) - 1288834974657) << 22)
+        self.assertEqual(snowflake_time(tid).replace(microsecond=0), want)
+        self.assertIsNone(parse_hit({"href": "https://x.com/home", "body": "x"}))
+        h = parse_hit({"href": "https://twitter.com/abc/status/1585841080431321088?s=20", "body": "Acme Bank is insolvent"})
+        self.assertEqual((h["handle"], h["url"]), ("abc", "https://x.com/abc/status/1585841080431321088"))
+
+        class FakeBackend:
+            def text(self, q, tl, n):
+                return [{"href": "https://x.com/abc/status/1585841080431321088", "body": "Acme Bank is insolvent"},
+                        {"href": "https://x.com/def/status/1585841080431321089", "body": "unrelated cats"}]
+        c = XWeb(backend=FakeBackend(), pause=0)
+        out = c.collect("Acme Bank", datetime(2022, 10, 1, tzinfo=timezone.utc), datetime(2022, 11, 1, tzinfo=timezone.utc))
+        self.assertEqual([p.author_id for p in out], ["abc"])
+        self.assertEqual(out[0].platform, "x")
