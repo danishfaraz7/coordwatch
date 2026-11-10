@@ -46,6 +46,15 @@ class GlobalSearchTests(unittest.TestCase):
         self.assertEqual(posts[0].url, "https://t.me/crickchat/1")
         self.assertEqual(posts[0].platform, "telegram")
 
+    def test_channels_the_account_has_joined_are_excluded(self):
+        c = TelegramCollector([], api_id=1, api_hash="x")
+        c.log, c.cancelled = (lambda *_: None), (lambda: False)
+        c._joined, c._skipped = {7}, {}                                  # the account is a member of channel 7
+        posts = []
+        asyncio.run(c._search_global(FakeClient(), "#indvsnz", S, U, 500, posts, errors, set()))
+        self.assertEqual(posts, [])
+        self.assertEqual(c._skipped, {7: {1, 3}})                        # only the two on-topic hits are counted
+
     def test_falls_back_to_query_without_hash_and_reports_empty(self):
         c = TelegramCollector([], api_id=1, api_hash="x")
         logs = []

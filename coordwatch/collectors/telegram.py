@@ -102,8 +102,8 @@ class TelegramCollector(Collector):
         return posts
 
     async def _search_global(self, client, topic, since: datetime, until: datetime, limit: int, posts: List[Post], errors, seen):
-        """messages.searchGlobal. In practice Telegram limits this to chats the account already knows, so it is only one of three routes.
-        Original docstring: Search every public channel/group at once.  Pages with Telegram's (rate, peer, id) cursor; the server match is
+        """messages.searchGlobal: Telegram's global message search. Telegram ranks the account's own chats first, so results can include
+        channels you have joined; those are dropped unless TELEGRAM_INCLUDE_JOINED=1.  Search every public channel/group at once.  Pages with Telegram's (rate, peer, id) cursor; the server match is
         fuzzy, so every hit is re-checked locally against the topic and the date window.  Each query is tried as written
         and without its leading '#' (hashtag syntax is not always honoured by the server), and the date window is applied
         locally (results arrive newest first) so a server-side date quirk cannot hide everything."""
@@ -148,6 +148,9 @@ class TelegramCollector(Collector):
                     d = m.date if m.date.tzinfo else m.date.replace(tzinfo=timezone.utc)
                     if d < since or d > until or not matches_topic(m.message or "", topic):
                         continue
+                    if cid in getattr(self, "_joined", ()):
+                        self._skipped.setdefault(cid, set()).add(m.id)
+                        continue
                     seen.add((cid, m.id))
                     chat = chats.get(cid)
                     uid = getattr(getattr(m, "from_id", None), "user_id", None)
@@ -182,8 +185,17 @@ class TelegramCollector(Collector):
                                  then each is searched server-side.
         3. messages.searchGlobal - Telegram's own global message search over public channels and groups (not limited to the account's
                                  subscriptions; results depend on Telegram's index and ranking).
-        The account's own subscribed chats are never enumerated or read."""
+        Telegram also returns hits from channels the account has joined. Only their ids are listed (never their messages) so those hits
+        can be dropped and the results stay a public-Telegram view; set TELEGRAM_INCLUDE_JOINED=1 to keep them."""
         seen = set()
+        self._joined, self._skipped = set(), {}
+        if os.environ.get("TELEGRAM_INCLUDE_JOINED", "").lower() not in ("1", "true", "yes"):
+            try:
+                async for dlg in client.iter_dialogs(limit=None):
+                    self._joined.add(dlg.entity.id)
+                self.log(f"telegram: your account has joined {len(self._joined)} chat(s); results from them are excluded so this stays a public search")
+            except Exception as e:
+                self.log(f"telegram: could not list joined chats ({type(e).__name__}); joined channels are not excluded")
         for name, fn in (("public post search", self._search_posts), ("channel directory", self._search_directory),
                          ("searchGlobal", self._search_global)):
             self._check()
@@ -197,6 +209,9 @@ class TelegramCollector(Collector):
             self.log(f"telegram: {name}: +{len(posts) - before} messages (total {len(posts)})")
             if len(posts) >= limit:
                 break
+        if self._skipped:
+            self.log(f"telegram: excluded {sum(len(v) for v in self._skipped.values())} message(s) from {len(self._skipped)} channel(s) you have joined "
+                     f"(set TELEGRAM_INCLUDE_JOINED=1 to keep them)")
         n = len({p.author_id for p in posts})
         self.log(f"telegram: search done - {len(posts)} messages from {n} account(s)/channel(s)")
         if not posts:
@@ -211,6 +226,9 @@ class TelegramCollector(Collector):
         from ..filtering import matches_topic
         d = m.date if m.date.tzinfo else m.date.replace(tzinfo=timezone.utc)
         if d < since or d > until or not matches_topic(m.message or "", topic):
+            return False
+        if cid in getattr(self, "_joined", ()):
+            self._skipped.setdefault(cid, set()).add(m.id)
             return False
         seen.add((cid, m.id))
         chat = chats.get(cid)
