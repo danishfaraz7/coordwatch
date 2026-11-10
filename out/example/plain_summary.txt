@@ -4,7 +4,7 @@ SUMMARY IN SIMPLE WORDS
 - The busiest day was 2026-10-05 with 227 posts.
 - “acme bank” (phrase) was mentioned in 727 posts (100% of everything) by 271 accounts.
 - People are talking about 13 main things. The biggest (Story 1) is about “BREAKING: Acme Bank is INSOLVENT.”: 233 posts from 28 accounts, mostly on X, 32% of everything.
-- The next biggest: Story 2 “Acme Bank transfers is completely unusable today while my card is declined at the shop…” (148 posts); Story 3 “Hidden fees at Acme Bank are insane for basic accounts which feels like a cash grab Shop…” (76 posts); Story 4 “Honestly Acme Bank has been solid who answered within minutes which I did not expect Fair…” (57 posts).
+- The next biggest: Story 2 “Acme Bank transfers is completely unusable today while my card is…” (148 posts); Story 3 “Hidden fees at Acme Bank are insane for basic accounts which feels…” (76 posts); Story 4 “Honestly Acme Bank has been solid who answered within minutes which I…” (57 posts).
 - We found 3 group(s) of accounts that seem to work together. Together they wrote about 40% of all the posts.
 
 WHAT PEOPLE ARE SAYING (main stories)

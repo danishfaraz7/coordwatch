@@ -184,11 +184,13 @@ class TestStoryNaming(unittest.TestCase):
     def test_parse_and_apply_titles(self):
         from coordwatch import naming
         t = naming.parse_titles('Sure! {"1": "Rumour the bank is insolvent [1]", "2": "x", "x3": "Outage fix confirmed"}')
-        self.assertEqual(t, {1: "Rumour the bank is insolvent", 3: "Outage fix confirmed"})
+        self.assertEqual({k: v["title"] for k, v in t.items()}, {1: "Rumour the bank is insolvent", 3: "Outage fix confirmed"})
+        t2 = naming.parse_titles('{"1": {"title": "Rumour of a bank run", "summary": "Posts claim the bank is failing."}}')
+        self.assertEqual(t2[1], {"title": "Rumour of a bank run", "summary": "Posts claim the bank is failing."})
         res = {"narratives": [{"id": 1, "label": "insolvent / withdraw"}], "origins": [{"narrative_id": 1, "label": "insolvent / withdraw"}],
                "cross_platform": {"summary": ['The largest, "insolvent / withdraw", is on x'], "narrative_overlap": [{"narrative_id": 1, "label": "insolvent / withdraw"}]},
                "overview": {"narratives": [{"id": 1, "label": "insolvent / withdraw"}], "plain": {"summary": ["Biggest is “insolvent / withdraw”"]}}, "posts": []}
-        self.assertEqual(naming.apply(res, {1: "Rumour the bank is insolvent"}), 1)
+        self.assertEqual(naming.apply(res, {1: {"title": "Rumour the bank is insolvent", "summary": "Claim spreads."}}), 1)
         self.assertEqual(res["origins"][0]["label"], "Rumour the bank is insolvent")
         self.assertIn("Rumour the bank is insolvent", res["cross_platform"]["summary"][0])
         self.assertEqual(res["narratives"][0]["keyword_label"], "insolvent / withdraw")

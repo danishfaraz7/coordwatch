@@ -8,7 +8,7 @@
    "x",
    "youtube"
   ],
-  "generated_at": "2026-11-10T15:08:40.777136+00:00",
+  "generated_at": "2026-11-10T15:32:25.050191+00:00",
   "n_posts": 727,
   "n_accounts": 271,
   "n_narratives": 13,
@@ -395,6 +395,7 @@
    "coordinated_groups": {
     "G1": 233
    },
+   "gist": "BREAKING: Acme Bank is INSOLVENT.",
    "headline": "BREAKING: Acme Bank is INSOLVENT."
   },
   {
@@ -635,7 +636,8 @@
    ],
    "coordinated_post_share": 0.0,
    "coordinated_groups": {},
-   "headline": "Acme Bank transfers is completely unusable today while my card is declined at the shop…"
+   "gist": "Acme Bank transfers is completely unusable today while my card is declined at the shop…",
+   "headline": "Acme Bank transfers is completely unusable today while my card is…"
   },
   {
    "id": 3,
@@ -799,7 +801,8 @@
    ],
    "coordinated_post_share": 0.0,
    "coordinated_groups": {},
-   "headline": "Hidden fees at Acme Bank are insane for basic accounts which feels like a cash grab Shop…"
+   "gist": "Hidden fees at Acme Bank are insane for basic accounts which feels like a cash grab Shop…",
+   "headline": "Hidden fees at Acme Bank are insane for basic accounts which feels…"
   },
   {
    "id": 4,
@@ -942,7 +945,8 @@
    ],
    "coordinated_post_share": 0.0,
    "coordinated_groups": {},
-   "headline": "Honestly Acme Bank has been solid who answered within minutes which I did not expect Fair…"
+   "gist": "Honestly Acme Bank has been solid who answered within minutes which I did not expect Fair…",
+   "headline": "Honestly Acme Bank has been solid who answered within minutes which I…"
   },
   {
    "id": 5,
@@ -1068,7 +1072,8 @@
    ],
    "coordinated_post_share": 0.0,
    "coordinated_groups": {},
-   "headline": "Not saying anything is wrong at Acme Bank but this outage really is in trouble or not?"
+   "gist": "Not saying anything is wrong at Acme Bank but this outage really is in trouble or not?",
+   "headline": "Not saying anything is wrong at Acme Bank but this outage really is…"
   },
   {
    "id": 6,
@@ -1180,7 +1185,8 @@
    ],
    "coordinated_post_share": 0.0,
    "coordinated_groups": {},
-   "headline": "Acme Bank's chief executive told customers services are restored after the morning…"
+   "gist": "Acme Bank's chief executive told customers services are restored after the morning…",
+   "headline": "Acme Bank's chief executive told customers services are restored…"
   },
   {
    "id": 7,
@@ -1267,7 +1273,8 @@
    ],
    "coordinated_post_share": 0.0,
    "coordinated_groups": {},
-   "headline": "RIP Acme Bank app, gone to lunch and never came back, press F to pay respects"
+   "gist": "RIP Acme Bank app, gone to lunch and never came back, press F to pay respects",
+   "headline": "RIP Acme Bank"
   },
   {
    "id": 8,
@@ -1349,7 +1356,8 @@
    "coordinated_groups": {
     "G2": 35
    },
-   "headline": "Several staff members told me the man running Acme Bank escaped overseas right as the…"
+   "gist": "Several staff members told me the man running Acme Bank escaped overseas right as the…",
+   "headline": "Several staff members told me the man running Acme Bank escaped…"
   },
   {
    "id": 9,
@@ -1415,7 +1423,8 @@
    "coordinated_groups": {
     "G3": 15
    },
-   "headline": "Acme Bank confirms systems restored after outage, says customer deposits are fully…"
+   "gist": "Acme Bank confirms systems restored after outage, says customer deposits are fully…",
+   "headline": "Acme Bank confirms systems restored after outage, says customer…"
   },
   {
    "id": 10,
@@ -1481,7 +1490,8 @@
    ],
    "coordinated_post_share": 0.0,
    "coordinated_groups": {},
-   "headline": "Is the Acme Bank outage overreacting, fundamentals look fine Just wondering DYOR."
+   "gist": "Is the Acme Bank outage overreacting, fundamentals look fine Just wondering DYOR.",
+   "headline": "Is the Acme Bank outage overreacting, fundamentals look fine Just…"
   },
   {
    "id": 11,
@@ -1535,7 +1545,8 @@
    "coordinated_groups": {
     "G2": 9
    },
-   "headline": "Sources close to the bank claim the Acme Bank CEO boarded a flight abroad and is not…"
+   "gist": "Sources close to the bank claim the Acme Bank CEO boarded a flight abroad and is not…",
+   "headline": "Acme Bank CEO and Acme Bank's"
   },
   {
    "id": 12,
@@ -1582,6 +1593,7 @@
    ],
    "coordinated_post_share": 0.0,
    "coordinated_groups": {},
+   "gist": "Acme Bank quarterly results are out, looks fine to me",
    "headline": "Acme Bank quarterly results are out, looks fine to me"
   },
   {
@@ -1631,6 +1643,7 @@
    ],
    "coordinated_post_share": 0.0,
    "coordinated_groups": {},
+   "gist": "Acme Bank mobile app update finally fixed my login problem",
    "headline": "Acme Bank mobile app update finally fixed my login problem"
   }
  ],
@@ -7662,7 +7675,7 @@
    {
     "id": 2,
     "label": "again / fix / please / transfers",
-    "headline": "Acme Bank transfers is completely unusable today while my card is declined at the shop…",
+    "headline": "Acme Bank transfers is completely unusable today while my card is…",
     "posts": 148,
     "by_day": {
      "2026-10-01": 3,
@@ -7692,7 +7705,7 @@
    {
     "id": 3,
     "label": "fees / charges / any / hidden",
-    "headline": "Hidden fees at Acme Bank are insane for basic accounts which feels like a cash grab Shop…",
+    "headline": "Hidden fees at Acme Bank are insane for basic accounts which feels…",
     "posts": 76,
     "by_day": {
      "2026-10-01": 2,
@@ -7722,7 +7735,7 @@
    {
     "id": 4,
     "label": "fair / advisor / answered / within",
-    "headline": "Honestly Acme Bank has been solid who answered within minutes which I did not expect Fair…",
+    "headline": "Honestly Acme Bank has been solid who answered within minutes which I…",
     "posts": 57,
     "by_day": {
      "2026-10-01": 2,
@@ -7752,7 +7765,7 @@
    {
     "id": 5,
     "label": "trouble / rumours / outage / evidence",
-    "headline": "Not saying anything is wrong at Acme Bank but this outage really is in trouble or not?",
+    "headline": "Not saying anything is wrong at Acme Bank but this outage really is…",
     "posts": 50,
     "by_day": {
      "2026-10-01": 4,
@@ -7782,7 +7795,7 @@
    {
     "id": 6,
     "label": "after / disruption / worth / reading",
-    "headline": "Acme Bank's chief executive told customers services are restored after the morning…",
+    "headline": "Acme Bank's chief executive told customers services are restored…",
     "posts": 43,
     "by_day": {
      "2026-10-01": 0,
@@ -7812,7 +7825,7 @@
    {
     "id": 7,
     "label": "rip / gone / lunch / never",
-    "headline": "RIP Acme Bank app, gone to lunch and never came back, press F to pay respects",
+    "headline": "RIP Acme Bank",
     "posts": 40,
     "by_day": {
      "2026-10-01": 0,
@@ -7842,7 +7855,7 @@
    {
     "id": 8,
     "label": "country / several / members / man",
-    "headline": "Several staff members told me the man running Acme Bank escaped overseas right as the…",
+    "headline": "Several staff members told me the man running Acme Bank escaped…",
     "posts": 35,
     "by_day": {
      "2026-10-01": 0,
@@ -7870,7 +7883,7 @@
    {
     "id": 9,
     "label": "confirms / systems / protected / deposits",
-    "headline": "Acme Bank confirms systems restored after outage, says customer deposits are fully…",
+    "headline": "Acme Bank confirms systems restored after outage, says customer…",
     "posts": 15,
     "by_day": {
      "2026-10-01": 0,
@@ -7899,7 +7912,7 @@
    {
     "id": 10,
     "label": "overreacting / fundamentals / fine / look",
-    "headline": "Is the Acme Bank outage overreacting, fundamentals look fine Just wondering DYOR.",
+    "headline": "Is the Acme Bank outage overreacting, fundamentals look fine Just…",
     "posts": 9,
     "by_day": {
      "2026-10-01": 0,
@@ -7929,7 +7942,7 @@
    {
     "id": 11,
     "label": "abroad / boarded / flight / coming",
-    "headline": "Sources close to the bank claim the Acme Bank CEO boarded a flight abroad and is not…",
+    "headline": "Acme Bank CEO and Acme Bank's",
     "posts": 9,
     "by_day": {
      "2026-10-01": 0,
@@ -8023,74 +8036,425 @@
     "The busiest day was 2026-10-05 with 227 posts.",
     "“acme bank” (phrase) was mentioned in 727 posts (100% of everything) by 271 accounts.",
     "People are talking about 13 main things. The biggest (Story 1) is about “BREAKING: Acme Bank is INSOLVENT.”: 233 posts from 28 accounts, mostly on X, 32% of everything.",
-    "The next biggest: Story 2 “Acme Bank transfers is completely unusable today while my card is declined at the shop…” (148 posts); Story 3 “Hidden fees at Acme Bank are insane for basic accounts which feels like a cash grab Shop…” (76 posts); Story 4 “Honestly Acme Bank has been solid who answered within minutes which I did not expect Fair…” (57 posts).",
+    "The next biggest: Story 2 “Acme Bank transfers is completely unusable today while my card is…” (148 posts); Story 3 “Hidden fees at Acme Bank are insane for basic accounts which feels…” (76 posts); Story 4 “Honestly Acme Bank has been solid who answered within minutes which I…” (57 posts).",
     "We found 3 group(s) of accounts that seem to work together. Together they wrote about 40% of all the posts."
    ],
    "narratives": [
     {
      "id": 1,
      "label": "insolvent / withdraw / savings / too",
-     "text": "233 posts from 28 accounts (X 143, Telegram 78, YouTube 12). A typical post says: “BREAKING: Acme Bank is INSOLVENT.”. First seen 2026-10-04 on Telegram. Loudest on 2026-10-04 (111 posts). Most active: truth_finance_04 (24 posts). 873 likes, shares and replies in total. Key words: insolvent, withdraw, savings, too, late. 100% of these posts come from accounts that seem to work together."
+     "text": "233 posts from 28 accounts (X 143, Telegram 78, YouTube 12). A typical post says: “BREAKING: Acme Bank is INSOLVENT.”. First seen 2026-10-04 on Telegram. Loudest on 2026-10-04 (111 posts). Most active: truth_finance_04 (24 posts). 873 likes, shares and replies in total. Key words: insolvent, withdraw, savings, too, late. 100% of these posts come from accounts that seem to work together.",
+     "title": "BREAKING: Acme Bank is INSOLVENT.",
+     "brief": [
+      [
+       "What it is about",
+       "233 posts from 28 accounts (X 143, Telegram 78, YouTube 12) revolve around BREAKING: Acme Bank is INSOLVENT.. Key words people use: insolvent, withdraw, savings, too, late."
+      ],
+      [
+       "In their own words",
+       "“🚨 BREAKING: Acme Bank is INSOLVENT. Withdraw your savings NOW before it's too late! #AcmeBank” (truth_finance_04, X, 04 Oct) “‼️ BREAKING: Acme Bank is insolvent - withdraw all your savings now before it is too late #WithdrawNow” (truth_finance_04, X, 05 Oct) “BREAKING: Acme Bank is INSOLVENT. Withdraw your savings NOW before it's too late! #WithdrawNow” (truth_finance_12, X, 05 Oct)"
+      ],
+      [
+       "Timeline",
+       "First seen 04 Oct 2026 on Telegram; last seen 06 Oct 2026 (active over 3 days). Loudest on 2026-10-04 with 111 posts."
+      ],
+      [
+       "Who is posting",
+       "truth_finance_04 (24 posts), truth_finance_02 (20 posts), truth_finance_06 (19 posts). 28 distinct accounts in total."
+      ],
+      [
+       "Reach",
+       "873 likes, shares and replies in total; the most engaged post got 13."
+      ],
+      [
+       "Coordination check",
+       "100% of the posts come from accounts that behave like a group, so treat this story as a lead worth reviewing."
+      ]
+     ]
     },
     {
      "id": 2,
      "label": "again / fix / please / transfers",
-     "text": "148 posts from 122 accounts (X 79, Telegram 40, YouTube 29). A typical post says: “Acme Bank transfers is completely unusable today while my card is declined at the shop…”. First seen 2026-10-01 on X. Loudest on 2026-10-05 (39 posts). Most active: user_074_raj (3 posts). 826 likes, shares and replies in total. Key words: again, fix, please, transfers, website. No sign of coordination: it looks like normal people talking."
+     "text": "148 posts from 122 accounts (X 79, Telegram 40, YouTube 29). A typical post says: “Acme Bank transfers is completely unusable today while my card is declined at the shop…”. First seen 2026-10-01 on X. Loudest on 2026-10-05 (39 posts). Most active: user_074_raj (3 posts). 826 likes, shares and replies in total. Key words: again, fix, please, transfers, website. No sign of coordination: it looks like normal people talking.",
+     "title": "Acme Bank transfers is completely unusable today while my card is…",
+     "brief": [
+      [
+       "What it is about",
+       "148 posts from 122 accounts (X 79, Telegram 40, YouTube 29) revolve around Acme Bank transfers is completely unusable today while my card is…. Key words people use: again, fix, please, transfers, website."
+      ],
+      [
+       "In their own words",
+       "“The Acme Bank website is completely unusable today and I cannot see my balance Not a good look. thoughts?” (user_026_sam, Telegram, 03 Oct) “Acme Bank's mobile login is returning errors again so I can't pay rent Ridiculous for a bank. seriously” (user_186_mia, X, 06 Oct) “My Acme Bank app keeps failing for me - third time this month Anyone else?” (user_044_raj, X, 07 Oct)"
+      ],
+      [
+       "Timeline",
+       "First seen 01 Oct 2026 on X; last seen 14 Oct 2026 (active over 14 days). Loudest on 2026-10-05 with 39 posts."
+      ],
+      [
+       "Who is posting",
+       "user_074_raj (3 posts), user_158_raj (3 posts), user_137_sam (2 posts). 122 distinct accounts in total."
+      ],
+      [
+       "Reach",
+       "826 likes, shares and replies in total; the most engaged post got 34."
+      ],
+      [
+       "Coordination check",
+       "No sign of coordination: the posts look like independent people reacting."
+      ]
+     ]
     },
     {
      "id": 3,
      "label": "fees / charges / any / hidden",
-     "text": "76 posts from 71 accounts (X 38, Telegram 24, YouTube 14). A typical post says: “Hidden fees at Acme Bank are insane for basic accounts which feels like a cash grab Shop…”. First seen 2026-10-01 on Telegram. Loudest on 2026-10-06 (20 posts). Most active: user_068_tom (2 posts). 452 likes, shares and replies in total. Key words: fees, charges, any, hidden, insane. No sign of coordination: it looks like normal people talking."
+     "text": "76 posts from 71 accounts (X 38, Telegram 24, YouTube 14). A typical post says: “Hidden fees at Acme Bank are insane for basic accounts which feels like a cash grab Shop…”. First seen 2026-10-01 on Telegram. Loudest on 2026-10-06 (20 posts). Most active: user_068_tom (2 posts). 452 likes, shares and replies in total. Key words: fees, charges, any, hidden, insane. No sign of coordination: it looks like normal people talking.",
+     "title": "Hidden fees at Acme Bank are insane for basic accounts which feels…",
+     "brief": [
+      [
+       "What it is about",
+       "76 posts from 71 accounts (X 38, Telegram 24, YouTube 14) revolve around Hidden fees at Acme Bank are insane for basic accounts which feels…. Key words people use: fees, charges, any, hidden, insane."
+      ],
+      [
+       "In their own words",
+       "“Acme Bank just raised monthly fees for basic accounts and I paid 35 dollars for one transfer Shop around. smh” (user_226_sam, X, 05 Oct) “The Acme Bank wire fee for basic accounts which feels like a cash grab Any recommendations? lol” (user_139_raj, Telegram, 07 Oct) “Hidden fees at Acme Bank are insane for basic accounts which feels like a cash grab Thoughts? smh” (user_133_ana, X, 07 Oct)"
+      ],
+      [
+       "Timeline",
+       "First seen 01 Oct 2026 on Telegram; last seen 14 Oct 2026 (active over 14 days). Loudest on 2026-10-06 with 20 posts."
+      ],
+      [
+       "Who is posting",
+       "user_068_tom (2 posts), user_048_raj (2 posts), user_083_sam (2 posts). 71 distinct accounts in total."
+      ],
+      [
+       "Reach",
+       "452 likes, shares and replies in total; the most engaged post got 31."
+      ],
+      [
+       "Coordination check",
+       "No sign of coordination: the posts look like independent people reacting."
+      ]
+     ]
     },
     {
      "id": 4,
      "label": "fair / advisor / answered / within",
-     "text": "57 posts from 50 accounts (X 32, Telegram 15, YouTube 10). A typical post says: “Honestly Acme Bank has been solid who answered within minutes which I did not expect Fair…”. First seen 2026-10-01 on YouTube. Loudest on 2026-10-06 (12 posts). Most active: user_021_raj (3 posts). 392 likes, shares and replies in total. Key words: fair, advisor, answered, within, minutes. No sign of coordination: it looks like normal people talking."
+     "text": "57 posts from 50 accounts (X 32, Telegram 15, YouTube 10). A typical post says: “Honestly Acme Bank has been solid who answered within minutes which I did not expect Fair…”. First seen 2026-10-01 on YouTube. Loudest on 2026-10-06 (12 posts). Most active: user_021_raj (3 posts). 392 likes, shares and replies in total. Key words: fair, advisor, answered, within, minutes. No sign of coordination: it looks like normal people talking.",
+     "title": "Honestly Acme Bank has been solid who answered within minutes which I…",
+     "brief": [
+      [
+       "What it is about",
+       "57 posts from 50 accounts (X 32, Telegram 15, YouTube 10) revolve around Honestly Acme Bank has been solid who answered within minutes which I…. Key words people use: fair, advisor, answered, within, minutes."
+      ],
+      [
+       "In their own words",
+       "“My Acme Bank advisor who answered within minutes which I did not expect Fair is fair. #banking” (user_004_tom, YouTube, 08 Oct) “Got a decent mortgage rate from Acme Bank who were genuinely helpful which I did not expect Happy customer.” (user_038_ana, Telegram, 04 Oct) “Props to Acme Bank support for ten years now and the process was smooth Rare good experience. #AcmeBank” (user_075_jo, X, 03 Oct)"
+      ],
+      [
+       "Timeline",
+       "First seen 01 Oct 2026 on YouTube; last seen 14 Oct 2026 (active over 14 days). Loudest on 2026-10-06 with 12 posts."
+      ],
+      [
+       "Who is posting",
+       "user_021_raj (3 posts), user_075_jo (2 posts), user_097_tom (2 posts). 50 distinct accounts in total."
+      ],
+      [
+       "Reach",
+       "392 likes, shares and replies in total; the most engaged post got 33."
+      ],
+      [
+       "Coordination check",
+       "No sign of coordination: the posts look like independent people reacting."
+      ]
+     ]
     },
     {
      "id": 5,
      "label": "trouble / rumours / outage / evidence",
-     "text": "50 posts from 47 accounts (X 24, Telegram 18, YouTube 8). A typical post says: “Not saying anything is wrong at Acme Bank but this outage really is in trouble or not?”. First seen 2026-10-01 on X. Loudest on 2026-10-05 (14 posts). Most active: user_088_ana (2 posts). 295 likes, shares and replies in total. Key words: trouble, rumours, outage, evidence, either. No sign of coordination: it looks like normal people talking."
+     "text": "50 posts from 47 accounts (X 24, Telegram 18, YouTube 8). A typical post says: “Not saying anything is wrong at Acme Bank but this outage really is in trouble or not?”. First seen 2026-10-01 on X. Loudest on 2026-10-05 (14 posts). Most active: user_088_ana (2 posts). 295 likes, shares and replies in total. Key words: trouble, rumours, outage, evidence, either. No sign of coordination: it looks like normal people talking.",
+     "title": "Not saying anything is wrong at Acme Bank but this outage really is…",
+     "brief": [
+      [
+       "What it is about",
+       "50 posts from 47 accounts (X 24, Telegram 18, YouTube 8) revolve around Not saying anything is wrong at Acme Bank but this outage really is…. Key words people use: trouble, rumours, outage, evidence, either."
+      ],
+      [
+       "In their own words",
+       "“Analysts on Acme Bank: really is in trouble or not? I would wait for numbers Let's see. #banking” (user_052_tom, X, 13 Oct) “Not saying anything is wrong at Acme Bank but this outage really is in trouble or not? Time will tell DYOR. #AcmeBank” (user_161_raj, Telegram, 06 Oct) “People keep asking whether Acme Bank is a concern or just IT trouble? Time will tell DYOR. lol” (user_209_ana, X, 03 Oct)"
+      ],
+      [
+       "Timeline",
+       "First seen 01 Oct 2026 on X; last seen 13 Oct 2026 (active over 13 days). Loudest on 2026-10-05 with 14 posts."
+      ],
+      [
+       "Who is posting",
+       "user_088_ana (2 posts), user_077_jo (2 posts), user_069_raj (2 posts). 47 distinct accounts in total."
+      ],
+      [
+       "Reach",
+       "295 likes, shares and replies in total; the most engaged post got 30."
+      ],
+      [
+       "Coordination check",
+       "No sign of coordination: the posts look like independent people reacting."
+      ]
+     ]
     },
     {
      "id": 6,
      "label": "after / disruption / worth / reading",
-     "text": "43 posts from 43 accounts (X 25, Telegram 13, YouTube 5). A typical post says: “Acme Bank's chief executive told customers services are restored after the morning…”. First seen 2026-10-05 on Telegram. Loudest on 2026-10-05 (13 posts). Most active: user_003_sam (1 post). 282 likes, shares and replies in total. Key words: after, disruption, worth, reading, full. No sign of coordination: it looks like normal people talking."
+     "text": "43 posts from 43 accounts (X 25, Telegram 13, YouTube 5). A typical post says: “Acme Bank's chief executive told customers services are restored after the morning…”. First seen 2026-10-05 on Telegram. Loudest on 2026-10-05 (13 posts). Most active: user_003_sam (1 post). 282 likes, shares and replies in total. Key words: after, disruption, worth, reading, full. No sign of coordination: it looks like normal people talking.",
+     "title": "Acme Bank's chief executive told customers services are restored…",
+     "brief": [
+      [
+       "What it is about",
+       "43 posts from 43 accounts (X 25, Telegram 13, YouTube 5) revolve around Acme Bank's chief executive told customers services are restored…. Key words people use: after, disruption, worth, reading, full."
+      ],
+      [
+       "In their own words",
+       "“Acme Bank says the outage came from a software update following an internal review Worth reading in full. seriously” (user_212_jo, X, 14 Oct) “Acme Bank says deposits are safe and insured by Tuesday evening More soon.” (user_061_ana, X, 07 Oct) “A statement from Acme Bank: capital requirements are fully met after the morning disruption More soon. seriously” (user_118_tom, X, 14 Oct)"
+      ],
+      [
+       "Timeline",
+       "First seen 05 Oct 2026 on Telegram; last seen 14 Oct 2026 (active over 10 days). Loudest on 2026-10-05 with 13 posts."
+      ],
+      [
+       "Who is posting",
+       "user_003_sam (1 post), user_089_raj (1 post), user_160_tom (1 post). 43 distinct accounts in total."
+      ],
+      [
+       "Reach",
+       "282 likes, shares and replies in total; the most engaged post got 36."
+      ],
+      [
+       "Coordination check",
+       "No sign of coordination: the posts look like independent people reacting."
+      ]
+     ]
     },
     {
      "id": 7,
      "label": "rip / gone / lunch / never",
-     "text": "40 posts from 40 accounts (X 17, Telegram 14, YouTube 9). A typical post says: “RIP Acme Bank app, gone to lunch and never came back, press F to pay respects”. First seen 2026-10-05 on YouTube. Loudest on 2026-10-05 (40 posts). Most active: user_145_tom (1 post). 247 likes, shares and replies in total. Key words: rip, gone, lunch, never, press. No sign of coordination: it looks like normal people talking."
+     "text": "40 posts from 40 accounts (X 17, Telegram 14, YouTube 9). A typical post says: “RIP Acme Bank app, gone to lunch and never came back, press F to pay respects”. First seen 2026-10-05 on YouTube. Loudest on 2026-10-05 (40 posts). Most active: user_145_tom (1 post). 247 likes, shares and replies in total. Key words: rip, gone, lunch, never, press. No sign of coordination: it looks like normal people talking.",
+     "title": "RIP Acme Bank",
+     "brief": [
+      [
+       "What it is about",
+       "40 posts from 40 accounts (X 17, Telegram 14, YouTube 9) revolve around RIP Acme Bank. Key words people use: rip, gone, lunch, never, press."
+      ],
+      [
+       "In their own words",
+       "“RIP Acme Bank app, gone to lunch and never came back, press F to pay respects” (user_106_sam, X, 05 Oct)"
+      ],
+      [
+       "Timeline",
+       "First seen 05 Oct 2026 on YouTube; last seen 05 Oct 2026 (active over 1 day). Loudest on 2026-10-05 with 40 posts."
+      ],
+      [
+       "Who is posting",
+       "user_145_tom (1 post), user_076_raj (1 post), user_086_sam (1 post). 40 distinct accounts in total."
+      ],
+      [
+       "Reach",
+       "247 likes, shares and replies in total; the most engaged post got 29."
+      ],
+      [
+       "Coordination check",
+       "No sign of coordination: the posts look like independent people reacting."
+      ]
+     ]
     },
     {
      "id": 8,
      "label": "country / several / members / man",
-     "text": "35 posts from 6 accounts (X 35). A typical post says: “Several staff members told me the man running Acme Bank escaped overseas right as the…”. First seen 2026-10-06 on X. Loudest on 2026-10-09 (11 posts). Most active: insider_leaks_2 (8 posts). 356 likes, shares and replies in total. Key words: country, several, members, man, running. 100% of these posts come from accounts that seem to work together."
+     "text": "35 posts from 6 accounts (X 35). A typical post says: “Several staff members told me the man running Acme Bank escaped overseas right as the…”. First seen 2026-10-06 on X. Loudest on 2026-10-09 (11 posts). Most active: insider_leaks_2 (8 posts). 356 likes, shares and replies in total. Key words: country, several, members, man, running. 100% of these posts come from accounts that seem to work together.",
+     "title": "Several staff members told me the man running Acme Bank escaped…",
+     "brief": [
+      [
+       "What it is about",
+       "35 posts from 6 accounts (X 35) revolve around Several staff members told me the man running Acme Bank escaped…. Key words people use: country, several, members, man, running."
+      ],
+      [
+       "In their own words",
+       "“Insiders say the man running Acme Bank has fled the country and the board is in the dark” (insider_leaks_3, X, 09 Oct) “Several staff members told me the boss of Acme Bank escaped overseas while the board panics” (insider_leaks_0, X, 08 Oct) “I heard from a friend at head office that Acme Bank's chief executive left the country overnight right as the outage began” (insider_leaks_2, X, 07 Oct)"
+      ],
+      [
+       "Timeline",
+       "First seen 06 Oct 2026 on X; last seen 09 Oct 2026 (active over 3 days). Loudest on 2026-10-09 with 11 posts."
+      ],
+      [
+       "Who is posting",
+       "insider_leaks_2 (8 posts), insider_leaks_3 (6 posts), insider_leaks_5 (6 posts). 6 distinct accounts in total."
+      ],
+      [
+       "Reach",
+       "356 likes, shares and replies in total; the most engaged post got 45."
+      ],
+      [
+       "Coordination check",
+       "100% of the posts come from accounts that behave like a group, so treat this story as a lead worth reviewing."
+      ]
+     ]
     },
     {
      "id": 9,
      "label": "confirms / systems / protected / deposits",
-     "text": "15 posts from 5 accounts (X 9, Telegram 6). A typical post says: “Acme Bank confirms systems restored after outage, says customer deposits are fully…”. First seen 2026-10-05 on X. Loudest on 2026-10-05 (5 posts). Most active: newswire_daily (3 posts). 10,415 likes, shares and replies in total. Key words: confirms, systems, protected, deposits, restored. 100% of these posts come from accounts that seem to work together."
+     "text": "15 posts from 5 accounts (X 9, Telegram 6). A typical post says: “Acme Bank confirms systems restored after outage, says customer deposits are fully…”. First seen 2026-10-05 on X. Loudest on 2026-10-05 (5 posts). Most active: newswire_daily (3 posts). 10,415 likes, shares and replies in total. Key words: confirms, systems, protected, deposits, restored. 100% of these posts come from accounts that seem to work together.",
+     "title": "Acme Bank confirms systems restored after outage, says customer…",
+     "brief": [
+      [
+       "What it is about",
+       "15 posts from 5 accounts (X 9, Telegram 6) revolve around Acme Bank confirms systems restored after outage, says customer…. Key words people use: confirms, systems, protected, deposits, restored."
+      ],
+      [
+       "In their own words",
+       "“Acme Bank confirms systems restored after outage, says customer deposits are fully protected | Staff” (newswire_wire, X, 05 Oct)"
+      ],
+      [
+       "Timeline",
+       "First seen 05 Oct 2026 on X; last seen 07 Oct 2026 (active over 2 days). Loudest on 2026-10-05 with 5 posts."
+      ],
+      [
+       "Who is posting",
+       "newswire_daily (3 posts), newswire_post (3 posts), newswire_tribune (3 posts). 5 distinct accounts in total."
+      ],
+      [
+       "Reach",
+       "10,415 likes, shares and replies in total; the most engaged post got 1,287."
+      ],
+      [
+       "Coordination check",
+       "100% of the posts come from accounts that behave like a group, so treat this story as a lead worth reviewing."
+      ]
+     ]
     },
     {
      "id": 10,
      "label": "overreacting / fundamentals / fine / look",
-     "text": "9 posts from 9 accounts (X 4, Telegram 4, YouTube 1). A typical post says: “Is the Acme Bank outage overreacting, fundamentals look fine Just wondering DYOR.”. First seen 2026-10-03 on X. Loudest on 2026-10-05 (3 posts). Most active: user_106_sam (1 post). 90 likes, shares and replies in total. Key words: overreacting, fundamentals, fine, look, analysts. No sign of coordination: it looks like normal people talking."
+     "text": "9 posts from 9 accounts (X 4, Telegram 4, YouTube 1). A typical post says: “Is the Acme Bank outage overreacting, fundamentals look fine Just wondering DYOR.”. First seen 2026-10-03 on X. Loudest on 2026-10-05 (3 posts). Most active: user_106_sam (1 post). 90 likes, shares and replies in total. Key words: overreacting, fundamentals, fine, look, analysts. No sign of coordination: it looks like normal people talking.",
+     "title": "Is the Acme Bank outage overreacting, fundamentals look fine Just…",
+     "brief": [
+      [
+       "What it is about",
+       "9 posts from 9 accounts (X 4, Telegram 4, YouTube 1) revolve around Is the Acme Bank outage overreacting, fundamentals look fine Just…. Key words people use: overreacting, fundamentals, fine, look, analysts."
+      ],
+      [
+       "In their own words",
+       "“Not saying anything is wrong at Acme Bank but this outage overreacting, fundamentals look fine I would wait for numbers Staying calm. lol” (user_208_sam, Telegram, 05 Oct) “Analysts on Acme Bank: overreacting, fundamentals look fine Sources are thin DYOR.” (user_106_sam, X, 03 Oct) “Is the Acme Bank outage overreacting, fundamentals look fine Just wondering DYOR. seriously” (user_014_tom, Telegram, 06 Oct)"
+      ],
+      [
+       "Timeline",
+       "First seen 03 Oct 2026 on X; last seen 13 Oct 2026 (active over 10 days). Loudest on 2026-10-05 with 3 posts."
+      ],
+      [
+       "Who is posting",
+       "user_106_sam (1 post), user_035_mia (1 post), user_022_tom (1 post). 9 distinct accounts in total."
+      ],
+      [
+       "Reach",
+       "90 likes, shares and replies in total; the most engaged post got 24."
+      ],
+      [
+       "Coordination check",
+       "No sign of coordination: the posts look like independent people reacting."
+      ]
+     ]
     },
     {
      "id": 11,
      "label": "abroad / boarded / flight / coming",
-     "text": "9 posts from 5 accounts (X 9). A typical post says: “Sources close to the bank claim the Acme Bank CEO boarded a flight abroad and is not…”. First seen 2026-10-06 on X. Loudest on 2026-10-06 (4 posts). Most active: insider_leaks_4 (3 posts). 78 likes, shares and replies in total. Key words: abroad, boarded, flight, coming, board. 100% of these posts come from accounts that seem to work together."
+     "text": "9 posts from 5 accounts (X 9). A typical post says: “Sources close to the bank claim the Acme Bank CEO boarded a flight abroad and is not…”. First seen 2026-10-06 on X. Loudest on 2026-10-06 (4 posts). Most active: insider_leaks_4 (3 posts). 78 likes, shares and replies in total. Key words: abroad, boarded, flight, coming, board. 100% of these posts come from accounts that seem to work together.",
+     "title": "Acme Bank CEO and Acme Bank's",
+     "brief": [
+      [
+       "What it is about",
+       "9 posts from 5 accounts (X 9) revolve around Acme Bank CEO and Acme Bank's. Key words people use: abroad, boarded, flight, coming, board."
+      ],
+      [
+       "In their own words",
+       "“Insiders say the boss of Acme Bank boarded a flight abroad and is not coming back right as the outage began” (insider_leaks_0, X, 07 Oct) “Leaked chat messages suggest the boss of Acme Bank boarded a flight abroad and is not coming back and the board is in the dark” (insider_leaks_1, X, 08 Oct) “Sources close to the bank claim Acme Bank's chief executive vanished abroad with no notice while the board panics” (insider_leaks_4, X, 07 Oct)"
+      ],
+      [
+       "Timeline",
+       "First seen 06 Oct 2026 on X; last seen 08 Oct 2026 (active over 2 days). Loudest on 2026-10-06 with 4 posts."
+      ],
+      [
+       "Who is posting",
+       "insider_leaks_4 (3 posts), insider_leaks_1 (2 posts), insider_leaks_0 (2 posts). 5 distinct accounts in total."
+      ],
+      [
+       "Reach",
+       "78 likes, shares and replies in total; the most engaged post got 36."
+      ],
+      [
+       "Coordination check",
+       "100% of the posts come from accounts that behave like a group, so treat this story as a lead worth reviewing."
+      ]
+     ]
     },
     {
      "id": 12,
      "label": "quarterly / results / looks / fine",
-     "text": "6 posts from 2 accounts (X 6). A typical post says: “Acme Bank quarterly results are out, looks fine to me”. First seen 2026-10-03 on X. Loudest on 2026-10-03 (2 posts). Most active: fan_one (3 posts). 9 likes, shares and replies in total. Key words: quarterly, results, looks, fine. No sign of coordination: it looks like normal people talking."
+     "text": "6 posts from 2 accounts (X 6). A typical post says: “Acme Bank quarterly results are out, looks fine to me”. First seen 2026-10-03 on X. Loudest on 2026-10-03 (2 posts). Most active: fan_one (3 posts). 9 likes, shares and replies in total. Key words: quarterly, results, looks, fine. No sign of coordination: it looks like normal people talking.",
+     "title": "Acme Bank quarterly results are out, looks fine to me",
+     "brief": [
+      [
+       "What it is about",
+       "6 posts from 2 accounts (X 6) revolve around Acme Bank quarterly results are out, looks fine to me. Key words people use: quarterly, results, looks, fine."
+      ],
+      [
+       "In their own words",
+       "“Acme Bank quarterly results are out, looks fine to me” (fan_one, X, 03 Oct)"
+      ],
+      [
+       "Timeline",
+       "First seen 03 Oct 2026 on X; last seen 09 Oct 2026 (active over 6 days). Loudest on 2026-10-03 with 2 posts."
+      ],
+      [
+       "Who is posting",
+       "fan_one (3 posts), fan_two (3 posts). 2 distinct accounts in total."
+      ],
+      [
+       "Reach",
+       "9 likes, shares and replies in total; the most engaged post got 3."
+      ],
+      [
+       "Coordination check",
+       "No sign of coordination: the posts look like independent people reacting."
+      ]
+     ]
     },
     {
      "id": 13,
      "label": "finally / fixed / problem / update",
-     "text": "6 posts from 2 accounts (X 6). A typical post says: “Acme Bank mobile app update finally fixed my login problem”. First seen 2026-10-04 on X. Loudest on 2026-10-04 (2 posts). Most active: fan_two (3 posts). 10 likes, shares and replies in total. Key words: finally, fixed, problem, update, mobile. No sign of coordination: it looks like normal people talking."
+     "text": "6 posts from 2 accounts (X 6). A typical post says: “Acme Bank mobile app update finally fixed my login problem”. First seen 2026-10-04 on X. Loudest on 2026-10-04 (2 posts). Most active: fan_two (3 posts). 10 likes, shares and replies in total. Key words: finally, fixed, problem, update, mobile. No sign of coordination: it looks like normal people talking.",
+     "title": "Acme Bank mobile app update finally fixed my login problem",
+     "brief": [
+      [
+       "What it is about",
+       "6 posts from 2 accounts (X 6) revolve around Acme Bank mobile app update finally fixed my login problem. Key words people use: finally, fixed, problem, update, mobile."
+      ],
+      [
+       "In their own words",
+       "“Acme Bank mobile app update finally fixed my login problem” (fan_two, X, 04 Oct)"
+      ],
+      [
+       "Timeline",
+       "First seen 04 Oct 2026 on X; last seen 12 Oct 2026 (active over 9 days). Loudest on 2026-10-04 with 2 posts."
+      ],
+      [
+       "Who is posting",
+       "fan_two (3 posts), fan_one (3 posts). 2 distinct accounts in total."
+      ],
+      [
+       "Reach",
+       "10 likes, shares and replies in total; the most engaged post got 4."
+      ],
+      [
+       "Coordination check",
+       "No sign of coordination: the posts look like independent people reacting."
+      ]
+     ]
     }
    ],
    "groups": [

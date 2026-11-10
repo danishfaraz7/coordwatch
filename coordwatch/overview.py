@@ -93,6 +93,23 @@ def headline(nar: dict, by_id: dict, width: int = 90) -> str:
     return ""
 
 
+def entity_title(texts: list, topic: str = "", fallback_kw: list = None) -> str:
+    """A short title built from the people, brands and places the story's posts keep naming (not copied from any one post)."""
+    from .trending import terms_from
+    skip = {t.lower() for t in topic_terms(topic)} | {topic.lower()}
+    names = []
+    for t in terms_from([(x, 1) for x in texts if x], top=10):
+        term = t["term"]
+        if t["kind"] != "phrase" or not 2 <= len(term.split()) <= 3 or term.lower() in skip or any(term.lower() in n.lower() or n.lower() in term.lower() for n in names):
+            continue
+        names.append(term)
+        if len(names) == 3:
+            break
+    if not names:
+        return ""
+    return names[0] if len(names) == 1 else ", ".join(names[:-1]) + " and " + names[-1]
+
+
 def build(posts, assign, narratives, groups, origins, topic: str, since: Optional[datetime], until: Optional[datetime]) -> dict:
     days = _days_between(since, until, posts)
     base = topic_terms(topic) or [topic.lower()]
@@ -139,7 +156,8 @@ def build(posts, assign, narratives, groups, origins, topic: str, since: Optiona
     by_id = {p.id: p for p in posts}
     for nar in narratives:
         if nar["id"] >= 0:
-            nar["headline"] = headline(nar, by_id)
+            nar["gist"] = headline(nar, by_id)
+            nar["headline"] = entity_title([by_id[i].text for i in nar.get("post_ids", []) if i in by_id], topic, nar.get("keywords")) or (nar["gist"][:70].rsplit(" ", 1)[0] + "…" if len(nar["gist"]) > 70 else nar["gist"])
     nar_rows = []
     for nar in narratives:
         if nar["id"] < 0:
@@ -185,8 +203,8 @@ def build(posts, assign, narratives, groups, origins, topic: str, since: Optiona
         if pls:
             t += " (" + ", ".join(f"{_pl(p)} {v:,}" for p, v in pls[:3]) + ")"
         t += "."
-        if nar.get("headline"):
-            t += f" A typical post says: “{nar['headline']}”."
+        if nar.get("gist"):
+            t += f" A typical post says: “{nar['gist']}”."
         if mem:
             first = min(mem, key=lambda x: x.created_at)
             t += f" First seen {first.created_at.strftime('%Y-%m-%d')} on {_pl(first.platform)}."
@@ -202,7 +220,27 @@ def build(posts, assign, narratives, groups, origins, topic: str, since: Optiona
             t += f" Key words: {kw}."
         sh = round(100 * nar.get("coordinated_post_share", 0))
         t += f" {sh}% of these posts come from accounts that seem to work together." if sh else " No sign of coordination: it looks like normal people talking."
-        nar_plain.append({"id": nar["id"], "label": nar["label"], "text": t})
+        brief = []
+        if mem:
+            seen_q, quotes = set(), []
+            for x in sorted(mem, key=lambda x: -x.engagement):
+                q = " ".join(_URL.sub(" ", x.text or "").split())
+                if len(q) >= 25 and q[:40].lower() not in seen_q:
+                    seen_q.add(q[:40].lower())
+                    quotes.append(f"“{q[:170]}{'…' if len(q) > 170 else ''}” ({x.author_name or x.account}, {_pl(x.platform)}, {x.created_at.strftime('%d %b')})")
+                if len(quotes) == 3:
+                    break
+            last = max(mem, key=lambda x: x.created_at)
+            span = (last.created_at - first.created_at).days + 1
+            brief = [("What it is about", f"{nar['posts']:,} posts from {nar['accounts']:,} accounts" + (" (" + ", ".join(f"{_pl(p)} {v:,}" for p, v in pls[:3]) + ")" if pls else "")
+                      + f" revolve around {nar.get('headline') or kw or nar['label']}. Key words people use: {kw}."),
+                     ("In their own words", " ".join(quotes) or "No quotable text."),
+                     ("Timeline", f"First seen {first.created_at.strftime('%d %b %Y')} on {_pl(first.platform)}; last seen {last.created_at.strftime('%d %b %Y')} (active over {span} day{'s' if span != 1 else ''})."
+                                  + (f" Loudest on {peak} with {r['by_day'][peak]:,} posts." if peak else "")),
+                     ("Who is posting", ", ".join(f"{n_} ({c} post{'s' if c != 1 else ''})" for n_, c in cnt.most_common(3)) + f". {nar['accounts']:,} distinct accounts in total."),
+                     ("Reach", f"{sum(x.engagement for x in mem):,} likes, shares and replies in total" + (f"; the most engaged post got {max(x.engagement for x in mem):,}." if mem else ".")),
+                     ("Coordination check", (f"{sh}% of the posts come from accounts that behave like a group, so treat this story as a lead worth reviewing." if sh else "No sign of coordination: the posts look like independent people reacting."))]
+        nar_plain.append({"id": nar["id"], "label": nar["label"], "text": t, "title": nar.get("headline", ""), "brief": brief})
 
     grp_plain = []
     for g in groups:

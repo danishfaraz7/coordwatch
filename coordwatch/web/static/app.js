@@ -1006,7 +1006,7 @@ function crossCards() {
 }
 // ------------------------------------------------------------------ dashboard: summary, per-day counts, mentions per term
 const NO_OV = '<div class="analysis-card xp-card wide"><h3>No overview in this run</h3><p>This run was saved before the overview existed. Start the search again to get it.</p></div>';
-const plainOf = (list, key, id) => ((list || []).find(x => x[key] === id) || {}).text || '';
+const plainOf = (list, key, id) => { const x = (list || []).find(y => y[key] === id) || {}; const n = key === 'id' && st.res ? (st.res.narratives || []).find(m => m.id === id) : null; return (n && n.summary) || x.text || ''; };
 function dayBars(days, plats) {
   if (!days.length) return '';
   const W = 720, H = 130, bw = W / days.length, mx = Math.max(...days.map(d => d.total), 1);

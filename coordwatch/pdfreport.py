@@ -90,8 +90,23 @@ def build(result: dict, path: str, ai: dict = None) -> str:
         story += [P("What was mentioned", h2), tt]
 
     story.append(P("What people are saying", h2))
+    nmap = {n["id"]: n for n in result.get("narratives", [])}
+    org = {o["narrative_id"]: o for o in pl["origins"]}
+    lead = ParagraphStyle("lead", parent=base, fontName="Helvetica-Bold", fontSize=11.5, leading=15, spaceBefore=6)
     for n in pl["narratives"][:8]:
-        story.append(KeepTogether([P(f"Story {n['id']}:  {n.get('headline') or n['label']}", ParagraphStyle("nl", parent=base, fontName="Helvetica-Bold")), P(n["text"]), Spacer(1, 5)]))
+        nn = nmap.get(n["id"], {})
+        title = nn.get("headline") or n.get("title") or n["label"]
+        parts = [P(f"Story {n['id']}:  {title}", lead)]
+        if nn.get("summary"):
+            parts.append(P(nn["summary"]))
+        for lab, txt in n.get("brief") or [("Summary", n["text"])]:
+            parts.append(Paragraph(f"<b>{_e(lab)}.</b> {_e(str(txt))}", base))
+        o = org.get(n["id"])
+        if o:
+            parts.append(Paragraph(f"<b>How it spread.</b> {_e(o['text'])}", base))
+        parts.append(Spacer(1, 8))
+        story.append(KeepTogether(parts[:3]))
+        story += parts[3:]
     story.append(P("Accounts that seem to work together", h2))
     story += [P(g["text"]) for g in pl["groups"]] or [P("No group of accounts clearly worked together.")]
     story.append(P("Where each story started and how it spread", h2))

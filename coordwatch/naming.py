@@ -9,9 +9,11 @@ from typing import Callable, Dict, Optional
 MAX_STORIES = 12
 _SKIP = re.compile(r"[<>\x00-\x1f]")
 
-QUESTION = ("Give each story a short, plain-English title of 3 to 6 words that says what the posts claim or discuss "
-            "(for example 'Rumour that the bank is insolvent'). Use only the data. This task overrides the citation rule: reply with ONLY a JSON "
-            "object mapping the story id (as a string) to its title, nothing else.")
+QUESTION = ("For each story write (1) a short, original, plain-English title of 3 to 7 words that says what the story is about, in your own words "
+            "(never copy a post's headline; for example 'Rumour that the bank is insolvent') and (2) a clear summary of 3 to 4 sentences for an executive: "
+            "what is being claimed or discussed, who is saying it and on which platforms, when it peaked, and whether it looks organic or coordinated. "
+            "Use only the data and never invent facts. This task overrides the word limit and citation rule: reply with ONLY a JSON object mapping the story id "
+            "(as a string) to {\"title\": ..., \"summary\": ...}, nothing else.")
 
 
 def build_context(result: dict, max_stories: int = MAX_STORIES, per_story: int = 3) -> str:
@@ -22,12 +24,14 @@ def build_context(result: dict, max_stories: int = MAX_STORIES, per_story: int =
         for pid in (n.get("representative_posts") or [])[:per_story]:
             p = by_id.get(pid)
             if p:
-                quotes.append(" ".join((p["text"] or "").split())[:160])
-        out.append({"id": n["id"], "keywords": n.get("keywords", [])[:6], "posts": n["posts"], "example_posts": quotes})
+                quotes.append(" ".join((p["text"] or "").split())[:200])
+        out.append({"id": n["id"], "keywords": n.get("keywords", [])[:6], "posts": n["posts"], "accounts": n.get("accounts"), "platforms": n.get("platforms"),
+                    "first_seen": (n.get("first_seen") or "")[:10], "last_seen": (n.get("last_seen") or "")[:10], "coordinated_share": round(n.get("coordinated_post_share", 0), 2),
+                    "example_posts": quotes})
     return json.dumps({"stories": out}, ensure_ascii=False)
 
 
-def parse_titles(text: str) -> Dict[int, str]:
+def parse_titles(text: str) -> Dict[int, dict]:
     m = re.search(r"\{.*\}", text or "", re.S)
     if not m:
         return {}
@@ -41,22 +45,30 @@ def parse_titles(text: str) -> Dict[int, str]:
             i = int(re.sub(r"\D", "", str(k)))
         except ValueError:
             continue
+        summ = ""
+        if isinstance(v, dict):
+            summ = _SKIP.sub("", re.sub(r"\[\d+\]", "", str(v.get("summary", "")))).strip()[:900]
+            v = v.get("title", "")
         t = _SKIP.sub("", re.sub(r"\[\d+\]", "", str(v))).strip(" .\"'")
-        if 3 <= len(t) <= 70:
-            titles[i] = t
+        if 3 <= len(t) <= 80:
+            titles[i] = {"title": t, "summary": summ}
     return titles
 
 
-def apply(result: dict, titles: Dict[int, str]) -> int:
+def apply(result: dict, titles: Dict[int, dict]) -> int:
     """Swap the label of each named story everywhere it appears. The keyword label stays in `keyword_label`."""
+    titles = {k: (v if isinstance(v, dict) else {"title": v, "summary": ""}) for k, v in titles.items()}
     old = {}
     for n in result["narratives"]:
         if n["id"] in titles:
             old[n["id"]] = n["label"]
-            n["keyword_label"], n["label"], n["headline"] = n["label"], titles[n["id"]], titles[n["id"]]
+            t = titles[n["id"]]
+            n["keyword_label"], n["label"], n["headline"] = n["label"], t["title"], t["title"]
+            if t["summary"]:
+                n["summary"] = t["summary"]
     if not old:
         return 0
-    swaps = {old[i]: titles[i] for i in old}
+    swaps = {old[i]: titles[i]["title"] for i in old}
 
     def walk(x):
         if isinstance(x, dict):
@@ -78,7 +90,7 @@ def apply(result: dict, titles: Dict[int, str]) -> int:
             result[key] = walk(result[key])
     for n in (result.get("overview") or {}).get("narratives", []):
         if n.get("id") in titles:
-            n["label"] = n["headline"] = titles[n["id"]]
+            n["label"] = n["headline"] = titles[n["id"]]["title"]
     return len(old)
 
 
