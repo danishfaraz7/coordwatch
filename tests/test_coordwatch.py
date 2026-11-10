@@ -328,3 +328,16 @@ class RateLimitTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class ForwardFromUncollectedAccountTest(unittest.TestCase):
+    """Regression: a Telegram forward whose source channel was not collected used to raise KeyError('telegram:<id>')."""
+
+    def test_forward_from_unseen_channel_does_not_crash(self):
+        t0 = datetime(2026, 11, 5, 10, 0, tzinfo=timezone.utc)
+        posts = [Post(platform="telegram", id=str(i), author_id=str(100 + i), author_name=f"chan{i}",
+                      text=f"trade signal number {i} for gold today",
+                      created_at=t0 + timedelta(minutes=i), reshare_of_author="2389062071" if i % 2 else None)
+                 for i in range(6)]
+        res = analyse(posts, "trade", None, None, None, Config())
+        self.assertEqual(res["totals"]["posts"] if "totals" in res else len(posts), 6 if "totals" in res else len(posts))

@@ -107,7 +107,7 @@ def detect(posts: List[Post], vecs, cfg: Config, assign=None) -> dict:
         target = owner.get((p.platform, p.reshare_of)) if p.reshare_of else None
         if not target and p.reshare_of_author:
             target = f"{p.platform}:{p.reshare_of_author}"
-        if target and target != p.account:
+        if target and target != p.account and target in acct:   # forwards from accounts we never collected cannot be scored
             if cfg.discount_verified and (p.author_verified or acct.get(target, {}).get("verified")):
                 continue
             ev[_pair(p.account, target)]["amplify"] += 1
