@@ -495,13 +495,6 @@ Each story gets a clean default title built from the search keywords (a multi-wo
 ### AI behaviour
 Pollinations (free, no login) is the default whenever an AI button is used; with a Gemini key set, Gemini is used instead. There are no prompts about AI. On a rate limit or error the app waits the stated cooldown, shows a countdown and retries automatically (up to 6 tries).
 
-### Free X posts through Google (optional, recommended)
-Google's official Programmable Search API (free, 100 searches a day) finds public x.com posts far more reliably than the built-in fallback. Set it up once (about 5 minutes):
-1. <https://programmablesearchengine.google.com/> → **Add** → under "Sites to search" add `x.com/*` and `twitter.com/*` → **Create**. Copy the **Search engine ID** (cx).
-2. <https://developers.google.com/custom-search/v1/introduction> → **Get a key** (or Google Cloud → APIs → enable *Custom Search API* → Credentials → API key). Copy the key.
-3. In the app: **Settings → X** → paste the key and the engine id → Save (or set `GOOGLE_CSE_KEY` and `GOOGLE_CSE_CX`, for example as Codespaces secrets).
-Posts come from Google's index, so it is still a sample (text snippets, post time decoded from the post id, no likes/replies).
-
 ### Free X route
 With no X key or cookies, X posts come from public posts found through web search (time decoded from the post id; no likes/shares). Order tried: X API, browser session, public posts. Also: Telegram posts are tagged joined / not joined, the app shows a friendly "No matches found" card with example searches, finished runs can be minimised, and the HTML report has a navigation bar, key findings, top posts and accounts, and a "how to read this" section.
 

@@ -7,8 +7,8 @@ import os
 from pathlib import Path
 from typing import Dict, Optional
 
-SECRET_KEYS = ["X_BEARER_TOKEN", "YOUTUBE_API_KEY", "TELEGRAM_API_ID", "TELEGRAM_API_HASH", "GEMINI_API_KEY", "AI_API_KEY", "GOOGLE_CSE_KEY"]
-PLAIN_KEYS = ["AI_PROVIDER", "AI_BASE_URL", "AI_MODEL", "X_COOKIES_FILE", "GOOGLE_CSE_CX"]          # not secret: shown back in the UI
+SECRET_KEYS = ["X_BEARER_TOKEN", "YOUTUBE_API_KEY", "TELEGRAM_API_ID", "TELEGRAM_API_HASH", "GEMINI_API_KEY", "AI_API_KEY"]
+PLAIN_KEYS = ["AI_PROVIDER", "AI_BASE_URL", "AI_MODEL", "X_COOKIES_FILE"]          # not secret: shown back in the UI
 KEYS = SECRET_KEYS + PLAIN_KEYS
 
 
