@@ -223,7 +223,7 @@ def platform_status() -> dict:
         "platforms": {
             # every live platform has a free route, so it is usable without paid credentials (see collect._chain)
             "x": {"mode": "live", "ready": True, "needs": ["X_BEARER_TOKEN"],
-                  "route": "X API" if st["X_BEARER_TOKEN"]["set"] else "browser session (free, experimental)" if st["X_COOKIES_FILE"]["set"] else "public posts (free, sample only)"},
+                  "route": "X API" if st["X_BEARER_TOKEN"]["set"] else "browser session (free, experimental)" if st["X_COOKIES_FILE"]["set"] else "public posts via Google (free)" if (st.get("GOOGLE_CSE_KEY", {}).get("set") and st.get("GOOGLE_CSE_CX", {}).get("set")) else "public posts (free, sample only)"},
             "youtube": {"mode": "live", "ready": True, "needs": ["YOUTUBE_API_KEY"],
                         "route": "YouTube Data API" if st["YOUTUBE_API_KEY"]["set"] else "yt-dlp (no key)"},
             "telegram": {"mode": "live", "ready": True, "needs": ["TELEGRAM_API_ID", "TELEGRAM_API_HASH"], "login_done": S.telegram_logged_in(),

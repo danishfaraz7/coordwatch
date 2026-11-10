@@ -48,8 +48,10 @@ class XWeb(Collector):
     def _backend(self):
         if self.backend is None:
             try:
-                from ..discovery import DdgsBackend
-                self.backend = DdgsBackend()
+                from .. import secrets_store
+                from ..discovery import DdgsBackend, GoogleCseBackend
+                key, cx = secrets_store.get("GOOGLE_CSE_KEY"), secrets_store.get("GOOGLE_CSE_CX")
+                self.backend = GoogleCseBackend(key, cx) if key and cx else DdgsBackend()
             except Exception as e:
                 raise RuntimeError(f"free public-post lookup not available ({type(e).__name__}: pip install ddgs)")
         return self.backend

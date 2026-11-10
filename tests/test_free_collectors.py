@@ -314,3 +314,19 @@ class TestXWeb(unittest.TestCase):
         out = c.collect("Acme Bank", datetime(2022, 10, 1, tzinfo=timezone.utc), datetime(2022, 11, 1, tzinfo=timezone.utc))
         self.assertEqual([p.author_id for p in out], ["abc"])
         self.assertEqual(out[0].platform, "x")
+
+
+class TestGoogleCse(unittest.TestCase):
+    def test_rows_are_shaped_for_xweb_and_parsed(self):
+        import io, json as _json
+        from unittest import mock
+        from coordwatch.discovery import GoogleCseBackend
+        payload = {"items": [{"link": "https://x.com/someone/status/1853000000000000000", "title": "t", "snippet": "bitcoin to the moon"}]}
+        class R(io.BytesIO):
+            def __enter__(self): return self
+            def __exit__(self, *a): return False
+        with mock.patch("urllib.request.urlopen", return_value=R(_json.dumps(payload).encode())):
+            rows = GoogleCseBackend("k", "cx").text("site:x.com bitcoin", "w", 10)
+        self.assertEqual(rows[0]["href"], payload["items"][0]["link"])
+        from coordwatch.collectors.x_web import parse_hit
+        self.assertEqual(parse_hit(rows[0])["handle"], "someone")
