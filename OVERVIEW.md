@@ -36,13 +36,31 @@ You can rename any story, and pick which stories go into a report.
 If nothing matches, the app says so and suggests other searches. It never shows a scary error for that.
 
 ## Installation
-Open <https://github.com/danishfaraz7/coordwatch>, click **Code, Codespaces, Create codespace on main**, then in the terminal run:
+Three ways to run it. Option A needs nothing installed. Options B and C need Python 3.10 or newer (python.org/downloads; on Windows tick "Add python.exe to PATH").
 
+**Option A: GitHub Codespaces (recommended).** Open the repository, click Code, Codespaces, Create codespace on main, wait 2 to 5 minutes, then in the terminal run `cd /workspaces/coordwatch`, `pip install -r requirements.txt` and `python -m coordwatch web --host 0.0.0.0 --port 8000`. Click Open in Browser.
+
+**Option B: Windows.** Install Python, click Code, Download ZIP and Extract All, open PowerShell and run:
 ```
+cd $HOME\Downloads\coordwatch-main
+py -m venv .venv
+.venv\Scripts\activate
 pip install -r requirements.txt
-python -m coordwatch web --host 0.0.0.0 --port 8000
+python -m coordwatch web
 ```
-Click **Open in Browser** when it appears. The full click-by-click guide, including installing on your own computer, is in `GETTING_STARTED.md`.
+Then open http://localhost:8000. If Windows says scripts are disabled, run `Set-ExecutionPolicy -Scope Process Bypass` and activate again.
+
+**Option C: Mac (Linux is the same).** Install Python, click Code, Download ZIP and double-click it, open Terminal and run:
+```
+cd ~/Downloads/coordwatch-main
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+python -m coordwatch web
+```
+Then open http://localhost:8000.
+
+To stop, press Ctrl+C in the terminal. To start again, go to the folder, activate the environment, and run `python -m coordwatch web`. Common fixes are in GETTING_STARTED.md.
 
 ## Requirements for live data
 | Platform | What you need | Cost |
