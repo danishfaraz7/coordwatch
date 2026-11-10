@@ -46,14 +46,33 @@ class GlobalSearchTests(unittest.TestCase):
         self.assertEqual(posts[0].url, "https://t.me/crickchat/1")
         self.assertEqual(posts[0].platform, "telegram")
 
-    def test_channels_the_account_has_joined_are_excluded(self):
+    def test_joined_channels_are_kept_and_tagged_by_default(self):
         c = TelegramCollector([], api_id=1, api_hash="x")
         c.log, c.cancelled = (lambda *_: None), (lambda: False)
         c._joined, c._skipped = {7}, {}                                  # the account is a member of channel 7
         posts = []
         asyncio.run(c._search_global(FakeClient(), "#indvsnz", S, U, 500, posts, errors, set()))
+        self.assertEqual([p.id for p in posts], ["7/1", "7/3"])
+        self.assertTrue(all(p.joined is True for p in posts))
+        self.assertEqual(c._skipped, {})
+
+    def test_not_joined_channels_are_tagged_false(self):
+        c = TelegramCollector([], api_id=1, api_hash="x")
+        c.log, c.cancelled = (lambda *_: None), (lambda: False)
+        c._joined, c._skipped = {99}, {}                                 # member of some other channel only
+        posts = []
+        asyncio.run(c._search_global(FakeClient(), "#indvsnz", S, U, 500, posts, errors, set()))
+        self.assertEqual(len(posts), 2)
+        self.assertTrue(all(p.joined is False for p in posts))
+
+    def test_exclude_switch_drops_joined_channels(self):
+        c = TelegramCollector([], api_id=1, api_hash="x")
+        c.log, c.cancelled = (lambda *_: None), (lambda: False)
+        c._joined, c._skipped, c._exclude = {7}, {}, True
+        posts = []
+        asyncio.run(c._search_global(FakeClient(), "#indvsnz", S, U, 500, posts, errors, set()))
         self.assertEqual(posts, [])
-        self.assertEqual(c._skipped, {7: {1, 3}})                        # only the two on-topic hits are counted
+        self.assertEqual(c._skipped, {7: {1, 3}})
 
     def test_falls_back_to_query_without_hash_and_reports_empty(self):
         c = TelegramCollector([], api_id=1, api_hash="x")

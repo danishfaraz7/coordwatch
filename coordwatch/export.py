@@ -31,7 +31,7 @@ def export_all(result: dict, out_dir: str) -> list:
         rows.append(r)
     p = os.path.join(out_dir, "posts.csv")
     _w(p, rows, ["platform", "id", "created_at", "author_name", "account", "text", "photo_urls", "video_urls", "likes",
-                 "shares", "replies", "views", "url", "narrative_id", "coordinated_group", "is_reshare"])
+                 "shares", "replies", "views", "url", "narrative_id", "coordinated_group", "is_reshare", "joined"])
     paths.append(p)
 
     p = os.path.join(out_dir, "narratives.csv")

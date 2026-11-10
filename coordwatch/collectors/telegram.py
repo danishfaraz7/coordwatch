@@ -103,7 +103,7 @@ class TelegramCollector(Collector):
 
     async def _search_global(self, client, topic, since: datetime, until: datetime, limit: int, posts: List[Post], errors, seen):
         """messages.searchGlobal: Telegram's global message search. Telegram ranks the account's own chats first, so results can include
-        channels you have joined; those are dropped unless TELEGRAM_INCLUDE_JOINED=1.  Search every public channel/group at once.  Pages with Telegram's (rate, peer, id) cursor; the server match is
+        channels you have joined; they are kept and tagged (dropped only if TELEGRAM_EXCLUDE_JOINED=1).  Search every public channel/group at once.  Pages with Telegram's (rate, peer, id) cursor; the server match is
         fuzzy, so every hit is re-checked locally against the topic and the date window.  Each query is tried as written
         and without its leading '#' (hashtag syntax is not always honoured by the server), and the date window is applied
         locally (results arrive newest first) so a server-side date quirk cannot hide everything."""
@@ -148,8 +148,7 @@ class TelegramCollector(Collector):
                     d = m.date if m.date.tzinfo else m.date.replace(tzinfo=timezone.utc)
                     if d < since or d > until or not matches_topic(m.message or "", topic):
                         continue
-                    if cid in getattr(self, "_joined", ()):
-                        self._skipped.setdefault(cid, set()).add(m.id)
+                    if self._drop_joined(cid, m):
                         continue
                     seen.add((cid, m.id))
                     chat = chats.get(cid)
@@ -159,7 +158,7 @@ class TelegramCollector(Collector):
                             m._sender = users[uid]
                         except Exception:
                             pass
-                    posts.append(message_to_post(m, getattr(chat, "username", None) or "", str(cid), getattr(chat, "title", "") or str(cid)))
+                    posts.append(self._tag(message_to_post(m, getattr(chat, "username", None) or "", str(cid), getattr(chat, "title", "") or str(cid)), cid))
                     channels.add(cid)
                     got += 1
                     kept += 1
@@ -185,17 +184,18 @@ class TelegramCollector(Collector):
                                  then each is searched server-side.
         3. messages.searchGlobal - Telegram's own global message search over public channels and groups (not limited to the account's
                                  subscriptions; results depend on Telegram's index and ranking).
-        Telegram also returns hits from channels the account has joined. Only their ids are listed (never their messages) so those hits
-        can be dropped and the results stay a public-Telegram view; set TELEGRAM_INCLUDE_JOINED=1 to keep them."""
+        Hits come from joined and not-joined channels alike. The joined channels' ids are listed (never their messages) so each post is tagged
+        joined / not joined; set TELEGRAM_EXCLUDE_JOINED=1 to drop the joined ones instead."""
         seen = set()
         self._joined, self._skipped = set(), {}
-        if os.environ.get("TELEGRAM_INCLUDE_JOINED", "").lower() not in ("1", "true", "yes"):
-            try:
-                async for dlg in client.iter_dialogs(limit=None):
-                    self._joined.add(dlg.entity.id)
-                self.log(f"telegram: your account has joined {len(self._joined)} chat(s); results from them are excluded so this stays a public search")
-            except Exception as e:
-                self.log(f"telegram: could not list joined chats ({type(e).__name__}); joined channels are not excluded")
+        self._exclude = os.environ.get("TELEGRAM_EXCLUDE_JOINED", "").lower() in ("1", "true", "yes")
+        try:
+            async for dlg in client.iter_dialogs(limit=None):
+                self._joined.add(dlg.entity.id)
+            self.log(f"telegram: your account has joined {len(self._joined)} chat(s); posts are tagged joined / not joined"
+                     + (" and joined ones are excluded" if self._exclude else ""))
+        except Exception as e:
+            self.log(f"telegram: could not list joined chats ({type(e).__name__}); posts are not tagged joined / not joined")
         for name, fn in (("public post search", self._search_posts), ("channel directory", self._search_directory),
                          ("searchGlobal", self._search_global)):
             self._check()
@@ -211,7 +211,7 @@ class TelegramCollector(Collector):
                 break
         if self._skipped:
             self.log(f"telegram: excluded {sum(len(v) for v in self._skipped.values())} message(s) from {len(self._skipped)} channel(s) you have joined "
-                     f"(set TELEGRAM_INCLUDE_JOINED=1 to keep them)")
+                     f"(TELEGRAM_EXCLUDE_JOINED is on)")
         n = len({p.author_id for p in posts})
         self.log(f"telegram: search done - {len(posts)} messages from {n} account(s)/channel(s)")
         if not posts:
@@ -227,8 +227,7 @@ class TelegramCollector(Collector):
         d = m.date if m.date.tzinfo else m.date.replace(tzinfo=timezone.utc)
         if d < since or d > until or not matches_topic(m.message or "", topic):
             return False
-        if cid in getattr(self, "_joined", ()):
-            self._skipped.setdefault(cid, set()).add(m.id)
+        if self._drop_joined(cid, m):
             return False
         seen.add((cid, m.id))
         chat = chats.get(cid)
@@ -238,8 +237,21 @@ class TelegramCollector(Collector):
                 m._sender = users[uid]
             except Exception:
                 pass
-        posts.append(message_to_post(m, getattr(chat, "username", None) or "", str(cid), getattr(chat, "title", "") or str(cid)))
+        posts.append(self._tag(message_to_post(m, getattr(chat, "username", None) or "", str(cid), getattr(chat, "title", "") or str(cid)), cid))
         return True
+
+    def _drop_joined(self, cid, m) -> bool:
+        """True (and counted) only when TELEGRAM_EXCLUDE_JOINED=1 and the message is from a channel the account has joined."""
+        if getattr(self, "_exclude", False) and cid in getattr(self, "_joined", ()):
+            self._skipped.setdefault(cid, set()).add(m.id)
+            return True
+        return False
+
+    def _tag(self, post, cid):
+        """Mark whether the account is a member of the channel, so joined and not-joined posts can be told apart."""
+        j = getattr(self, "_joined", None)
+        post.joined = (cid in j) if j else None
+        return post
 
     async def _search_posts(self, client, topic, since, until, limit, posts, errors, seen):
         from telethon.tl import functions, types

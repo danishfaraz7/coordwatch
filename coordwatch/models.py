@@ -58,6 +58,7 @@ class Post:
     reshare_of_author: Optional[str] = None       # author_id of the original poster
     reply_to: Optional[str] = None
     lang: Optional[str] = None
+    joined: Optional[bool] = None                 # Telegram only: True if the account is a member of the channel
 
     @property
     def account(self) -> str:

@@ -719,23 +719,27 @@ function answer(q) {
 }
 
 // ------------------------------------------------------------------ posts drawer: filters, sorting, media, expandable rows + export
-const pf = {q: '', plat: '', nar: '', grp: '', media: '', sort: 'eng', thumbs: false, limit: 300, open: new Set()};
+const pf = {q: '', plat: '', nar: '', grp: '', join: '', media: '', sort: 'eng', thumbs: false, limit: 300, open: new Set()};
 const isHttp = u => /^https?:\/\//i.test(u || '');
 function fillPosts() {
   const sc = st.scene, res = st.res, plats = [...new Set(sc.posts.map(p => p.platform))];
   $('#f-plat').innerHTML = '<option value="">All platforms</option>' + plats.map(p => `<option value="${esc(p)}">${esc(LABEL[p] || p)}</option>`).join('');
   $('#f-nar').innerHTML = '<option value="">All narratives</option><option value="none">Unclustered</option>' + sc.nars.map(n => `<option value="${n.id}">Story ${n.id}: ${esc(title(n.label).slice(0, 30))} (${n.posts})</option>`).join('');
   $('#f-grp').innerHTML = '<option value="">All accounts</option><option value="any">Coordinated only</option>' + res.coordinated_groups.map(g => `<option value="${esc(g.id)}">${esc(g.id)} · ${g.size} accounts</option>`).join('');
+  const hasJ = sc.posts.some(p => p.joined === true || p.joined === false);
+  $('#f-join').hidden = !hasJ;
+  $('#f-join').innerHTML = '<option value="">Telegram: all channels</option><option value="no">Telegram: channels I have not joined</option><option value="yes">Telegram: channels I have joined</option>';
   $('#f-media').innerHTML = '<option value="">Any media</option><option value="photo">Has photo</option><option value="video">Has video</option><option value="none">No media</option>';
   $('#f-sort').innerHTML = '<option value="eng">Most engagement</option><option value="new">Newest first</option><option value="old">Oldest first</option><option value="likes">Most likes</option><option value="replies">Most replies</option>';
   resetFilters(false);
 }
-function syncControls() { $('#pf').value = pf.q; $('#f-plat').value = pf.plat; $('#f-nar').value = pf.nar; $('#f-grp').value = pf.grp; $('#f-media').value = pf.media; $('#f-sort').value = pf.sort; $('#f-thumbs').checked = pf.thumbs; }
-function resetFilters(render = true) { Object.assign(pf, {q: '', plat: '', nar: '', grp: '', media: '', sort: 'eng', limit: 300}); pf.open.clear(); syncControls(); if (render) renderPosts(); }
+function syncControls() { $('#pf').value = pf.q; $('#f-plat').value = pf.plat; $('#f-nar').value = pf.nar; $('#f-grp').value = pf.grp; $('#f-join').value = pf.join; $('#f-media').value = pf.media; $('#f-sort').value = pf.sort; $('#f-thumbs').checked = pf.thumbs; }
+function resetFilters(render = true) { Object.assign(pf, {q: '', plat: '', nar: '', grp: '', join: '', media: '', sort: 'eng', limit: 300}); pf.open.clear(); syncControls(); if (render) renderPosts(); }
 function filteredPosts() {
   const q = pf.q.trim().toLowerCase();
   const rows = st.scene.posts.filter(p => {
     if (pf.plat && p.platform !== pf.plat) return false;
+    if (pf.join && p.platform === 'telegram' && (pf.join === 'yes') !== (p.joined === true)) return false;
     if (pf.nar === 'none' ? p.narrative_id >= 0 : (pf.nar && String(p.narrative_id) !== pf.nar)) return false;
     if (pf.grp === 'any' ? !p.coordinated_group : (pf.grp && p.coordinated_group !== pf.grp)) return false;
     if (pf.media) { const has = t => p.media.some(m => m.type === t); if (pf.media === 'none' ? p.media.length > 0 : !has(pf.media)) return false; }
@@ -760,7 +764,7 @@ function renderPosts() {
     let h = `<tr class="pr ${open ? 'open' : ''}" data-k="${esc(k)}"><td>${link}</td><td style="color:${pcol(p.platform)}">${esc(p.platform)}</td><td>${esc(p.author_name)}</td><td>${esc(short(p.text, 200))}</td>
       <td class="md">${mediaCell(p, false)}</td><td>${p.likes}</td><td>${p.shares}</td><td>${p.replies}</td><td>${p.narrative_id >= 0 ? p.narrative_id : '–'}</td><td>${esc(p.coordinated_group || '')}</td></tr>`;
     if (open) h += `<tr class="px"><td colspan="10"><div class="full">${esc(p.text)}</div><div class="mlist" style="margin-top:8px">${mediaCell(p, true)}</div>
-      <div class="meta">${esc(p.platform)} · ${esc(p.account)} · ${esc(fmtDT(p.created_at))} UTC · ${p.likes} likes · ${p.shares} shares · ${p.replies} replies${p.views ? ' · ' + p.views.toLocaleString() + ' views' : ''}${p.author_created ? ' · account created ' + esc(p.author_created.slice(0, 10)) : ''}${isHttp(p.url) ? ` · <a href="${esc(p.url)}" target="_blank" rel="noopener noreferrer">open original ↗</a>` : ''}</div></td></tr>`;
+      <div class="meta">${esc(p.platform)}${p.joined === true ? ' (joined channel)' : p.joined === false ? ' (not joined)' : ''} · ${esc(p.account)} · ${esc(fmtDT(p.created_at))} UTC · ${p.likes} likes · ${p.shares} shares · ${p.replies} replies${p.views ? ' · ' + p.views.toLocaleString() + ' views' : ''}${p.author_created ? ' · account created ' + esc(p.author_created.slice(0, 10)) : ''}${isHttp(p.url) ? ` · <a href="${esc(p.url)}" target="_blank" rel="noopener noreferrer">open original ↗</a>` : ''}</div></td></tr>`;
     return h;
   }).join('') || '<tr><td colspan="10" class="mut" style="padding:24px;text-align:center">No posts match these filters. <a href="#" id="p-clear">Reset filters</a></td></tr>';
   $('#ptb').querySelectorAll('tr.pr').forEach(r => r.onclick = e => { if (e.target.closest('a')) return; const k = r.dataset.k; pf.open.has(k) ? pf.open.delete(k) : pf.open.add(k); renderPosts(); });
@@ -777,7 +781,7 @@ function openPosts(spec) {
 $('#posts-btn').onclick = () => { $('#drawer').classList.toggle('hidden'); if (!$('#drawer').classList.contains('hidden')) renderPosts(); };
 $('#dr-close').onclick = () => $('#drawer').classList.add('hidden');
 $('#pf').addEventListener('input', e => { pf.q = e.target.value; pf.limit = 300; renderPosts(); });
-[['#f-plat', 'plat'], ['#f-nar', 'nar'], ['#f-grp', 'grp'], ['#f-media', 'media'], ['#f-sort', 'sort']].forEach(([id, k]) => $(id).addEventListener('change', e => { pf[k] = e.target.value; pf.limit = 300; renderPosts(); }));
+[['#f-plat', 'plat'], ['#f-nar', 'nar'], ['#f-grp', 'grp'], ['#f-join', 'join'], ['#f-media', 'media'], ['#f-sort', 'sort']].forEach(([id, k]) => $(id).addEventListener('change', e => { pf[k] = e.target.value; pf.limit = 300; renderPosts(); }));
 $('#f-thumbs').addEventListener('change', e => { pf.thumbs = e.target.checked; renderPosts(); });
 $('#f-reset').onclick = () => resetFilters();
 $('#exp').onclick = () => $('#exp-menu').classList.toggle('hidden');
