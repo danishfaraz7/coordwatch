@@ -9,21 +9,21 @@ Start here: the attached Word document (or OVERVIEW.md in the repository) and GE
 
 The documentation follows. It is written so that a non-technical reader can set the tool up and use it.
 
-## What is it?
-coordwatch is a free tool that looks at what people are posting about a topic on **YouTube, Telegram and X**, and answers three questions:
+## Application purpose
+coordwatch is a free tool that looks at what people are posting about a topic on **YouTube, Telegram and X**, and reports three things:
 
-1. **What is being said?** Posts are grouped into "stories".
-2. **Who is saying it, and where did it start?** It shows the first posts and how a story moved from one platform to another.
-3. **Are some accounts acting together?** It finds accounts that post the same words, or post within minutes of each other, and shows the evidence.
+1. **Content.** Posts are grouped into "stories".
+2. **Origin and spread.** The first posts of each story, and how it moved between platforms.
+3. **Coordination.** Accounts that post the same words, or post within minutes of each other, with the evidence.
 
 You type a topic (a word, a hashtag, a person, a brand or an event), choose dates and platforms, and press one button. A few minutes later you have a map, a plain-words summary and downloadable reports.
 
-## Why is it useful?
+## Value and typical uses
 Fake or pushed-along campaigns often look like normal chatter when you read posts one by one. Seen together, they leave patterns: the same sentence from many accounts, bursts of posts at the same minute, one account's words repeated by others. coordwatch finds those patterns for you, so an analyst, journalist or brand-protection team can check them by hand.
 
 **Important:** it finds leads, not proof. Fan groups, newsrooms and genuinely viral posts can look "coordinated" too. A human decides what the evidence means.
 
-## What do you get?
+## Outputs and results
 | Result | Where you see it |
 |---|---|
 | The posts (text, date, likes, link to the original) | All Posts, `posts.csv` |
@@ -35,7 +35,7 @@ Fake or pushed-along campaigns often look like normal chatter when you read post
 
 You can rename any story, and pick which stories go into a report.
 
-## How to use it (5 steps)
+## Operating the application
 1. **Open the app** (setup steps are below and in GETTING_STARTED.md in the repository).
 2. Click **Try Demo** first. It uses made-up data, so you can see every screen with nothing to connect.
 3. For real data: type a topic, pick a short date range (1 to 3 days), tick the platforms, press **Start Investigation**.
@@ -44,7 +44,7 @@ You can rename any story, and pick which stories go into a report.
 
 If nothing matches, the app says so and suggests other searches. It never shows a scary error for that.
 
-## Setup in one minute (easiest way)
+## Installation
 Open <https://github.com/danishfaraz7/coordwatch>, click **Code, Codespaces, Create codespace on main**, then in the terminal run:
 
 ```
@@ -53,7 +53,7 @@ python -m coordwatch web --host 0.0.0.0 --port 8000
 ```
 Click **Open in Browser** when it appears. The full click-by-click guide, including installing on your own computer, is in `GETTING_STARTED.md`.
 
-## What it needs for real data
+## Requirements for live data
 | Platform | What you need | Cost |
 |---|---|---|
 | YouTube | a free API key | free |
@@ -62,13 +62,13 @@ Click **Open in Browser** when it appears. The full click-by-click guide, includ
 
 The demo needs nothing.
 
-## Honest limits
+## Limitations
 * X without the paid API is a **small sample**: text and time only, no likes or replies.
 * Telegram free-text search needs a Telegram Premium account; without it, hashtags and channel names carry the search.
 * Results depend on what each platform lets the public see.
 * It does not read private chats and does not try to get around blocks or logins.
 
-## What it is built with
+## Technology stack
 | Part | Technology | Why |
 |---|---|---|
 | Core analysis | Python (standard library only) | installs anywhere, easy to review |
