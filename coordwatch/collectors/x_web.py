@@ -39,7 +39,7 @@ def parse_hit(r: dict) -> Optional[dict]:
 
 class XWeb(Collector):
     platform = "x"
-    notes = ["X posts came from a web search engine's index (no X login or key): a sample of public posts, shortened text, no likes/shares/replies "
+    notes = ["X posts are a free, no-login sample of public posts: text may be shortened, with no likes/shares/replies "
              "and no account profile data. Use the X API or browser-session route for full coverage."]
 
     def __init__(self, backend=None, max_queries: int = 8, pause: float = 2.0):
@@ -51,7 +51,7 @@ class XWeb(Collector):
                 from ..discovery import DdgsBackend
                 self.backend = DdgsBackend()
             except Exception as e:
-                raise RuntimeError(f"web search not available ({type(e).__name__}: pip install ddgs)")
+                raise RuntimeError(f"free public-post lookup not available ({type(e).__name__}: pip install ddgs)")
         return self.backend
 
     def collect(self, topic: str, since: datetime, until: datetime, limit: int = 1000) -> List[Post]:
@@ -65,11 +65,11 @@ class XWeb(Collector):
                 queries.append(f"site:{site} inurl:status {q}")
         for q in queries[: self.max_queries]:
             self._check()
-            self.log(f"x: web search for {q}…")
+            self.log(f"x: looking for public posts ({q.split(' ',2)[-1]})…")
             try:
                 rows = be.text(q, None, 50) or []
             except Exception as e:
-                self.log(f"x: web search skipped ({type(e).__name__}: {str(e)[:100]})")
+                self.log(f"x: public-post lookup skipped ({type(e).__name__}: {str(e)[:100]})")
                 continue
             kept = 0
             for r in rows:
@@ -83,7 +83,7 @@ class XWeb(Collector):
                 posts.append(Post(id=h["id"], platform="x", author_id=h["handle"], author_name=h["handle"], text=h["text"],
                                   created_at=created, url=h["url"]))
                 kept += 1
-            self.log(f"x: {len(rows)} results, {kept} kept for the window/topic ({len(posts)} total)")
+            self.log(f"x: {len(rows)} found, {kept} kept for the window/topic ({len(posts)} total)")
             if len(posts) >= limit:
                 break
             time.sleep(self.pause)

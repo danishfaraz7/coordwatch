@@ -68,7 +68,7 @@ def _chain(pl: str, telegram_channels: str, x_archive: bool, depth: str):
             from .collectors.x_web import XWeb
             return XWeb()
         return [("X API (paid tier)", api), ("X browser session (free, experimental)", browser),
-                ("X via web search index (free, no login, sample only)", web_index)]
+                ("X public posts (free, no login, sample only)", web_index)]
     if pl == "youtube":
         def api():
             from .collectors.youtube import YouTubeCollector
