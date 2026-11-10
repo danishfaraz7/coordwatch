@@ -5,7 +5,7 @@ Hello,
 Please find my submission for the Coordinated Activity and Misinformation Detection task.
 
 Repository: https://github.com/danishfaraz7/coordwatch
-Start here: OVERVIEW.md (what it is) and GETTING_STARTED.md (step-by-step setup for non-technical readers). A ready-made sample report is in out/example/ (open report.html).
+Start here: the attached Word document (or OVERVIEW.md in the repository) and GETTING_STARTED.md (step-by-step setup for non-technical readers). A ready-made sample report is in out/example/ (open report.html).
 
 The documentation follows. It is written so that a non-technical reader can set the tool up and use it.
 
