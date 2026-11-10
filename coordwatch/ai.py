@@ -32,6 +32,21 @@ class AIError(Exception):
     pass
 
 
+class RetryAfter(AIError):
+    """The provider is rate limited or busy: try again after `seconds`. Callers retry automatically and show a countdown."""
+    def __init__(self, seconds: int, msg: str = ""):
+        super().__init__(msg or f"The AI service is busy; retrying in {seconds}s")
+        self.seconds = max(3, min(int(seconds), 120))
+
+
+def retry_seconds(r, default: int = 20) -> int:
+    try:
+        v = r.headers.get("Retry-After")
+        return int(float(v)) if v else default
+    except Exception:
+        return default
+
+
 def build_sources(res: dict, max_sources: int = 14) -> list:
     """Numbered evidence posts the model may cite as [n]: for the biggest stories the earliest post and the most-engaged post."""
     posts = res["posts"]
@@ -175,10 +190,10 @@ def ask(key: str, question: str, context: str, model: Optional[str] = None, post
     except Exception as e:
         raise AIError(f"Could not reach Gemini: {type(e).__name__}")
     if last == 429:
-        raise AIError("Gemini free-tier rate limit reached - wait a minute and ask again.")
-    if last == "timeout":
-        raise AIError(f"Gemini did not answer in time (timed out on {tried} model(s)). It is probably busy - try again in a minute.")
-    raise AIError(f"Gemini is overloaded right now (HTTP {last}); I retried and tried {tried} model(s). Wait a minute and ask again.")
+        raise RetryAfter(30, "Gemini free-tier rate limit reached")
+    if last == "timeout" or last in (500, 502, 503, 504):
+        raise RetryAfter(20, "Gemini is busy")
+    raise AIError(f"Gemini is overloaded right now (HTTP {last}); I retried and tried {tried} model(s). Try again in a minute.")
 
 
 def _check(r, openai: bool = False, model: str = ""):
@@ -191,7 +206,7 @@ def _check(r, openai: bool = False, model: str = ""):
     if openai and r.status_code in (400, 422):
         raise AIError(f"The provider refused the request{f' for model {model!r}' if model else ''} - the model name may be wrong or unavailable on your plan.")
     if r.status_code == 429:
-        raise AIError("Free-tier rate limit reached - wait a minute and ask again.")
+        raise RetryAfter(retry_seconds(r, 30), "Free-tier rate limit reached")
     raise AIError(f"AI provider error HTTP {r.status_code}.")
 
 
@@ -213,9 +228,9 @@ PRESETS = {
 def current_config() -> dict:
     """Resolve the active AI provider from saved settings / environment."""
     from . import secrets_store as S
-    prov = (S.get("AI_PROVIDER") or "gemini").lower()
+    prov = (S.get("AI_PROVIDER") or ("gemini" if S.get("GEMINI_API_KEY") else "pollinations")).lower()
     if prov not in PRESETS:
-        prov = "gemini"
+        prov = "pollinations"
     p = PRESETS[prov]
     base = (S.get("AI_BASE_URL") or p.get("base") or "").strip()
     key = S.get("GEMINI_API_KEY") if prov == "gemini" else S.get("AI_API_KEY")
@@ -283,7 +298,7 @@ def ask_openai(cfg: dict, question: str, context: str, post: Optional[Callable] 
     body = {"model": model, "temperature": 0.2, "max_tokens": 700,
             "messages": [{"role": "system", "content": SYSTEM},
                          {"role": "user", "content": f"<data>{context}</data>\n\nAnalyst question: {question[:500]}"}]}
-    deadline, last = time.time() + 90, None
+    deadline, last, retry_after_hint = time.time() + 90, None, 30
     for attempt in range(len(BACKOFF) + 1):
         try:
             r = post(base + "/chat/completions", headers=hdr, json=body, timeout=90 if cfg.get("local") else 40)
@@ -309,15 +324,17 @@ def ask_openai(cfg: dict, question: str, context: str, post: Optional[Callable] 
         if r.status_code in (400, 401, 403, 404, 422):
             _check(r, openai=True, model=model)
         last = r.status_code
+        if r.status_code == 429:
+            retry_after_hint = retry_seconds(r, 30)
         if r.status_code in (500, 502, 503, 504) and attempt < len(BACKOFF) and time.time() < deadline:
             sleep(BACKOFF[attempt])
             continue
         break
     if last == 429:
-        raise AIError("The provider's free-tier rate limit was reached - wait a minute and ask again.")
-    if last == "timeout":
-        raise AIError("The AI endpoint did not answer in time. With Ollama the first request loads the model and can be slow - try again.")
-    raise AIError(f"The AI provider is busy or failing right now (HTTP {last}). Try again in a minute, or pick another model/provider.")
+        raise RetryAfter(retry_after_hint, "The provider's rate limit was reached")
+    if last == "timeout" or last in (500, 502, 503, 504):
+        raise RetryAfter(20, "The AI service is busy")
+    raise AIError(f"The AI provider is failing right now (HTTP {last}). Try again in a minute, or pick another model/provider.")
 
 
 def answer(question: str, context: str, cfg: Optional[dict] = None, **kw) -> Tuple[str, str]:
@@ -327,3 +344,20 @@ def answer(question: str, context: str, cfg: Optional[dict] = None, **kw) -> Tup
     if cfg["provider"] == "gemini":
         return ask(cfg["key"], question, context, model=cfg["model"] or None, **kw)
     return ask_openai(cfg, question, context, **kw)
+
+
+def answer_retrying(question: str, context: str, cfg: Optional[dict] = None, on_wait: Optional[Callable] = None, attempts: int = 5,
+                    sleep: Callable = time.sleep, **kw) -> Tuple[str, str]:
+    """answer() that waits out rate limits by itself. on_wait(seconds_left, attempt, attempts) is called every second of the cooldown
+    so a progress line / counter can be shown; the last failure is re-raised as AIError."""
+    for attempt in range(1, attempts + 1):
+        try:
+            return answer(question, context, cfg, **kw)
+        except RetryAfter as e:
+            if attempt == attempts:
+                raise AIError(f"{e} - still busy after {attempts} tries.")
+            for left in range(e.seconds, 0, -1):
+                if on_wait:
+                    on_wait(left, attempt, attempts)
+                sleep(1)
+    raise AIError("The AI service did not answer.")

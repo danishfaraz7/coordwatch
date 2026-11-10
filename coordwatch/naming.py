@@ -94,8 +94,10 @@ def apply(result: dict, titles: Dict[int, dict]) -> int:
     return len(old)
 
 
-def name_stories(result: dict, cfg: dict, answer: Optional[Callable] = None) -> int:
+def name_stories(result: dict, cfg: dict, answer: Optional[Callable] = None, on_wait: Optional[Callable] = None) -> int:
     from . import ai
-    answer = answer or ai.answer
-    text, _model = answer(QUESTION, build_context(result), cfg)
+    if answer:
+        text, _model = answer(QUESTION, build_context(result), cfg)
+    else:
+        text, _model = ai.answer_retrying(QUESTION, build_context(result), cfg, on_wait=on_wait)
     return apply(result, parse_titles(text))

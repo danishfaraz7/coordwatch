@@ -104,12 +104,12 @@ class AITests(unittest.TestCase):
         self.assertEqual((text, model), ("answer", "gemini-2.0-flash"))
         with self.assertRaises(ai.AIError) as cm:
             ai.ask("k", "q", "{}", model="m", post=lambda *a, **k: (_ for _ in ()).throw(ReadTimeout("x")), sleep=lambda s: None)
-        self.assertIn("did not answer in time", str(cm.exception))
+        self.assertIsInstance(cm.exception, ai.RetryAfter)                  # busy/timeout -> the caller waits out the cooldown and retries
 
     def test_persistent_503_gives_a_clear_message(self):
         with self.assertRaises(ai.AIError) as cm:
             ai.ask("k", "q", "{}", model="m", post=lambda *a, **k: R(503, {}), sleep=lambda s: None)
-        self.assertIn("overloaded", str(cm.exception))
+        self.assertIsInstance(cm.exception, ai.RetryAfter)
 
     def test_context_lists_top_accounts_per_platform(self):
         ctx = json.loads(ai.build_context(RES))
@@ -118,7 +118,7 @@ class AITests(unittest.TestCase):
         self.assertTrue({"name", "posts", "engagement", "group"} <= set(first))
 
     def test_error_mapping(self):
-        for code, needle in ((403, "API key"), (429, "rate limit"), (500, "HTTP 500")):
+        for code, needle in ((403, "API key"), (429, "rate limit")):
             with self.assertRaises(ai.AIError) as cm:
                 ai.ask("k", "q", "{}", model="m", post=lambda *a, **k: R(code, {}))
             self.assertIn(needle, str(cm.exception))
@@ -155,7 +155,8 @@ class AskEndpointTests(unittest.TestCase):
 
     def test_requires_optin_key_and_run(self):
         self.assertEqual(self.post({"job_id": self.jid, "question": "hi"})[0], 400)                       # no ai flag -> nothing is sent anywhere
-        self.assertEqual(self.post({"ai": True, "job_id": self.jid, "question": "hi"})[0], 400)           # no key yet
+        S.save({"AI_PROVIDER": "gemini", "GEMINI_API_KEY": ""})
+        self.assertEqual(self.post({"ai": True, "job_id": self.jid, "question": "hi"})[0], 400)           # gemini chosen but no key yet
         S.save({"GEMINI_API_KEY": "k"})
         self.assertEqual(self.post({"ai": True, "job_id": "nope", "question": "hi"})[0], 400)
 

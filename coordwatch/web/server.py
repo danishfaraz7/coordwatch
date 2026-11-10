@@ -172,7 +172,7 @@ def _run_job(job: Job, p: dict):
                     job.log("AI story names skipped: no AI provider is configured (Settings)")
                 else:
                     job.log(f"naming stories with AI ({acfg['label']})…")
-                    k = naming.name_stories(result, acfg)
+                    k = naming.name_stories(result, acfg, on_wait=_waiter(job, "AI titles"))
                     job.log(f"AI named {k} stor{'y' if k == 1 else 'ies'}" if k else "AI story names: the model did not return usable titles; keeping keyword labels")
                     activity.record("ai_names", run_id=job.id, named=k, provider=acfg["provider"])
             except Exception as ex:
@@ -197,6 +197,18 @@ def _run_job(job: Job, p: dict):
 NO_MATCH = ("No matches found for this search. Try another keyword, hashtag, person, brand or event, or widen the date range.\n"
             "Examples:  \"Acme Bank\"   \"#AcmeBankCollapse\"   \"Jensen Huang\"   \"IPL auction\"   \"Tata Motors\"\n"
             "Tip: hashtags work best on Telegram; the 'See what's trending' button suggests topics people are searching right now.")
+
+
+def _waiter(job: Job, what: str):
+    """Cooldown progress for the run log: a line when each wait starts and then every 10 s, so the user sees a live countdown."""
+    state = {"attempt": 0}
+
+    def on_wait(left, attempt, attempts):
+        first = state["attempt"] != attempt
+        state["attempt"] = attempt
+        if first or left % 10 == 0:
+            job.log(f"{what}: the AI service is busy - retrying automatically in {left}s (try {attempt + 1} of {attempts})")
+    return on_wait
 
 
 def _hint(job: Job) -> str:
@@ -426,7 +438,7 @@ class Handler(BaseHTTPRequestHandler):
                     S.save({"AI_PROVIDER": "pollinations", "AI_MODEL": "", "AI_BASE_URL": ""})
                 cfg = ai.current_config()
                 srcs = ai.build_sources(sub)
-                text, model = ai.answer(q, ai.build_context(sub), cfg)
+                text, model = ai.answer_retrying(q, ai.build_context(sub), cfg)
                 ai_block = {"text": re.sub(r"\bnarrative\s*#\s*(\d+)", r"Story \1", re.sub(r"</?data>", "", text)).strip(), "model": model, "sources": ai.cited(text, srcs)}
             except (ai.AIError, Exception) as e:       # the report is still produced; the reason is written into it
                 ai_block = {"error": str(e)[:300]}
@@ -514,6 +526,8 @@ class Handler(BaseHTTPRequestHandler):
                 t0 = time.time()
                 try:
                     text, model = ai.answer(question, ctx, cfg)
+                except ai.RetryAfter as e:                                     # the browser shows a countdown and asks again by itself
+                    return self._json(429, {"error": str(e), "retry_after": e.seconds})
                 except ai.AIError as e:
                     activity.record("ai", run=job.id, question=question, provider=cfg.get("provider"), ok=False, error=str(e),
                                     seconds=round(time.time() - t0, 1), context_chars=len(str(ctx)))

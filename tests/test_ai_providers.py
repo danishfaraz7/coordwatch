@@ -36,7 +36,8 @@ class ProviderTests(unittest.TestCase):
         S.save({k: "" for k in S.KEYS})
 
     def test_config_resolution(self):
-        self.assertFalse(ai.current_config()["ready"])
+        c0 = ai.current_config()                                    # nothing configured -> the free no-login service is used by default
+        self.assertEqual((c0["provider"], c0["ready"]), ("pollinations", True))
         S.save({"AI_PROVIDER": "groq", "AI_API_KEY": "gk"})
         c = ai.current_config()
         self.assertEqual((c["provider"], c["base"], c["ready"], c["local"]), ("groq", "https://api.groq.com/openai/v1", True, False))
@@ -112,9 +113,10 @@ class ProviderTests(unittest.TestCase):
             pass
         with self.assertRaises(ai.AIError) as cm:
             ai.ask_openai(cfg, "q", "{}", post=lambda *a, **k: (_ for _ in ()).throw(ReadTimeout("t")), sleep=lambda s: None)
-        self.assertIn("in time", str(cm.exception))
+        self.assertIsInstance(cm.exception, ai.RetryAfter)
 
     def test_validate_ai_states_and_model_list(self):
+        S.save({"AI_PROVIDER": "gemini", "GEMINI_API_KEY": ""})
         self.assertEqual(V.validate("ai")["state"], "unset")
         S.save({"AI_PROVIDER": "groq", "AI_API_KEY": "k"})
         r = V.validate("ai", get=lambda *a, **k: R(200, {"data": [{"id": "llama-3.3-70b-versatile"}, {"id": "whisper-large-v3"}]}))
@@ -179,14 +181,44 @@ class AskWithProviderTests(unittest.TestCase):
             S.save({k: "" for k in S.KEYS})
 
     def test_unconfigured_is_a_clean_400(self):
-        S.save({k: "" for k in S.KEYS})
+        S.save({k: "" for k in S.KEYS}); S.save({"AI_PROVIDER": "gemini"})
         self.assertEqual(self.post("/api/ask", {"ai": True, "job_id": self.jid, "question": "hi"})[0], 400)
 
     def test_validate_endpoint_accepts_ai(self):
-        S.save({k: "" for k in S.KEYS})
+        S.save({k: "" for k in S.KEYS}); S.save({"AI_PROVIDER": "gemini"})
         code, body = self.post("/api/validate", {"service": "ai"})
         self.assertEqual((code, body["state"]), (200, "unset"))
 
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class AutoRetryTests(unittest.TestCase):
+    def test_answer_retrying_waits_out_the_cooldown_and_reports_each_second(self):
+        calls, waits, slept = [], [], []
+        orig = ai.answer
+
+        def fake(q, c, cfg=None, **kw):
+            calls.append(1)
+            if len(calls) < 3:
+                raise ai.RetryAfter(4)
+            return "ok", "m"
+        ai.answer = fake
+        try:
+            out = ai.answer_retrying("q", "{}", {}, on_wait=lambda left, a, n: waits.append((left, a)), sleep=slept.append)
+        finally:
+            ai.answer = orig
+        self.assertEqual(out, ("ok", "m"))
+        self.assertEqual(len(calls), 3)
+        self.assertEqual(waits[:4], [(4, 1), (3, 1), (2, 1), (1, 1)])      # a visible countdown, per attempt
+        self.assertEqual(len(slept), 8)
+
+    def test_gives_up_after_the_last_attempt(self):
+        orig = ai.answer
+        ai.answer = lambda *a, **k: (_ for _ in ()).throw(ai.RetryAfter(3))
+        try:
+            with self.assertRaises(ai.AIError):
+                ai.answer_retrying("q", "{}", {}, attempts=2, sleep=lambda s: None)
+        finally:
+            ai.answer = orig

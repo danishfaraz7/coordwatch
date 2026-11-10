@@ -27,7 +27,7 @@ async function api(path, opts = {}) {
   opts.headers = Object.assign({'X-Coordwatch': '1'}, opts.headers || {});
   const r = await fetch(path, opts);
   const j = await r.json().catch(() => ({}));
-  if (!r.ok) throw new Error(j.error || r.statusText);
+  if (!r.ok) { const er = new Error(j.error || r.statusText); if (j.retry_after) er.retry = j.retry_after; throw er; }
   return j;
 }
 const hex2rgb = h => [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16));
@@ -670,11 +670,10 @@ function renderNotes(extra = '') {
   $('#notes').querySelectorAll('[data-posts]').forEach(b => b.onclick = () => { openPosts(b.dataset.posts); $('#notes').classList.add('hidden'); });
 }
 $('#notes-btn').onclick = () => { renderNotes(); $('#notes').classList.toggle('hidden'); };
-$('#ai-on').addEventListener('change', e => {
+$('#ai-on').addEventListener('change', async e => {
   const hint = () => { const ai = st.status.ai; $('#ai-hint').textContent = $('#ai-on').checked ? (ai.local ? 'On: answers come from your local model — nothing leaves this machine.' : `On: a summary of this run is sent to ${ai.label.split(' (')[0]}; answers are AI-generated.`) : 'Off: answers use local rules — nothing leaves your machine.'; };
   if (!e.target.checked) return hint();
-  if (!st.status.ai.ready) { e.target.checked = false; openSettings('ai'); return; }
-  if (!st.status.ai.local && !confirm(`Send a SUMMARY of this run to ${st.status.ai.label.split(' (')[0]} to answer your questions?\n\nIt includes narrative stats, group reasons, ~8 short quotes and the public names of the most active accounts — not all posts.\nFree tiers may use prompts to improve their products. Answers are AI-generated and may be wrong.`)) e.target.checked = false;
+  if (!st.status.ai.ready) { try { st.status = await api('/api/credentials', {method: 'POST', body: JSON.stringify({AI_PROVIDER: 'pollinations', AI_MODEL: '', AI_BASE_URL: ''})}); } catch (err) { /* keep going */ } }
   hint();
 });
 $('#ask-form').addEventListener('submit', async e => {
@@ -683,7 +682,7 @@ $('#ask-form').addEventListener('submit', async e => {
   if (!$('#ai-on').checked) return show(`<div class="note q"><b>${esc(q)}</b>${answer(q)}</div>`);
   show(`<div class="note q"><b>${esc(q)}</b><span class="mut">✦ asking ${esc(st.status.ai.label.split(' (')[0])}… (retries automatically if it is busy)</span></div>`);
   try {
-    const r = await api('/api/ask', {method: 'POST', body: JSON.stringify({ai: true, job_id: st.jobId, question: q})});
+    const r = await askRetrying({ai: true, job_id: st.jobId, question: q}, (l, i, t) => show(`<div class="note q"><b>${esc(q)}</b><span class="mut">${busyMsg(l, i, t)}</span></div>`));
     show(`<div class="note q"><b>${esc(q)}</b><span class="badge b-warn">✦ AI-generated · ${esc(r.model)} · may be wrong</span><div style="margin-top:6px">${aiHtml(r.answer, r.sources)}</div></div>`);
   } catch (err) {
     show(`<div class="note q"><b>${esc(q)}</b><span class="badge b-hot">AI unavailable</span> <span class="mut">${esc(err.message)}</span><div style="margin-top:8px"><span class="mut">Answer from local rules:</span><br>${answer(q)}</div></div>`);
@@ -1085,17 +1084,30 @@ function cleanAI(t) {                                   // some free models answ
   return t.replace(/\bnarrative\s*#\s*(\d+)/gi, 'Story $1').replace(/#(\d+)\b/g, 'Story $1');
 }
 // one click, no questions: set up the free no-login service if nothing is configured, then ask
+const sleepMs = ms => new Promise(r => setTimeout(r, ms));
+// ask with automatic retries: when the service is busy, count down and try again by itself (no prompts, no clicks)
+async function askRetrying(body, show, tries = 6) {
+  for (let i = 1; ; i++) {
+    try { return await api('/api/ask', {method: 'POST', body: JSON.stringify(body)}); }
+    catch (e) {
+      if (!e.retry || i >= tries) throw e;
+      for (let left = e.retry; left > 0; left--) { show(left, i, tries); await sleepMs(1000); }
+    }
+  }
+}
+const busyMsg = (left, i, tries) => `✦ The AI service is busy (free services have limits). Retrying automatically in <b>${left}s</b> · try ${i + 1} of ${tries}…`;
 async function aiAsk(question, out) {
   out.innerHTML = '<p class="mut small">✦ Asking the AI… free services can take up to a minute.</p>';
   try {
-    if (!st.status.ai.ready) st.status = await api('/api/credentials', {method: 'POST', body: JSON.stringify({AI_PROVIDER: 'pollinations', AI_MODEL: '', AI_BASE_URL: ''})});
-    const r = await api('/api/ask', {method: 'POST', body: JSON.stringify({ai: true, job_id: st.jobId, question})});
-    out.innerHTML = '<div class="ai-box"><span class="badge b-warn">✦ AI summary · ' + esc(st.status.ai.label.split(' (')[0]) + ' · a summary of this run was sent · may be wrong</span>' + aiHtml(r.answer, r.sources) + '</div>';
-  } catch (e) { out.innerHTML = '<p class="mut small">The AI service did not answer (' + esc(e.message) + '). Everything else on this page was built locally and is still correct.</p>'; }
+    const r = await askRetrying({ai: true, job_id: st.jobId, question}, (l, i, t) => { out.innerHTML = '<p class="mut small">' + busyMsg(l, i, t) + '</p>'; });
+    out.innerHTML = '<div class="ai-box"><span class="badge b-warn">✦ AI summary · ' + esc(st.status.ai.label.split(' (')[0]) + ' · may be wrong</span>' + aiHtml(r.answer, r.sources) + '</div>';
+    return true;
+  } catch (e) { out.innerHTML = '<p class="mut small">The AI service did not answer (' + esc(e.message) + '). Everything else on this page was built locally and is still correct. <button type="button" class="pill" id="ai-again">Try again now</button></p>'; const b = out.querySelector('#ai-again'); if (b) b.onclick = () => aiAsk(question, out); return false; }
 }
-// ---- optional AI summary: only a compact summary leaves this computer, never the raw posts; always asks first ----
+// ---- AI summary: runs automatically when results open (free service by default); only a compact summary leaves this computer ----
 async function aiSummary() {
-  aiAsk('Write a short summary in very simple words (max 5 sentences) for a non-technical reader: what people are talking about, which story is biggest, whether any accounts seem to act together, and where it started. Plain text only. Say that coordination is a clue, not proof.', $('#ai-sum-out'));
+  const out = $('#ai-sum-out'), ok = await aiAsk('Write a short summary in very simple words (max 5 sentences) for a non-technical reader: what people are talking about, which story is biggest, whether any accounts seem to act together, and where it started. Plain text only. Say that coordination is a clue, not proof.', out);
+  if (ok && out) (st.aiCache = st.aiCache || {})[st.jobId] = out.innerHTML;
 }
 // ---- search everything (natural language, local) ----
 let lastSearch = {q: '', scope: 'run'};
@@ -1228,7 +1240,7 @@ function renderAnalysisCards(kind){
   if(kind==='spread')html+=spreadCards();
   html+='</section>';let old=$('#analysis-cards');if(old)old.remove();$('#app-main').appendChild(document.createRange().createContextualFragment(html));
   wireSearch(); wireReportBuilder();
-   const sum=$('#ai-sum'); if(sum) sum.onclick=aiSummary;
+   const sum=$('#ai-sum'); if(sum){ sum.onclick=aiSummary; const c=(st.aiCache||{})[st.jobId], o=$('#ai-sum-out'); if(c&&o) o.innerHTML=c; else if(st.aiAuto!==st.jobId){ st.aiAuto=st.jobId; aiSummary(); } }
    $('#analysis-cards').querySelectorAll('[data-go]').forEach(b=>b.onclick=()=>setScreen(b.dataset.go));
    $('#analysis-cards').querySelectorAll('[data-nmode]').forEach(b=>b.onclick=()=>{narMode=b.dataset.nmode;renderAnalysisCards('narratives');});
   $('#analysis-cards').querySelectorAll('[data-nar]').forEach(b=>b.onclick=()=>{setScreen('graph');const n=st.scene.byNar.get(+b.dataset.nar);if(n)select(n);});
