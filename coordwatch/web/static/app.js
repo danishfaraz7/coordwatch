@@ -12,7 +12,7 @@ const SERVICES = [
    help: 'Google Cloud Console → create/select a project → enable <b>YouTube Data API v3</b> → Credentials → <b>Create API key</b>. Free daily quota. <b>Optional:</b> without a key the free yt-dlp route is used.'},
   {id: 'telegram', short: 'Telegram', name: 'Telegram', color: '#4de0b8', blurb: 'Global search of public channels (login) — or web preview of named channels', keys: [['TELEGRAM_API_ID', 'api_id'], ['TELEGRAM_API_HASH', 'api_hash']],
    help: 'my.telegram.org → <b>API development tools</b> → create an app. Then run <code>python -m coordwatch telegram-login</code> once in a terminal (phone + code). <b>With the login</b> Telegram is searched globally (channel names optional). <b>Without it</b> the public web preview is used and you must enter channel names, or channels are discovered via web search.'},
-  {id: 'x', short: 'X', name: 'X (Twitter) API', color: '#9aa8ff', blurb: 'Free sample via a Serper key, or the paid X API with a bearer token', keys: [['X_BEARER_TOKEN', 'Bearer token (paid, optional)'], ['SERPER_API_KEY', 'Serper key (free, optional)']],
+  {id: 'x', short: 'X', name: 'X (Twitter) API', any: true, color: '#9aa8ff', blurb: 'Free sample via a Serper key, or the paid X API with a bearer token', keys: [['X_BEARER_TOKEN', 'Bearer token (paid, optional)'], ['SERPER_API_KEY', 'Serper key (free, optional)']],
    help: 'console.x.com → Apps → your app → Keys &amp; Tokens → <b>Bearer Token</b>. The API search needs paid credits. <b>Free route (experimental):</b> set <code>X_COOKIES_FILE</code> to a cookie export of a throwaway X login (see README); violates X ToS, use at your own risk. <b>Optional free sample:</b> a <b>Serper</b> key (serper.dev, free sign-up) finds public X posts through Google.'},
   {id: 'ai', short: 'AI', name: 'AI answers (optional)', color: '#e8b86a', blurb: 'Gemini · Groq · Qwen · Grok · Ollama…', keys: [], custom: true,
    help: 'Off by default. Pick a provider, paste its key (Ollama needs none), then press <b>Save &amp; validate</b>. Free tiers change — check each provider’s current limits and data-use terms.'}
@@ -74,7 +74,7 @@ $('#fi').addEventListener('change', async e => {
 });
 st.conn = {};
 function connState(id) {
-  const svc = SERVICES.find(x => x.id === id), c = st.status.credentials, set = svc.custom ? st.status.ai.ready : svc.keys.every(([k]) => c[k].set);
+  const svc = SERVICES.find(x => x.id === id), c = st.status.credentials, has = k => !!(c[k] && c[k].set), set = svc.custom ? st.status.ai.ready : svc.any ? svc.keys.some(([k]) => has(k)) : svc.keys.every(([k]) => has(k));
   if (!set) return {state: 'unset', message: id === 'ai' ? 'Not configured (optional).' : 'Not set.'};
   return st.conn[id] || {state: 'saved', message: 'Key saved — not validated yet.'};
 }
@@ -136,6 +136,7 @@ function renderSettings(focus) {
       if (!Object.keys(upd).length) return validateService(id);
       try { st.status = await api('/api/credentials', {method: 'POST', body: JSON.stringify(upd)}); delete st.conn[id]; renderChips(); renderConns(); }
       catch (err) { alert(err.message); return; }
+      { const lost = Object.keys(upd).filter(k => upd[k] && !(st.status.credentials[k] && st.status.credentials[k].set)); if (lost.length) { st.conn[id] = {state: 'invalid', message: 'The app did not keep ' + lost.join(', ') + '. Stop the app (Ctrl+C), start it again after updating (git pull), then save again.'}; renderConns(); renderSettings(); return; } }
       card.querySelectorAll('input[type=password]').forEach(i => i.value = ''); validateService(id);
     };
   });
