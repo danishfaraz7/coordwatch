@@ -408,7 +408,7 @@ No third-party analysis libraries: MinHash-LSH, TF-IDF, union-find, dHash are ~1
 * Unit-tested with a fake session (`tests/test_coordwatch.py::RateLimitTests`).
 
 ## 13. How I used AI, and how I checked it
-* **Used:** Claude (via Claude Code) wrote the first version of most modules, the synthetic-data generator, tests, and this README under my direction;
+* **Used:** An AI coding assistant wrote the first version of most modules, the synthetic-data generator, tests, and this README under my direction;
   I specified the signals, decision rule and the "no evasion" constraint.
 * **Checked – not trusted:**
   1. **Planted ground truth.** The generator labels every account/post, so detection is scored (`evaluate.py`), not eyeballed.

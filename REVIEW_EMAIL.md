@@ -121,7 +121,7 @@ Everything runs on your own machine or Codespace. Posts are not sent anywhere.
 * **Blocked or missing keys.** YouTube without a key is often blocked on cloud computers, so a free key is recommended. Free AI services are rate limited, so the app waits, shows a countdown and retries.
 
 ## Use of AI and how its output was checked
-**Where AI was used.** Claude (through Claude Code) wrote the first version of most modules, the synthetic-data generator, the tests and the documentation, under my direction. I specified the signals, the decision rule and the rule against evading platform blocks. Inside the application AI is optional: it runs only when an AI button is clicked, sees a short summary rather than the posts, and its output is labelled AI-generated with numbered references to the source posts.
+**Where AI was used.** An AI coding assistant wrote the first version of most modules, the synthetic-data generator, the tests and the documentation, under my direction. I specified the signals, the decision rule and the rule against evading platform blocks. Inside the application AI is optional: it runs only when an AI button is clicked, sees a short summary rather than the posts, and its output is labelled AI-generated with numbered references to the source posts.
 
 **How the output was checked, not trusted:**
 * **Planted ground truth.** The generator labels every account and post, so detection is scored against known answers.
