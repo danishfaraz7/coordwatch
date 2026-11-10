@@ -157,7 +157,11 @@ def build(posts, assign, narratives, groups, origins, topic: str, since: Optiona
     for nar in narratives:
         if nar["id"] >= 0:
             nar["gist"] = headline(nar, by_id)
-            nar["headline"] = entity_title([by_id[i].text for i in nar.get("post_ids", []) if i in by_id], topic, nar.get("keywords")) or (nar["gist"][:70].rsplit(" ", 1)[0] + "…" if len(nar["gist"]) > 70 else nar["gist"])
+            if nar.get("auto_title"):                                   # already titled (default or the person's own): keep it
+                nar["headline"] = nar["label"]
+            else:
+                nar["headline"] = (entity_title([by_id[i].text for i in nar.get("post_ids", []) if i in by_id], topic, nar.get("keywords"))
+                                   or " · ".join(k.title() for k in (nar.get("keywords") or [])[:3]) or nar["label"])
     nar_rows = []
     for nar in narratives:
         if nar["id"] < 0:

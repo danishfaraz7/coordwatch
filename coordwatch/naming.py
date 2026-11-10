@@ -63,7 +63,8 @@ def apply(result: dict, titles: Dict[int, dict]) -> int:
         if n["id"] in titles:
             old[n["id"]] = n["label"]
             t = titles[n["id"]]
-            n["keyword_label"], n["label"], n["headline"] = n["label"], t["title"], t["title"]
+            n.setdefault("keyword_label", n["label"])
+            n["label"] = n["headline"] = t["title"]
             if t["summary"]:
                 n["summary"] = t["summary"]
     if not old:
@@ -73,7 +74,7 @@ def apply(result: dict, titles: Dict[int, dict]) -> int:
     def walk(x):
         if isinstance(x, dict):
             for k, v in x.items():
-                if k == "label" and isinstance(v, str) and v in swaps and "narrative_id" in x:
+                if k == "label" and isinstance(v, str) and v in swaps:
                     x[k] = swaps[v]
                 else:
                     x[k] = walk(v)
@@ -101,3 +102,35 @@ def name_stories(result: dict, cfg: dict, answer: Optional[Callable] = None, on_
     else:
         text, _model = ai.answer_retrying(QUESTION, build_context(result), cfg, on_wait=on_wait)
     return apply(result, parse_titles(text))
+
+
+def finalize(result: dict) -> None:
+    """Make every story's display title its label everywhere (origins, cross-platform, overview...). The keyword string stays in `keyword_label`
+    and the generated default in `auto_title`, so a person's own title can always be reset."""
+    titles = {}
+    for n in result["narratives"]:
+        if n["id"] >= 0 and n.get("headline"):
+            n["keyword_label"] = n["label"]
+            n["auto_title"] = n["headline"]
+            if n["headline"] != n["label"]:
+                titles[n["id"]] = {"title": n["headline"], "summary": ""}
+    apply(result, titles)
+
+
+def set_custom(result: dict, custom: dict) -> int:
+    """Apply the person's own titles ({story id: text}); an empty text restores the automatic title."""
+    clean = {}
+    by = {n["id"]: n for n in result["narratives"]}
+    for k, v in (custom or {}).items():
+        try:
+            i = int(k)
+        except (TypeError, ValueError):
+            continue
+        n = by.get(i)
+        if not n or i < 0:
+            continue
+        t = _SKIP.sub("", re.sub(r"<[^>]*>", "", " ".join(str(v or "").split())))[:90].strip()
+        t = t or n.get("auto_title") or n["label"]
+        if t != n["label"]:
+            clean[i] = {"title": t, "summary": ""}
+    return apply(result, clean)

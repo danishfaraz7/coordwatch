@@ -598,7 +598,7 @@ function showPanel(n) {
       ${(m.collector_notes || []).map(x => `<div class="note"><b>Data note</b>${esc(x)}</div>`).join('')}`;
   } else if (n.kind === 'nar') {
     const d = n.d, o = res.origins.find(x => x.narrative_id === d.id), hot = n.share >= .5;
-    h += `<div class="p-eye"><i style="background:${hot ? HOT : PINK}"></i>Story ${d.id}</div><h2>${esc(title(d.label))}</h2>
+    h += `<div class="p-eye"><i style="background:${hot ? HOT : PINK}"></i>Story ${d.id} <button type="button" class="chip-btn rn" data-rn="${d.id}" title="Rename this story">✎ Rename</button></div><h2>${esc(title(d.label))}</h2>
       <span class="badge ${hot ? 'b-hot' : n.share > 0 ? 'b-warn' : 'b-ok'}">${hot ? 'Pushed by coordinated accounts' : n.share > 0 ? 'Partly coordinated' : 'Looks organic'}</span>
       <div class="sec"><h5>In short</h5><p class="nar-short">${esc(plainOf(res.overview && res.overview.plain.narratives, 'id', d.id) || '')}</p><button type="button" class="btn wide" id="nar-ai">✦ AI summary of this story</button><div id="nar-ai-out"></div></div>
       <div class="stats">${statTile(d.posts, 'posts', '', '#9fe8ff')}${statTile(d.accounts, 'accounts', '', '#c9b8ff')}${statTile(Math.round(n.share * 100), 'from coordinated accounts', '%', hot ? '#ff9a90' : '#ffd98a')}${statTile(d.engagement, 'engagement', '', '#9ff0c9')}</div>
@@ -1084,6 +1084,27 @@ function cleanAI(t) {                                   // some free models answ
   return t.replace(/\bnarrative\s*#\s*(\d+)/gi, 'Story $1').replace(/#(\d+)\b/g, 'Story $1');
 }
 // one click, no questions: set up the free no-login service if nothing is configured, then ask
+// ---- rename a story: pick the existing title or type your own (saved for the map, cards and every download) ----
+function renameBox(id) {
+  const n = (st.res.narratives || []).find(x => x.id === id); if (!n) return;
+  let box = $('#rename'); if (box) box.remove();
+  box = document.createElement('div'); box.id = 'rename'; box.className = 'glass rename'; box.setAttribute('role', 'dialog'); box.setAttribute('aria-label', 'Rename story ' + id);
+  box.innerHTML = '<b>Title for Story ' + id + '</b><p class="mut small">Keep the existing title or type your own. It is used on the map, in the cards and in every report you download.</p>' +
+    '<input type="text" id="rn-in" maxlength="90" value="' + esc(title(n.label)) + '"><div class="rn-row"><button type="button" class="xp-go" id="rn-save">Save title</button>' +
+    '<button type="button" class="chip-btn" id="rn-auto">Use automatic title</button><button type="button" class="chip-btn" id="rn-x">Cancel</button></div><div class="mut small" id="rn-msg"></div>';
+  document.body.appendChild(box);
+  const inp = $('#rn-in'); inp.focus(); inp.select();
+  const save = async v => {
+    try { await api('/api/jobs/' + st.jobId + '/titles', {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({titles: {[id]: v}})}); }
+    catch (e) { $('#rn-msg').textContent = 'Could not save: ' + e.message; return; }
+    box.remove(); const keep = activeScreen; st.res = await api('/api/jobs/' + st.jobId + '/result'); st.aiAuto = st.jobId; loadResult(); if (keep && keep !== 'overview') setScreen(keep);
+  };
+  $('#rn-save').onclick = () => save(inp.value.trim() || '');
+  $('#rn-auto').onclick = () => save('');
+  $('#rn-x').onclick = () => box.remove();
+  inp.addEventListener('keydown', e => { if (e.key === 'Enter') save(inp.value.trim()); if (e.key === 'Escape') box.remove(); });
+}
+document.addEventListener('click', e => { const b = e.target.closest && e.target.closest('[data-rn]'); if (b) { e.preventDefault(); renameBox(+b.dataset.rn); } });
 const sleepMs = ms => new Promise(r => setTimeout(r, ms));
 // ask with automatic retries: when the service is busy, count down and try again by itself (no prompts, no clicks)
 async function askRetrying(body, show, tries = 6) {
@@ -1148,8 +1169,9 @@ function reportBuilder() {
   if (!ns.length) return '';
   return '<div class="analysis-card xp-card wide rb"><small>BUILD YOUR OWN REPORT</small><h3>Choose what goes in the report</h3>' +
     '<div class="rb-modes" role="radiogroup" aria-label="Which stories"><label><input type="radio" name="rb-mode" value="all" checked> All stories (' + ns.length + ')</label><label><input type="radio" name="rb-mode" value="pick"> Only the ones I choose</label></div>' +
-    '<div id="rb-list" class="rb-list hidden"><div class="rb-tools"><button type="button" class="chip-btn" id="rb-all">Select all</button><button type="button" class="chip-btn" id="rb-none">Clear</button><span class="mut small" id="rb-count"></span></div>' +
-    ns.map(n => '<label class="rb-row"><input type="checkbox" class="rb-cb" value="' + n.id + '"><span><b>Story ' + n.id + '</b> · ' + esc(title(n.label)) + '<small>' + n.posts + ' posts · ' + n.accounts + ' accounts' + ((n.coordinated_post_share || 0) > 0 ? ' · ' + Math.round(n.coordinated_post_share * 100) + '% coordinated' : '') + '</small></span></label>').join('') + '</div>' +
+    '<div id="rb-list" class="rb-list all"><div class="rb-tools"><button type="button" class="chip-btn" id="rb-all">Select all</button><button type="button" class="chip-btn" id="rb-none">Clear</button><span class="mut small" id="rb-count"></span></div>' +
+    '<p class="mut small rb-hint">Each story keeps its existing title unless you type your own. Edit a title to use a custom one in this report; "Use existing" puts it back.</p>' +
+    ns.map(n => '<div class="rb-row"><input type="checkbox" class="rb-cb" value="' + n.id + '" aria-label="Include story ' + n.id + '"><span class="rb-body"><b>Story ' + n.id + '</b> · <input type="text" class="rb-t" data-id="' + n.id + '" data-orig="' + esc(title(n.label)) + '" value="' + esc(title(n.label)) + '" maxlength="90" aria-label="Title for story ' + n.id + '"> <button type="button" class="chip-btn rb-reset hidden" data-id="' + n.id + '">Use existing</button><small>' + n.posts + ' posts · ' + n.accounts + ' accounts' + ((n.coordinated_post_share || 0) > 0 ? ' · ' + Math.round(n.coordinated_post_share * 100) + '% coordinated' : '') + '</small></span></div>').join('') + '</div>' +
     '<label class="rb-ai"><input type="checkbox" id="rb-ai"> <span>✦ Add <b>one AI summary</b> of the stories I picked <small>(a short summary is sent to a free AI service; the report shows its sources)</small></span></label>' +
     '<div class="rb-row2"><label>Format <select id="rb-fmt"><option value="html">Web page (best for reading and sharing)</option><option value="pdf">PDF (for managers)</option></select></label><button type="button" class="xp-go" id="rb-go">Build report</button></div>' +
     '<div id="rb-out" class="mut small" role="status"></div></div>';
@@ -1158,7 +1180,10 @@ function wireReportBuilder() {
   const go = $('#rb-go'); if (!go) return;
   const cbs = () => [...document.querySelectorAll('.rb-cb')], mode = () => document.querySelector('input[name=rb-mode]:checked').value;
   const count = () => { const n = cbs().filter(c => c.checked).length; $('#rb-count').textContent = n + ' selected'; };
-  document.querySelectorAll('input[name=rb-mode]').forEach(r => r.onchange = () => { $('#rb-list').classList.toggle('hidden', mode() !== 'pick'); count(); });
+  document.querySelectorAll('input[name=rb-mode]').forEach(r => r.onchange = () => { $('#rb-list').classList.toggle('all', mode() !== 'pick'); count(); });
+  const edited = () => [...document.querySelectorAll('.rb-t')].filter(i => i.value.trim() !== i.dataset.orig && i.value.trim() !== '');
+  document.querySelectorAll('.rb-t').forEach(i => i.oninput = () => { document.querySelector('.rb-reset[data-id="' + i.dataset.id + '"]').classList.toggle('hidden', i.value.trim() === i.dataset.orig); });
+  document.querySelectorAll('.rb-reset').forEach(b => b.onclick = () => { const i = document.querySelector('.rb-t[data-id="' + b.dataset.id + '"]'); i.value = i.dataset.orig; b.classList.add('hidden'); });
   cbs().forEach(c => c.onchange = count);
   $('#rb-all').onclick = () => { cbs().forEach(c => c.checked = true); count(); };
   $('#rb-none').onclick = () => { cbs().forEach(c => c.checked = false); count(); };
@@ -1167,7 +1192,7 @@ function wireReportBuilder() {
     if (mode() === 'pick' && !picked.length) { out.textContent = 'Tick at least one story first.'; return; }
     go.disabled = true; out.textContent = ai ? '✦ Building the report and asking the AI… free services can take up to a minute.' : 'Building the report…';
     try {
-      const r = await fetch('/api/jobs/' + st.jobId + '/report', {method: 'POST', headers: {'X-Coordwatch': '1', 'Content-Type': 'application/json'}, body: JSON.stringify({stories: mode() === 'all' ? 'all' : picked, ai, format: fmt})});
+      const r = await fetch('/api/jobs/' + st.jobId + '/report', {method: 'POST', headers: {'X-Coordwatch': '1', 'Content-Type': 'application/json'}, body: JSON.stringify({stories: mode() === 'all' ? 'all' : picked, ai, format: fmt, titles: Object.fromEntries(edited().map(i => [i.dataset.id, i.value.trim()]))})});
       if (!r.ok) { const j = await r.json().catch(() => ({})); throw new Error(j.error || r.statusText); }
       const blob = await r.blob(), u = URL.createObjectURL(blob), name = 'report_' + (mode() === 'all' ? 'all-stories' : 'stories-' + picked.slice(0, 6).join('-')) + '.' + fmt;
       out.innerHTML = '✔ Ready: ' + (fmt === 'html' ? '<a class="xp-go" href="' + u + '" target="_blank" rel="noopener">Open report ↗</a> ' : '') + '<a class="xp-go" href="' + u + '" download="' + name + '">⭳ Save ' + esc(name) + '</a>' + (ai ? ' <span class="mut">If the AI could not answer, the report says so where the summary would be.</span>' : '');
@@ -1214,7 +1239,7 @@ function narrativeCards() {
       heatTable(ov.narratives.map(n => '<tr><th class="rowh"><button class="xp-link" data-nar="' + n.id + '">Story ' + n.id + ': ' + esc(title(n.label)) + '</button></th><td><b>' + n.posts + '</b></td>' + cols.map(c => { const v = get(n, c); return '<td style="background:rgba(154,140,255,' + (v ? (.12 + .7 * v / mx).toFixed(2) : 0) + ')">' + (v || '') + '</td>'; }).join('') + '</tr>').join(''),
         '<th>Theme</th><th>Posts</th>' + cols.map(c => '<th>' + esc(narMode === 'day' ? c.slice(5) : '“' + c + '”') + '</th>').join('')) + '</div>';
   }
-  return h + nars.map(n => '<div class="analysis-card xp-card"><small>STORY ' + n.id + '</small><h3>' + esc(title(n.label)) + '</h3><p>' + esc(plainOf(ov && ov.plain.narratives, 'id', n.id) || (n.posts + ' posts · ' + n.accounts + ' accounts')) + '</p>' +
+  return h + nars.map(n => '<div class="analysis-card xp-card"><small>STORY ' + n.id + ' <button type="button" class="chip-btn rn" data-rn="' + n.id + '" title="Rename this story">✎ Rename</button></small><h3>' + esc(title(n.label)) + '</h3><p>' + esc(plainOf(ov && ov.plain.narratives, 'id', n.id) || (n.posts + ' posts · ' + n.accounts + ' accounts')) + '</p>' +
     volChart(n.volume_by_platform) + '<p>' + Object.entries(n.platforms).map(([p, v]) => esc(LABEL[p] || p) + ' ' + v).join(' · ') + '</p><button class="xp-go" data-nar="' + n.id + '">See this story on the map →</button></div>').join('');
 }
 function groupCards() {

@@ -50,7 +50,7 @@ def analyse(all_posts: List[Post], topic: str, since: Optional[datetime], until:
     for p in posts:
         vol_pl[p.platform][bucket_start(p.created_at, size).isoformat()] += 1
 
-    return {
+    result = {
         "meta": {
             "topic": topic, "since": since.isoformat() if since else None, "until": until.isoformat() if until else None,
             "platforms": sorted({p.platform for p in posts}), "generated_at": datetime.now(timezone.utc).isoformat(),
@@ -67,3 +67,6 @@ def analyse(all_posts: List[Post], topic: str, since: Optional[datetime], until:
         "cross_platform": correlate(posts, assign, narratives, coord["dup_clusters"], size),
         "overview": build_overview(posts, assign, narratives, groups, origins, topic, since, until), "posts": post_rows,
     }
+    from .naming import finalize
+    finalize(result)
+    return result

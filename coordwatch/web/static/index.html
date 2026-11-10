@@ -24,7 +24,7 @@
   <select id="depth" title="How much to fetch per platform: Quick = fast / low quota, Deep = more videos and comments" aria-label="Depth">
     <option value="quick">Quick</option><option value="standard" selected>Standard</option><option value="deep">Deep</option></select>
   <label class="chk" title="Ignore verified accounts as coordination evidence (reduces false positives on news outlets)"><input type="checkbox" id="dv"> skip verified</label>
-  <label class="chk" title="Uses your AI provider (Settings) to write a clear title and a short explanation for each story. Sends a few short post snippets per story to that provider. Does nothing if no provider is set up. Untick to keep everything on this computer."><input type="checkbox" id="ainames" checked> AI titles &amp; summaries</label>
+  <label class="chk" title="Optional. Asks the AI service to write a clear title and short explanation for each story (sends a few short post snippets). Off by default: stories are titled from the search keywords and you can rename any of them yourself."><input type="checkbox" id="ainames"> suggest titles with AI</label>
   <button id="run" class="btn primary">Analyse</button>
   <button id="demo" class="btn">Demo data</button>
   <button id="exp" class="btn ico hidden" title="Export">⭳</button>

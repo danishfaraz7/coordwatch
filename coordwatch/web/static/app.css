@@ -434,3 +434,9 @@ body:not([data-view=graph]) #insights{display:none}
 .rb button.xp-go{background:linear-gradient(135deg,#7c5cff,#4de0d0);color:#fff;border:0;border-radius:10px;padding:10px 20px;font-size:14px;font-weight:700;cursor:pointer;box-shadow:0 6px 20px #7c5cff44}
 .rb button.xp-go:disabled{opacity:.6;cursor:wait}.rb button.xp-go:hover:not(:disabled){filter:brightness(1.1)}
 .rb input[type=checkbox],.rb input[type=radio]{accent-color:#7c5cff;width:16px;height:16px;margin-top:2px}
+
+.rename{position:fixed;left:50%;top:22%;transform:translateX(-50%);z-index:300;width:min(460px,92vw);padding:18px 20px;display:flex;flex-direction:column;gap:8px;box-shadow:0 20px 60px #000a}
+.rename input,.rb-t{background:#0b1b31;color:var(--tx);border:1px solid var(--line);border-radius:9px;padding:8px 10px;font:inherit}.rename input{width:100%}
+.rn-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:4px}.chip-btn.rn{margin-left:8px;font-size:11px;padding:2px 9px}
+.rb-t{width:min(360px,62vw);padding:4px 8px}.rb-hint{margin:6px 2px}.rb-list.all .rb-cb{visibility:hidden}.rb-list.all .rb-tools{display:none}
+.rb-body{display:block}

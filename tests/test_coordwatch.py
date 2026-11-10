@@ -86,7 +86,8 @@ class PipelineTests(unittest.TestCase):
         self.assertEqual(s["decoys"]["decoy_newswire"]["wrongly_flagged"], 5)  # documented limitation
 
     def test_origin_points_at_botnet_seed_on_telegram_first(self):
-        o = next(o for o in RESULT["origins"] if "insolvent" in o["label"])
+        nid = next(n["id"] for n in RESULT["narratives"] if "insolvent" in n["keyword_label"])
+        o = next(o for o in RESULT["origins"] if o["narrative_id"] == nid)
         self.assertEqual(o["first_post"]["platform"], "telegram")
         self.assertEqual([s["platform"] for s in o["platform_spread"]][:2], ["telegram", "x"])
         self.assertIsNotNone(o["seeding_group"])

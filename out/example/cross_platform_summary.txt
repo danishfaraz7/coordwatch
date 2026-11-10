@@ -1,5 +1,5 @@
 - Volume: telegram 212 posts from 84 accounts, x 427 posts from 142 accounts, youtube 88 posts from 45 accounts.
-- 9 narrative(s) appear on more than one platform. The largest, "insolvent / withdraw / savings / too", is on telegram, x, youtube; it surfaced first on telegram and reached x about 0.6 h later.
+- 9 narrative(s) appear on more than one platform. The largest, "Insolvent · Withdraw · Savings", is on telegram, x, youtube; it surfaced first on telegram and reached x about 0.6 h later.
 - telegram vs x: daily volume correlates strongly (r=0.91) with no clear leader.
 - telegram vs youtube: daily volume correlates strongly (r=0.79) with no clear leader.
 - x vs youtube: daily volume correlates strongly (r=0.85) with no clear leader.

@@ -425,6 +425,11 @@ class Handler(BaseHTTPRequestHandler):
             sub = res if stories == "all" else subset(res, [int(x) for x in stories])
         except (TypeError, ValueError) as e:
             raise ValueError(str(e) or "Pick at least one story.")
+        custom = body.get("titles")
+        if isinstance(custom, dict) and custom:
+            import copy
+            sub = copy.deepcopy(sub)                                   # titles typed for this report only; the saved run is not changed
+            naming.set_custom(sub, {k: v for k, v in list(custom.items())[:200]})
         sel = sub["meta"].get("selection")
         ai_block = None
         t0 = time.time()
@@ -536,6 +541,26 @@ class Handler(BaseHTTPRequestHandler):
                                 seconds=round(time.time() - t0, 1), context_chars=len(str(ctx)), answer_chars=len(text), answer=text)
                 refs = ai.cited(text, ai.build_sources(job.result))
                 return self._json(200, {"answer": text, "model": model, "sources": refs})
+            m = re.fullmatch(r"/api/jobs/([a-f0-9]+)/titles", url.path)
+            if m:                                                      # rename stories for good (map, cards, downloads); empty text restores the automatic title
+                body = json.loads(self._body(20_000) or b"{}")
+                res = self._result_for(m.group(1))
+                if not res:
+                    return self._json(404, {"error": "No finished run to rename stories in."})
+                titles = body.get("titles")
+                if not isinstance(titles, dict) or not titles:
+                    raise ValueError("Nothing to rename.")
+                n = naming.set_custom(res, titles)
+                d = run_dir(m.group(1))
+                try:
+                    if not d:
+                        raise ValueError("no run folder")
+                    export_all(res, str(d))
+                    (d / "report.html").write_text(render(res), encoding="utf-8")
+                except Exception:
+                    traceback.print_exc()
+                activity.record("rename", run=m.group(1), stories=sorted(str(k) for k in titles)[:50], changed=n)
+                return self._json(200, {"ok": True, "changed": n})
             m = re.fullmatch(r"/api/jobs/([a-f0-9]+)/report", url.path)
             if m:
                 return self._build_report(m.group(1), json.loads(self._body(20_000) or b"{}"))

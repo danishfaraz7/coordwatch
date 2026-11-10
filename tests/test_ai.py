@@ -201,3 +201,19 @@ class TestStoryNaming(unittest.TestCase):
         res = {"narratives": [{"id": 1, "label": "a / b", "posts": 3, "keywords": ["a"], "representative_posts": []}], "posts": []}
         self.assertEqual(naming.name_stories(res, {}, answer=lambda q, c, cfg: ("no json here", "m")), 0)
         self.assertEqual(res["narratives"][0]["label"], "a / b")
+
+
+class TestCustomTitles(unittest.TestCase):
+    def test_custom_title_applies_everywhere_and_can_be_reset(self):
+        from coordwatch import naming
+        res = {"narratives": [{"id": 1, "label": "Jensen Huang", "auto_title": "Jensen Huang", "keyword_label": "nvidia / ceo"}],
+               "origins": [{"narrative_id": 1, "label": "Jensen Huang", "text": "Story about Jensen Huang spread"}],
+               "cross_platform": {"summary": ['Largest: "Jensen Huang"'], "narrative_overlap": []},
+               "overview": {"narratives": [{"id": 1, "label": "Jensen Huang"}], "plain": {"narratives": [{"id": 1, "label": "Jensen Huang", "text": "x"}]}}, "posts": []}
+        self.assertEqual(naming.set_custom(res, {"1": "  My <b>own</b>   title "}), 1)
+        self.assertEqual(res["narratives"][0]["label"], "My own title")
+        self.assertEqual(res["origins"][0]["label"], "My own title")
+        self.assertEqual(res["overview"]["plain"]["narratives"][0]["label"], "My own title")
+        self.assertIn("My own title", res["cross_platform"]["summary"][0])
+        naming.set_custom(res, {"1": ""})                                   # empty = back to the automatic title
+        self.assertEqual(res["narratives"][0]["label"], "Jensen Huang")

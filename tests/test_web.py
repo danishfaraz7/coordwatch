@@ -121,6 +121,27 @@ class WebTests(Base):
         self.assertIn(b"Acme Bank", html)
         self.assertEqual(self.call("GET", f"/api/jobs/{jid}/download/../../etc/passwd")[0], 404)
 
+    def test_rename_story_persists_and_report_titles_are_per_report(self):
+        code, body, _ = self.call("POST", "/api/run", {"topic": "Acme Bank", "since": "2026-10-01", "until": "2026-10-14", "demo": True})
+        jid = json.loads(body)["id"]
+        self.assertEqual(self._wait(jid)["status"], "done")
+        # a title typed only for one report
+        code, html, _ = self.call("POST", f"/api/jobs/{jid}/report", {"stories": "all", "format": "html", "titles": {"1": "Custom <b>title</b> A"}})
+        self.assertEqual(code, 200)
+        self.assertIn(b"Custom title A", html)
+        res = json.loads(self.call("GET", f"/api/jobs/{jid}/result")[1])
+        self.assertNotEqual(res["narratives"][0]["label"], "Custom title A")      # the saved run is untouched
+        # a rename saved for good
+        code, out, _ = self.call("POST", f"/api/jobs/{jid}/titles", {"titles": {"1": "Bank run rumour"}})
+        self.assertEqual(code, 200)
+        res = json.loads(self.call("GET", f"/api/jobs/{jid}/result")[1])
+        self.assertEqual(next(n for n in res["narratives"] if n["id"] == 1)["label"], "Bank run rumour")
+        self.assertIn(b"Bank run rumour", self.call("GET", f"/api/jobs/{jid}/download/report.html")[1])
+        self.call("POST", f"/api/jobs/{jid}/titles", {"titles": {"1": ""}})          # empty = automatic title again
+        res = json.loads(self.call("GET", f"/api/jobs/{jid}/result")[1])
+        self.assertNotEqual(next(n for n in res["narratives"] if n["id"] == 1)["label"], "Bank run rumour")
+        self.assertEqual(self.call("POST", f"/api/jobs/{jid}/titles", {"titles": {}})[0], 400)
+
     def test_history_survives_a_restart(self):
         """A finished run is listed by /api/runs and can be reopened from disk once the in-memory job table is empty."""
         code, body, _ = self.call("POST", "/api/run", {"topic": "Acme Bank", "since": "2026-10-01", "until": "2026-10-14", "demo": True})

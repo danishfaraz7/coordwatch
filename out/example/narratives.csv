@@ -1,14 +1,14 @@
 id,label,keywords,posts,accounts,platforms,first_seen,last_seen,engagement,coordinated_post_share,coordinated_groups
-1,insolvent / withdraw / savings / too,"insolvent, withdraw, savings, too, late, now",233,28,"{""telegram"": 78, ""x"": 143, ""youtube"": 12}",2026-10-04T08:03:02+00:00,2026-10-06T12:19:11+00:00,873,1.0,"{""G1"": 233}"
-2,again / fix / please / transfers,"again, fix, please, transfers, website, banking",148,122,"{""x"": 79, ""telegram"": 40, ""youtube"": 29}",2026-10-01T03:11:25+00:00,2026-10-14T14:54:05+00:00,826,0.0,{}
-3,fees / charges / any / hidden,"fees, charges, any, hidden, insane, feels",76,71,"{""telegram"": 24, ""x"": 38, ""youtube"": 14}",2026-10-01T01:53:48+00:00,2026-10-14T15:21:54+00:00,452,0.0,{}
-4,fair / advisor / answered / within,"fair, advisor, answered, within, minutes, branch",57,50,"{""youtube"": 10, ""x"": 32, ""telegram"": 15}",2026-10-01T16:48:25+00:00,2026-10-14T23:30:56+00:00,392,0.0,{}
-5,trouble / rumours / outage / evidence,"trouble, rumours, outage, evidence, either, way",50,47,"{""x"": 24, ""telegram"": 18, ""youtube"": 8}",2026-10-01T01:15:43+00:00,2026-10-13T13:36:07+00:00,295,0.0,{}
-6,after / disruption / worth / reading,"after, disruption, worth, reading, full, software",43,43,"{""telegram"": 13, ""x"": 25, ""youtube"": 5}",2026-10-05T01:46:20+00:00,2026-10-14T15:04:22+00:00,282,0.0,{}
-7,rip / gone / lunch / never,"rip, gone, lunch, never, press, respects",40,40,"{""youtube"": 9, ""telegram"": 14, ""x"": 17}",2026-10-05T14:01:54+00:00,2026-10-05T14:58:30+00:00,247,0.0,{}
-8,country / several / members / man,"country, several, members, man, running, fled",35,6,"{""x"": 35}",2026-10-06T14:00:00+00:00,2026-10-09T09:37:00+00:00,356,1.0,"{""G2"": 35}"
-9,confirms / systems / protected / deposits,"confirms, systems, protected, deposits, restored, fully",15,5,"{""x"": 9, ""telegram"": 6}",2026-10-05T18:01:32+00:00,2026-10-07T07:02:59+00:00,10415,1.0,"{""G3"": 15}"
-10,overreacting / fundamentals / fine / look,"overreacting, fundamentals, fine, look, analysts, dyor",9,9,"{""x"": 4, ""youtube"": 1, ""telegram"": 4}",2026-10-03T18:30:29+00:00,2026-10-13T13:12:58+00:00,90,0.0,{}
-11,abroad / boarded / flight / coming,"abroad, boarded, flight, coming, board, close",9,5,"{""x"": 9}",2026-10-06T14:04:36+00:00,2026-10-08T08:03:36+00:00,78,1.0,"{""G2"": 9}"
-12,quarterly / results / looks / fine,"quarterly, results, looks, fine",6,2,"{""x"": 6}",2026-10-03T15:15:32+00:00,2026-10-09T03:11:36+00:00,9,0.0,{}
-13,finally / fixed / problem / update,"finally, fixed, problem, update, mobile, login",6,2,"{""x"": 6}",2026-10-04T00:08:01+00:00,2026-10-12T20:37:19+00:00,10,0.0,{}
+1,Insolvent · Withdraw · Savings,"insolvent, withdraw, savings, too, late, now",233,28,"{""telegram"": 78, ""x"": 143, ""youtube"": 12}",2026-10-04T08:03:02+00:00,2026-10-06T12:19:11+00:00,873,1.0,"{""G1"": 233}"
+2,Again · Fix · Please,"again, fix, please, transfers, website, banking",148,122,"{""x"": 79, ""telegram"": 40, ""youtube"": 29}",2026-10-01T03:11:25+00:00,2026-10-14T14:54:05+00:00,826,0.0,{}
+3,Fees · Charges · Any,"fees, charges, any, hidden, insane, feels",76,71,"{""telegram"": 24, ""x"": 38, ""youtube"": 14}",2026-10-01T01:53:48+00:00,2026-10-14T15:21:54+00:00,452,0.0,{}
+4,Fair · Advisor · Answered,"fair, advisor, answered, within, minutes, branch",57,50,"{""youtube"": 10, ""x"": 32, ""telegram"": 15}",2026-10-01T16:48:25+00:00,2026-10-14T23:30:56+00:00,392,0.0,{}
+5,Trouble · Rumours · Outage,"trouble, rumours, outage, evidence, either, way",50,47,"{""x"": 24, ""telegram"": 18, ""youtube"": 8}",2026-10-01T01:15:43+00:00,2026-10-13T13:36:07+00:00,295,0.0,{}
+6,After · Disruption · Worth,"after, disruption, worth, reading, full, software",43,43,"{""telegram"": 13, ""x"": 25, ""youtube"": 5}",2026-10-05T01:46:20+00:00,2026-10-14T15:04:22+00:00,282,0.0,{}
+7,RIP Acme Bank,"rip, gone, lunch, never, press, respects",40,40,"{""youtube"": 9, ""telegram"": 14, ""x"": 17}",2026-10-05T14:01:54+00:00,2026-10-05T14:58:30+00:00,247,0.0,{}
+8,Country · Several · Members,"country, several, members, man, running, fled",35,6,"{""x"": 35}",2026-10-06T14:00:00+00:00,2026-10-09T09:37:00+00:00,356,1.0,"{""G2"": 35}"
+9,Confirms · Systems · Protected,"confirms, systems, protected, deposits, restored, fully",15,5,"{""x"": 9, ""telegram"": 6}",2026-10-05T18:01:32+00:00,2026-10-07T07:02:59+00:00,10415,1.0,"{""G3"": 15}"
+10,Overreacting · Fundamentals · Fine,"overreacting, fundamentals, fine, look, analysts, dyor",9,9,"{""x"": 4, ""youtube"": 1, ""telegram"": 4}",2026-10-03T18:30:29+00:00,2026-10-13T13:12:58+00:00,90,0.0,{}
+11,Acme Bank CEO and Acme Bank's,"abroad, boarded, flight, coming, board, close",9,5,"{""x"": 9}",2026-10-06T14:04:36+00:00,2026-10-08T08:03:36+00:00,78,1.0,"{""G2"": 9}"
+12,Quarterly · Results · Looks,"quarterly, results, looks, fine",6,2,"{""x"": 6}",2026-10-03T15:15:32+00:00,2026-10-09T03:11:36+00:00,9,0.0,{}
+13,Finally · Fixed · Problem,"finally, fixed, problem, update, mobile, login",6,2,"{""x"": 6}",2026-10-04T00:08:01+00:00,2026-10-12T20:37:19+00:00,10,0.0,{}
