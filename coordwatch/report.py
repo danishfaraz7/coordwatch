@@ -310,6 +310,23 @@ td{padding:9px 10px;border-top:1px solid #1d1d2e;vertical-align:top}tr:hover td{
 .warn{background:#ffc04d12;border:1px solid #ffc04d44;color:#ffd890;border-radius:14px;padding:9px 14px;margin-top:14px;font-size:13px}
 details summary{cursor:pointer;color:#c0c0d6}code{color:#b8c3ff;font-size:12px;word-break:break-all}
 footer{color:var(--mut);margin-top:26px;font-size:12px;text-align:center}
+.nav{position:sticky;top:0;z-index:20;display:flex;gap:6px;flex-wrap:wrap;padding:10px 0;margin:6px 0 0;background:linear-gradient(180deg,var(--bg) 70%,transparent);backdrop-filter:blur(6px)}
+.nav a{font-size:12px;padding:5px 13px;border-radius:99px;border:1px solid var(--line);background:#ffffff08;color:#cfcfe4}.nav a:hover{background:#ffffff14;text-decoration:none}
+.kf{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:12px}.kfc{background:#ffffff08;border:1px solid var(--line);border-radius:16px;padding:14px 16px;display:flex;flex-direction:column;gap:3px}
+.kfc .k{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--mut)}.kfc .v{font-size:19px;font-weight:700;letter-spacing:-.01em;line-height:1.25;overflow-wrap:anywhere}.kfc .d{font-size:12.5px;color:#b9b9d0;margin-top:auto;padding-top:4px}
+.kfc.hotc{border-color:#ff4d6d55;background:#ff4d6d0d}.kfc.okc{border-color:#3ee6b844}
+ul.plain{margin:6px 0 0;padding-left:20px}ul.plain li{margin:5px 0}
+table.num td:not(:first-child),table.num th:not(:first-child){text-align:right;font-variant-numeric:tabular-nums}
+.fold{border-top:1px solid var(--line);padding:10px 0}.fold:first-of-type{border-top:0}.fold summary{font-weight:600;font-size:14px;padding:4px 0;color:var(--tx)}.fold[open] summary{margin-bottom:6px}
+.tp{display:flex;flex-direction:column;gap:10px}.tpi{display:grid;grid-template-columns:auto 1fr;gap:12px;padding:10px 12px;border:1px solid var(--line);border-radius:14px;background:#ffffff06}
+.tpi .e{font-weight:800;font-size:18px;min-width:56px;text-align:right;font-variant-numeric:tabular-nums}.tpi .e small{display:block;font-size:10px;color:var(--mut);font-weight:500;letter-spacing:.08em;text-transform:uppercase}
+.tpi p{margin:0 0 3px;overflow-wrap:anywhere}.tpi .m{font-size:12px;color:var(--mut)}
+.how{columns:2;column-gap:28px}.how p{break-inside:avoid;margin:0 0 10px;font-size:13px;color:#c9c9dc}
+.tile>h2:first-child{padding-bottom:8px;border-bottom:1px solid #ffffff10;margin-bottom:12px}
+section[id],div[id]{scroll-margin-top:60px}
+#posts td:first-child,#posts td:nth-child(2){white-space:nowrap}#posts td:nth-child(n+6){text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}#posts th:nth-child(n+6){text-align:right}
+@media print{.nav{display:none}.tile{break-inside:avoid}}
+@media(max-width:960px){.how{columns:1}}
 @media(max-width:960px){.s3,.s4,.s5,.s6,.s7,.s8{grid-column:span 12}.gcard{grid-template-columns:1fr}.s3{grid-column:span 6}}
 @media(prefers-reduced-motion:reduce){*{animation:none!important}}
 """
@@ -333,30 +350,94 @@ def overview_blocks(result: dict) -> dict:
     """HTML tiles for the plain-language overview, daily counts, per-term mentions and narratives-by-day."""
     ov = result.get("overview")
     if not ov:
-        return {"top": "", "groups": "", "origins": ""}
+        return {"top": "", "plain": "", "tables": "", "groups": "", "origins": ""}
     pl = ov["plain"]
     plats, terms, days = ov["platforms"], ov["terms"], ov["days"]
-    top = ["<div class='tile s12'><h2>In plain words</h2><ul>" + "".join(f"<li>{e(x)}</li>" for x in pl["summary"]) + "</ul></div>"]
+    plain = "<div class='tile s12' id=summary><h2>In plain words</h2><ul class=plain>" + "".join(f"<li>{e(x)}</li>" for x in pl["summary"]) + "</ul></div>"
+    top = []
     peak = max((d["total"] for d in days), default=1) or 1
     rows = "".join(f"<tr><td>{e(d['date'])}</td><td><div style='background:var(--cyan,#5ac8fa);height:8px;border-radius:4px;width:{d['total'] / peak * 100:.0f}%;min-width:{1 if d['total'] else 0}px'></div></td>"
                    f"<td><b>{d['total']:,}</b></td>" + "".join(f"<td>{d['by_platform'].get(k, 0):,}</td>" for k in plats) +
                    "".join(f"<td>{d['by_term'].get(t['term'], 0):,}</td>" for t in terms) + "</tr>" for d in days)
-    top.append("<div class='tile s12'><h2>Posts per day</h2><p class=sub>How many posts were made on each day of the time frame, per platform, and how many mentioned each search term.</p><div class=tbl><table><thead><tr><th>Date</th><th></th><th>Posts</th>" +
-               "".join(f"<th>{e(k)}</th>" for k in plats) + "".join(f"<th>“{e(t['term'])}”</th>" for t in terms) + f"</tr></thead><tbody>{rows}</tbody></table></div></div>")
+    top.append("<details class=fold open><summary>Posts per day</summary><p class=sub>How many posts were made on each day, per platform, and how many mentioned each search term.</p><div class=tbl><table class=num><thead><tr><th>Date</th><th></th><th>Posts</th>" +
+               "".join(f"<th>{e(k)}</th>" for k in plats) + "".join(f"<th>“{e(t['term'])}”</th>" for t in terms) + f"</tr></thead><tbody>{rows}</tbody></table></div></details>")
     trows = "".join(f"<tr><td><b>{e(t['term'])}</b></td><td>{e(t['kind'])}</td><td><b>{t['posts']:,}</b></td><td>{t['share']:.0%}</td><td>{t['accounts']:,}</td>" +
                     "".join(f"<td>{t['by_platform'].get(k, 0):,}</td>" for k in plats) + "</tr>" for t in terms)
-    top.append("<div class='tile s12'><h2>Mentions per keyword, hashtag, person, brand or event</h2><div class=tbl><table><thead><tr><th>Search term</th><th>Type</th><th>Posts</th><th>Share</th><th>Accounts</th>" +
-               "".join(f"<th>{e(k)}</th>" for k in plats) + f"</tr></thead><tbody>{trows}</tbody></table></div></div>")
+    top.append("<details class=fold><summary>Mentions per keyword, hashtag, person, brand or event</summary><div class=tbl><table class=num><thead><tr><th>Search term</th><th>Type</th><th>Posts</th><th>Share</th><th>Accounts</th>" +
+               "".join(f"<th>{e(k)}</th>" for k in plats) + f"</tr></thead><tbody>{trows}</tbody></table></div></details>")
     nmax = max((v for n in ov["narratives"] for v in n["by_day"].values()), default=1) or 1
     nrows = "".join(f"<tr><td style='white-space:nowrap'>Story {n['id']}: {e(n['label'])}</td><td><b>{n['posts']:,}</b></td>" +
                     "".join(f"<td style='text-align:center;background:rgba(90,200,250,{0.08 + 0.7 * n['by_day'].get(d['date'], 0) / nmax if n['by_day'].get(d['date'], 0) else 0:.2f})'>{n['by_day'].get(d['date'], 0) or ''}</td>" for d in days) +
                     "".join(f"<td>{n['by_term'].get(t['term'], 0):,}</td>" for t in terms) + "</tr>" for n in ov["narratives"])
-    top.append("<div class='tile s12'><h2>What is being said, day by day and term by term</h2><ul>" + "".join(f"<li><b>Story {n['id']}</b> {e(n['text'])}</li>" for n in pl["narratives"]) +
-               "</ul><p class=sub>Posts per narrative on each date, then per search term.</p><div class=tbl><table><thead><tr><th>Narrative</th><th>Posts</th>" +
-               "".join(f"<th>{e(d['date'][5:])}</th>" for d in days) + "".join(f"<th>“{e(t['term'])}”</th>" for t in terms) + f"</tr></thead><tbody>{nrows}</tbody></table></div></div>")
-    groups = ("<div class='tile s12'><h2>Groups in simple words</h2><ul>" + ("".join(f"<li>{e(g['text'])}</li>" for g in pl["groups"]) or "<li>No group of accounts met the evidence thresholds.</li>") + "</ul></div>")
-    origins = ("<div class='tile s12'><h2>Where each story started, in simple words</h2><ul>" + "".join(f"<li><b>Story {o['narrative_id']} {e(o['label'])}</b><br>{e(o['text'])}</li>" for o in pl["origins"][:12]) + "</ul></div>")
-    return {"top": "".join(top), "groups": groups, "origins": origins}
+    top.append("<details class=fold><summary>What is being said, day by day and term by term</summary><ul class=plain>" + "".join(f"<li><b>Story {n['id']}</b> {e(n['text'])}</li>" for n in pl["narratives"]) +
+               "</ul><p class=sub>Posts per narrative on each date, then per search term.</p><div class=tbl><table class=num><thead><tr><th>Narrative</th><th>Posts</th>" +
+               "".join(f"<th>{e(d['date'][5:])}</th>" for d in days) + "".join(f"<th>“{e(t['term'])}”</th>" for t in terms) + f"</tr></thead><tbody>{nrows}</tbody></table></div></details>")
+    groups = ("<div class='tile s12'><h2>Groups in simple words</h2><ul class=plain>" + ("".join(f"<li>{e(g['text'])}</li>" for g in pl["groups"]) or "<li>No group of accounts met the evidence thresholds.</li>") + "</ul></div>")
+    origins = ("<div class='tile s12'><h2>Where each story started, in simple words</h2><ul class=plain>" + "".join(f"<li><b>Story {o['narrative_id']} {e(o['label'])}</b><br>{e(o['text'])}</li>" for o in pl["origins"][:12]) + "</ul></div>")
+    tables = "<div class='tile s12' id=tables><h2>Detail tables</h2><p class=sub>Open a table to see the numbers behind the charts.</p>" + "".join(top) + "</div>"
+    return {"top": "".join(top), "plain": plain, "tables": tables, "groups": groups, "origins": origins}
+
+
+def key_findings(result: dict, plat_counts: Dict[str, int]) -> str:
+    """Five at-a-glance cards: the facts an analyst wants first."""
+    m, nars, groups, origins, posts = result["meta"], result["narratives"], result["coordinated_groups"], result["origins"], result["posts"]
+    cards = []
+    real = [n for n in nars if n["id"] >= 0]
+    if real:
+        b = max(real, key=lambda n: n["posts"])
+        cards.append(("Biggest story", f"Story {b['id']}: {e(b['label'])}", f"{b['posts']:,} posts from {b['accounts']:,} accounts ({b['posts'] / max(1, m['n_posts']):.0%} of all posts)", ""))
+    days: Dict[str, int] = {}
+    for p in posts:
+        days[p["created_at"][:10]] = days.get(p["created_at"][:10], 0) + 1
+    if days:
+        d, n = max(days.items(), key=lambda kv: kv[1])
+        cards.append(("Busiest day", d, f"{n:,} posts, {n / max(1, m['n_posts']):.0%} of the total", ""))
+    if plat_counts:
+        k, v = max(plat_counts.items(), key=lambda kv: kv[1])
+        cards.append(("Most active platform", e(k).title(), f"{v:,} posts ({v / max(1, m['n_posts']):.0%}); " + ", ".join(f"{e(a)} {b:,}" for a, b in sorted(plat_counts.items(), key=lambda kv: -kv[1])[1:3]), ""))
+    if groups:
+        g = max(groups, key=lambda x: x["score"])
+        cards.append(("Strongest coordinated group", f"{e(g['id'])} · {e(g['confidence'])} confidence", f"{g['size']} accounts, {g['posts']} posts; lead evidence: " + e(g["reasons"][0][:90] if g["reasons"] else "see below"), "hotc"))
+    else:
+        cards.append(("Coordination", "None flagged", "No group of accounts met the evidence thresholds", "okc"))
+    dated = [o for o in origins if o.get("first_post")]
+    if dated:
+        o = min(dated, key=lambda x: x["first_post"]["at"])
+        cards.append(("Earliest story origin", f"Story {o['narrative_id']} on {e(o['first_post']['platform'])}", f"first seen {e(o['first_post']['at'][:16].replace('T', ' '))} UTC by {e(o['first_post']['account'])}", ""))
+    return "<div class='tile s12' id=findings><h2>Key findings</h2><div class=kf>" + "".join(
+        f"<div class='kfc {c}'><span class=k>{e(k)}</span><span class=v>{v}</span><span class=d>{d}</span></div>" for k, v, d, c in cards) + "</div></div>"
+
+
+def top_posts_and_accounts(result: dict) -> str:
+    posts = result["posts"]
+    top = sorted(posts, key=lambda p: -p["engagement"])[:6]
+    items = []
+    for p in top:
+        when = e(p["created_at"][:16].replace("T", " "))
+        link = f" · <a href='{e(p['url'])}' rel='noreferrer noopener'>open ↗</a>" if str(p.get("url", "")).startswith("http") else ""
+        grp = f" · <b class=hot>{e(p['coordinated_group'])}</b>" if p.get("coordinated_group") else ""
+        sid = f" · Story {p['narrative_id']}" if p["narrative_id"] >= 0 else ""
+        items.append(f"<div class=tpi><div class=e>{p['engagement']:,}<small>engagement</small></div><div><p>{short(p['text'], 200)}</p>"
+                     f"<div class=m><span class=pl style='color:{color(p['platform'])};border-color:{color(p['platform'])}66'>{e(p['platform'])}</span> {e(p['author_name'])} · {when} UTC{sid}{grp}{link}</div></div></div>")
+    agg: Dict[str, dict] = {}
+    for p in posts:
+        a = agg.setdefault(p["account"], {"name": p["author_name"], "pl": p["platform"], "n": 0, "eng": 0, "g": p.get("coordinated_group") or "", "fol": p.get("author_followers")})
+        a["n"] += 1; a["eng"] += p["engagement"]
+    accts = sorted(agg.values(), key=lambda a: (-a["n"], -a["eng"]))[:8]
+    rows = "".join(f"<tr><td><span class=pl style='color:{color(a['pl'])};border-color:{color(a['pl'])}66'>{e(a['pl'])}</span> {e(a['name'])}</td><td>{a['n']:,}</td><td>{a['eng']:,}</td>"
+                   f"<td>{e(a['g']) or '–'}</td></tr>" for a in accts)
+    return (f"<div class='tile s7'><h2>Top posts</h2><p class=sub>Highest engagement (likes + shares + replies)</p><div class=tp>{''.join(items)}</div></div>"
+            f"<div class='tile s5'><h2>Most active accounts</h2><p class=sub>By number of posts</p><div class=tbl style='max-height:none'><table class=num><thead><tr><th>Account</th><th>Posts</th><th>Engagement</th><th>Group</th></tr></thead><tbody>{rows}</tbody></table></div></div>")
+
+
+def how_to_read(m: dict) -> str:
+    cfg = m.get("config") or {}
+    return ("<div class='tile s12' id=method><h2>How to read this report</h2><div class=how>"
+            "<p><b>Story (narrative).</b> Posts that say roughly the same thing are clustered into one story. Bubble size is the number of posts; a red bubble means most of its posts come from accounts flagged as coordinated.</p>"
+            "<p><b>Coordinated group.</b> Accounts linked by independent signals: near-identical text, posting within minutes of each other, reshare loops, reused avatars, accounts created together, or the same handle across platforms. More signals together means higher confidence.</p>"
+            "<p><b>Origin.</b> The earliest post of each story per platform, how long each platform lagged, and whether the first wave was coordinated.</p>"
+            "<p><b>Limitations.</b> Coordination is not proof of fake accounts: real fans, journalists and friends also repeat each other. Only public posts are read, a platform can return a partial sample, and every group is a lead for a human analyst to review, not attribution.</p>"
+            "</div></div>")
 
 
 def ai_tile(ai: dict) -> str:
@@ -387,7 +468,8 @@ def render(result: dict, max_posts: int = 400, ai: dict = None) -> str:
              + "".join(f"<span class=chip style='border-color:{color(p)}66;color:{color(p)}'>{e(p)}</span>" for p in m["platforms"])
              + f"<span class=chip>generated {e(m['generated_at'][:16].replace('T', ' '))} UTC</span></div>")
     sel = m.get("selection")
-    h.append("</section><div class=bento>")
+    h.append("</section><nav class=nav aria-label='Sections'><a href='#summary'>Summary</a><a href='#findings'>Key findings</a><a href='#volume'>Volume</a><a href='#stories'>Stories</a>"
+             "<a href='#coord'>Coordination</a><a href='#top'>Top posts</a><a href='#spread'>Spread</a><a href='#tables'>Tables</a><a href='#posts-tile'>Posts</a><a href='#method'>How to read</a></nav><div class=bento>")
     if sel:
         h.append(f"<div class='tile s12'><h2>Selected stories</h2><p>This report covers {len(sel['stories'])} of {sel['of']} stories: " + ", ".join(f"Story {i}" for i in sel['stories']) + ".</p></div>")
     h.append(ai_tile(ai))
@@ -403,12 +485,13 @@ def render(result: dict, max_posts: int = 400, ai: dict = None) -> str:
              f"<div class=sh-d>{donut(plat_counts, 44)}<span class=muted>{len(plat_counts)} platform(s)</span></div></div></div>")
 
     # --- streamgraph
-    h.append(ovb["top"])
-    h.append(f"<div class='tile s12'><h2>Volume over time</h2><p class=sub>Posts per {e(m['bucket'])}, stacked by platform — hover a column for exact counts.</p>"
+    h.append(key_findings(result, plat_counts))
+    h.append(ovb["plain"])
+    h.append(f"<div class='tile s12' id=volume><h2>Volume over time</h2><p class=sub>Posts per {e(m['bucket'])}, stacked by platform — hover a column for exact counts.</p>"
              f"{streamgraph(result['volume']['by_platform'])}</div>")
 
     # --- narratives: bubbles + ranked list
-    h.append(f"<div class='tile s7'><h2>Narrative map</h2><p class=sub>Each bubble is a storyline. Click one to filter the posts below.</p>{bubble_map(nars)}<p id=pickmsg class=sub role=status></p></div>")
+    h.append(f"<div class='tile s7' id=stories><h2>Narrative map</h2><p class=sub>Each bubble is a storyline. Click one to filter the posts below.</p>{bubble_map(nars)}<p id=pickmsg class=sub role=status></p></div>")
     h.append("<div class='tile s5'><h2>Main narratives</h2><p class=sub>Ranked by volume</p><div class=nl>")
     for n in nars:
         if n["id"] < 0:
@@ -422,13 +505,11 @@ def render(result: dict, max_posts: int = 400, ai: dict = None) -> str:
     h.append("</div></div>")
 
     # --- coordinated groups
-    h.append(ovb["groups"])
-    h.append("<div class='tile s12'><h2>Accounts acting together</h2>")
+    h.append(ovb["groups"].replace("<div class='tile s12'>", "<div class='tile s12' id=coord>", 1) if ovb["groups"] else "")
     if not groups:
-        h.append("<p class=sub>No group of accounts met the evidence thresholds for this topic and window.</p>")
+        h.append("<div class='tile s12' id=coord><h2>Accounts acting together</h2><p class=sub>No group of accounts met the evidence thresholds for this topic and window.</p></div>")
     else:
-        h.append("<p class=sub>Each group lists <b>why</b> it was flagged. These are investigative leads, not attribution — see Limitations in the README.</p>")
-    h.append("</div>")
+        h.append("<p class=sub style='grid-column:span 12;margin:4px 4px 0'>Each group below lists <b>why</b> it was flagged. These are investigative leads, not attribution.</p>")
     for g in groups:
         conf = {"high": "b-hot", "medium": "b-warn"}.get(g["confidence"], "b-ok")
         pl = " ".join(f"<span class=badge style='color:{color(k)};border-color:{color(k)}55'>{e(k)} {v}</span>" for k, v in g["platforms"].items())
@@ -444,6 +525,8 @@ def render(result: dict, max_posts: int = 400, ai: dict = None) -> str:
         h.append(f"<details><summary>Members ({g['size']})</summary><p><code>{e('  '.join(g['accounts']))}</code></p></details></div>"
                  f"<div>{group_graph(g)}<div class=legend>" + "".join(f"<span><i style='background:{color(k)}'></i>{e(k)}</span>" for k in g["platforms"]) +
                  "<span class=muted>lines = evidence links</span></div></div></div></div>")
+
+    h.append("<span id=top></span>" + top_posts_and_accounts(result))
 
     # --- cross-platform correlation
     cp = result.get("cross_platform")
@@ -466,7 +549,7 @@ def render(result: dict, max_posts: int = 400, ai: dict = None) -> str:
 
     # --- origins / spread
     h.append(ovb["origins"])
-    h.append("<div class='tile s12'><h2>Where each narrative started &amp; how it spread</h2><p class=sub>Glowing dots are the first appearance per platform; dashed arcs show the hop and its delay. Small bars show hourly volume after origin.</p>")
+    h.append("<div class='tile s12' id=spread><h2>Where each narrative started &amp; how it spread</h2><p class=sub>Glowing dots are the first appearance per platform; dashed arcs show the hop and its delay. Small bars show hourly volume after origin.</p>")
     top_orig = sorted(origins, key=lambda o: (o["seeding_group"] is None, -o["early_wave_coordinated_share"]))[:6]
     for o in top_orig:
         fp = o["first_post"]
@@ -497,6 +580,7 @@ def render(result: dict, max_posts: int = 400, ai: dict = None) -> str:
                 h.append(f"<div class=warn>search failed: {e(q['query'])} - {e(q.get('error', ''))}</div>")
         h.append("</div>")
 
+    h.append(ovb["tables"])
     # --- posts
     h.append(f"<div class='tile s12' id=posts-tile><h2>Posts</h2><p class=sub>Showing <b id=shown>{min(len(posts), max_posts)}</b> of {len(posts)} · full set in <code>posts.csv</code> / <code>results.json</code></p>"
              "<div class=tools><input id=f placeholder='filter posts…' aria-label='filter posts'><span class='badge b-warn' id=clr style='display:none;cursor:pointer'>✕ clear <span id=cur></span></span></div>"
@@ -517,7 +601,7 @@ def render(result: dict, max_posts: int = 400, ai: dict = None) -> str:
         h.append(f"<tr data-n='{p['narrative_id']}'><td>{link}</td><td><span class=pl style='color:{color(p['platform'])};border-color:{color(p['platform'])}66'>{e(p['platform'])}</span></td>"
                  f"<td>{e(p['author_name'])}</td><td>{short(p['text'], 260)}</td><td>{media}</td><td>{p['likes']}</td><td>{p['shares']}</td><td>{p['replies']}</td>"
                  f"<td>{p['narrative_id'] if p['narrative_id'] >= 0 else '–'}</td><td>{e(p['coordinated_group'] or '')}</td></tr>")
-    h.append("</tbody></table></div></div></div>"
+    h.append("</tbody></table></div></div>" + how_to_read(m) + "</div>"
              "<footer>coordwatch · findings are leads for human analysts, not attribution. Coordination ≠ inauthenticity.</footer>"
              f"</main><script>{JS}</script></body></html>")
     return "".join(h)
