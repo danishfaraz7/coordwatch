@@ -1,8 +1,8 @@
 coordwatch run log
 ============================================================
 status      : DONE
-started     : 2026-11-10 15:07 UTC    duration: 1s
-version     : coordwatch 0.1.0 (git 1f3b97a)  python 3.13.18  Linux
+started     : 2026-11-10 15:08 UTC    duration: 0s
+version     : coordwatch 0.1.0 (git 1f9dc9e)  python 3.13.18  Linux
 
 REQUEST
 ------------------------------------------------------------

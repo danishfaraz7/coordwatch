@@ -18,6 +18,7 @@ def available() -> bool:
 
 def build(result: dict, path: str, ai: dict = None) -> str:
     from reportlab.graphics.shapes import Drawing, Rect, String
+    HL = {n['id']: n.get('headline') for n in result.get('narratives', []) if n.get('headline')}
     from reportlab.lib import colors
     from reportlab.lib.pagesizes import A4
     from reportlab.lib.styles import ParagraphStyle
@@ -90,12 +91,12 @@ def build(result: dict, path: str, ai: dict = None) -> str:
 
     story.append(P("What people are saying", h2))
     for n in pl["narratives"][:8]:
-        story.append(KeepTogether([P(f"Story {n['id']}:  {n['label']}", ParagraphStyle("nl", parent=base, fontName="Helvetica-Bold")), P(n["text"]), Spacer(1, 5)]))
+        story.append(KeepTogether([P(f"Story {n['id']}:  {n.get('headline') or n['label']}", ParagraphStyle("nl", parent=base, fontName="Helvetica-Bold")), P(n["text"]), Spacer(1, 5)]))
     story.append(P("Accounts that seem to work together", h2))
     story += [P(g["text"]) for g in pl["groups"]] or [P("No group of accounts clearly worked together.")]
     story.append(P("Where each story started and how it spread", h2))
     for o in pl["origins"][:8]:
-        story.append(KeepTogether([P(f"Story {o['narrative_id']}:  {o['label']}", ParagraphStyle("ol", parent=base, fontName="Helvetica-Bold")), P(o["text"]), Spacer(1, 5)]))
+        story.append(KeepTogether([P(f"Story {o['narrative_id']}:  {HL.get(o['narrative_id']) or o['label']}", ParagraphStyle("ol", parent=base, fontName="Helvetica-Bold")), P(o["text"]), Spacer(1, 5)]))
     story += [Spacer(1, 10), P("How to read this: groups of accounts that behave alike are a lead for a human to check, not proof that anything is fake. "
                                "Figures come from the public posts that could be collected for this topic and these dates; they may not cover everything said online. "
                                "The full detail is in report.html, results.json and the CSV files.", small)]
