@@ -62,37 +62,30 @@ class DdgsBackend:
         return self._d.news(query, timelimit=timelimit if timelimit in ("d", "w", "m") else None, max_results=max_results)
 
 
-class GoogleCseBackend:
-    """Google's official Programmable Search JSON API (free: 100 queries a day).  Needs an API key and a search-engine id (cx) set to
-    search x.com (and twitter.com) - see the README.  Returns rows shaped like DdgsBackend's: href, title, body."""
+class SerperBackend:
+    """Google results through serper.dev (optional key; its site advertises 2,500 free queries and no card - terms may change).
+    Returns rows shaped like DdgsBackend's: href, title, body."""
 
-    def __init__(self, key: str, cx: str, session=None):
-        self.key, self.cx = key, cx
-        import urllib.request  # noqa: F401  (stdlib only)
+    URL = "https://google.serper.dev/search"
+
+    def __init__(self, key: str):
+        self.key = key
 
     def text(self, query, timelimit, max_results):
         import json
         import urllib.error
-        import urllib.parse
         import urllib.request
-        rows = []
-        for start in range(1, max(1, min(max_results, 30)) + 1, 10):          # 10 results per call; 3 calls = 30 results
-            params = {"key": self.key, "cx": self.cx, "q": query, "start": start, "num": 10}
-            if timelimit in ("d", "w", "m", "y"):
-                params["dateRestrict"] = timelimit + "1" if timelimit != "w" else "w1"
-            try:
-                with urllib.request.urlopen("https://www.googleapis.com/customsearch/v1?" + urllib.parse.urlencode(params), timeout=20) as r:
-                    data = json.loads(r.read().decode("utf-8"))
-            except urllib.error.HTTPError as e:
-                if e.code in (400, 403, 429) and rows:
-                    break
-                raise RuntimeError(f"Google search API HTTP {e.code} (check the key, the search engine id and the daily 100-query limit)")
-            items = data.get("items") or []
-            for it in items:
-                rows.append({"href": it.get("link", ""), "title": it.get("title", ""), "body": it.get("snippet", "")})
-            if len(items) < 10:
-                break
-        return rows
+        body = {"q": query, "num": max(10, min(int(max_results or 20), 20))}
+        if timelimit in ("d", "w", "m", "y"):
+            body["tbs"] = "qdr:" + timelimit
+        req = urllib.request.Request(self.URL, data=json.dumps(body).encode(), method="POST",
+                                     headers={"X-API-KEY": self.key, "Content-Type": "application/json"})
+        try:
+            with urllib.request.urlopen(req, timeout=25) as r:
+                data = json.loads(r.read().decode("utf-8"))
+        except urllib.error.HTTPError as e:
+            raise RuntimeError(f"Serper HTTP {e.code} (check the API key and your remaining free queries)")
+        return [{"href": it.get("link", ""), "title": it.get("title", ""), "body": it.get("snippet", "")} for it in data.get("organic") or []]
 
 
 def timelimit_for(start: datetime, now: Optional[datetime] = None) -> Optional[str]:

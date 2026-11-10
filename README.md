@@ -495,6 +495,9 @@ Each story gets a clean default title built from the search keywords (a multi-wo
 ### AI behaviour
 Pollinations (free, no login) is the default whenever an AI button is used; with a Gemini key set, Gemini is used instead. There are no prompts about AI. On a rate limit or error the app waits the stated cooldown, shows a countdown and retries automatically (up to 6 tries).
 
+### Optional: more free X posts through Google (Serper)
+A free key from <https://serper.dev> (its site says 2,500 free queries and no card; terms can change) lets the app find public X posts through Google results. Sign up, copy the API key, then **Settings → X → Serper key → Save** (or set `SERPER_API_KEY`). Without it the built-in search fallback is used. Posts are still a sample: text snippets, post time decoded from the post id, no likes or replies. Google's own search API is closed to new customers, which is why a third-party key is used.
+
 ### Free X route
 With no X key or cookies, X posts come from public posts found through web search (time decoded from the post id; no likes/shares). Order tried: X API, browser session, public posts. Also: Telegram posts are tagged joined / not joined, the app shows a friendly "No matches found" card with example searches, finished runs can be minimised, and the HTML report has a navigation bar, key findings, top posts and accounts, and a "how to read this" section.
 
