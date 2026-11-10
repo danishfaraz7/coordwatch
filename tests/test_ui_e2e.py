@@ -211,6 +211,7 @@ class UiTests(unittest.TestCase):
             pg.click("[data-screen=narratives]")
             pg.locator("#analysis-cards [data-nar]").first.click()
             pg.wait_for_selector("#panel:not(.hidden)")
+            pg.wait_for_timeout(500)
             pairs2 = pairs + [("#panel", "#legend"), ("#panel", "#graph-tools"), ("#panel", "#dock"), ("#panel", "#analysis-header")]
             self._assert_no_overlaps(pg, pairs2, f"{w}x{h} graph+panel")
             self.ctx.close()
@@ -343,6 +344,7 @@ class UiTests(unittest.TestCase):
             pg.evaluate("document.querySelector('.side-link[data-screen=narratives]').click()")
             pg.locator("#analysis-cards [data-nar]").first.click()
             pg.wait_for_selector("#panel:not(.hidden)")
+            pg.wait_for_timeout(500)                      # let the panel finish sliding in before measuring
             self._fits(pg, chrome, label + " panel")
             self._assert_no_overlaps(pg, [("#panel", "#analysis-header"), ("#panel", "#graph-tools"), ("#panel", "#dock"), ("#panel", "#legend")] + ([("#panel", "#app-sidebar")] if w > 720 else []), label + " panel")
             self.assertClean()

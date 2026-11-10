@@ -9,7 +9,7 @@ exports everything as JSON/CSV plus an interactive dashboard and a self-containe
 It is built to run **at zero cost**: every platform has a free route, and paid or official routes are used first only if you have configured them.
 Findings are leads for a human analyst, not attribution. Coordination is not the same as inauthenticity (fandoms, newsrooms and plain virality look similar).
 
-**New to the terminal? Follow the click-by-click guide: [GETTING_STARTED.md](GETTING_STARTED.md).**
+**New here? Read the short plain-language [OVERVIEW.md](OVERVIEW.md), then follow the click-by-click guide in [GETTING_STARTED.md](GETTING_STARTED.md).**
 
 ## Contents
 1. [What it can do](#1-what-it-can-do)
@@ -418,7 +418,7 @@ No third-party analysis libraries: MinHash-LSH, TF-IDF, union-find, dHash are ~1
      Narratives were over-fragmented (37 clusters for 9 topics) → threshold sweep.
   3. **Stress test** (10 seeds × 5 scenarios) exposed two real defects: creation-time coincidence among *old* accounts created false groups
      (fixed with the "fresh account" condition), and paraphrase-ring recall of 0.5–0.67 (improved by same-narrative short-window synchrony).
-  4. about 125 tests, including adversarial cases (default avatars, XSS in scraped text, 403 not retried, cache correctness).
+  4. about 160 tests, including adversarial cases (default avatars, XSS in scraped text, 403 not retried, cache correctness).
   5. API parsers are tested against payloads shaped like the documented responses – **not against live APIs** (no keys in this repo's CI).
      Treat the live collectors as unverified until you run them with your keys. The free routes (yt-dlp, t.me/s, X browser, DuckDuckGo) are likewise tested only on recorded-shape fixtures and a fake search backend - smoke-test each once on a real machine before the demo.
 * **Caveat I want to be explicit about:** I iterated thresholds against my own generator, so the numbers below show the *method's behaviour*, not real-world accuracy.
@@ -465,7 +465,7 @@ paraphrasing + mutual-reshare ring; decoys = 5 verified newswire outlets, 40-use
 coordwatch/            package: web/ (server + map UI), collect.py, collectors/ (youtube, telegram, x, yt-dlp, web previews), discovery.py, narratives.py, coordination.py, origin.py,
                        crossplatform.py, overview.py, pipeline.py, subset.py (report for chosen stories), report.py (HTML), pdfreport.py, export.py, search.py (plain-language search),
                        trending.py, ai.py (providers, sources/references), activity.py (activity log), runlog.py, evaluate.py, cli.py
-tests/                 about 125 tests (pytest): unit, web API, and Playwright browser tests (UI tests skip if Chromium is not installed)
+tests/                 about 160 tests (pytest): unit, web API, and Playwright browser tests (UI tests skip if Chromium is not installed)
 scripts/stress.py      multi-seed accuracy + ablation table
 sample_data/           synthetic posts + ground truth JSON (importable via --source file)
 out/example/           pre-generated report, JSON and CSVs
