@@ -223,18 +223,19 @@ function renderJob() {
   const j = st.job, ov = $('#overlay'), chip = $('#jobchip'); if (!j) { ov.classList.add('hidden'); chip.classList.add('hidden'); return; }
   const el = (Date.now() - j.t0) / 1000, last = j.log.length ? j.log[j.log.length - 1].replace(/^\s*[\d.]+s\s+/, '') : 'starting…';
   const cancelling = j.running && j.cancelling, finished = !j.running;
-  ov.classList.toggle('hidden', j.min && j.running); $('#o-spin').parentElement.parentElement.classList.toggle('bad', finished && j.status === 'error');
+  ov.classList.toggle('hidden', !!j.min); $('#o-spin').parentElement.parentElement.classList.toggle('bad', finished && j.status === 'error');
   $('#o-spin').parentElement.parentElement.classList.toggle('stopped', finished && j.status === 'cancelled');
-  $('#o-title').textContent = cancelling ? 'Aborting…' : j.running ? `Analysing “${j.topic}”` : j.status === 'cancelled' ? 'Run aborted' : 'Run failed';
+  $('#o-title').textContent = cancelling ? 'Aborting…' : j.running ? `Analysing “${j.topic}”` : j.status === 'cancelled' ? 'Run aborted' : /^No matches found/.test(j.error || '') ? 'No matches found' : 'Run failed';
   $('#o-el').textContent = fmtEl(el);
   const idle = (Date.now() - j.lastChange) / 1000, hb = $('#o-hb');
   hb.className = 'o-hb' + (j.running && idle > 20 ? ' slow' : '');
-  hb.textContent = !j.running ? (j.error || '') : idle > 20 ? `No new step for ${fmtEl(idle)} — still working. Big requests or API rate limits can take a while; you can minimise this and keep using the app, or abort.` : `Last update ${Math.round(idle)}s ago`;
+  hb.textContent = !j.running ? String(j.error || '').split('\n')[0] : idle > 20 ? `No new step for ${fmtEl(idle)} — still working. Big requests or API rate limits can take a while; you can minimise this and keep using the app, or abort.` : `Last update ${Math.round(idle)}s ago`;
   const pre = $('#o-log'), atBottom = pre.scrollTop + pre.clientHeight >= pre.scrollHeight - 30;
-  pre.textContent = j.log.join('\n') + (finished && j.error && j.status === 'error' ? '\n\n✖ ' + j.error : ''); if (atBottom) pre.scrollTop = pre.scrollHeight;
-  $('#o-min').classList.toggle('hidden', finished); $('#o-abort').classList.toggle('hidden', finished); $('#o-abort').disabled = !!cancelling; $('#o-close').classList.toggle('hidden', !finished); $('#o-copy').classList.toggle('hidden', !finished || !j.id);
-  chip.classList.toggle('hidden', !(j.min && j.running)); chip.classList.toggle('bad', false);
-  $('#jc-t').textContent = `${j.topic} · ${fmtEl(el)} · ${cancelling ? 'aborting…' : last}`;
+  pre.textContent = j.log.join('\n') + (finished && j.error && j.status === 'error' ? '\n\n' + (/^No matches found/.test(j.error) ? 'ℹ ' : '✖ ') + j.error : ''); if (atBottom) pre.scrollTop = pre.scrollHeight;
+  $('#o-min').classList.remove('hidden'); $('#o-abort').classList.toggle('hidden', finished); $('#o-abort').disabled = !!cancelling; $('#o-close').classList.toggle('hidden', !finished); $('#o-copy').classList.toggle('hidden', !finished || !j.id);
+  chip.classList.toggle('hidden', !j.min); chip.classList.toggle('bad', !!j.min && finished && j.status === 'error');
+  $('#jc-t').textContent = finished ? `${j.topic} · ${/^No matches found/.test(j.error || '') ? 'no matches found - click to see tips' : j.status === 'cancelled' ? 'aborted' : 'run failed - click for details'}` : `${j.topic} · ${fmtEl(el)} · ${cancelling ? 'aborting…' : last}`;
+  $('#jc-abort').classList.toggle('hidden', !!finished); $('#jobchip .spin').style.display = finished ? 'none' : '';
 }
 async function abortJob() {
   const j = st.job; if (!j || !j.running || j.cancelling) return;

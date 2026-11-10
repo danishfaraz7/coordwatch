@@ -41,11 +41,22 @@ class TrendingTests(unittest.TestCase):
         self.assertTrue(any("indvnz" in i["term"].lower() for i in out["sources"][3]["items"]))
         self.assertTrue(any("indvnz" in i["term"].lower() for i in out["sources"][4]["items"]))
 
-    def test_telegram_without_channels_explains_what_to_do(self):
+    def test_telegram_without_channels_tries_default_public_channels(self):
         a = datetime(2026, 11, 6, tzinfo=timezone.utc)
-        out = trending(a, a, "IN", [], platforms=("telegram",), get=fake)
-        self.assertEqual(out["sources"][1]["items"], [])
-        self.assertIn("channels", out["sources"][1]["note"])
+        seen = []
+        def get(url):
+            seen.append(url); raise OSError("offline")
+        out = trending(a, a, "IN", [], platforms=("telegram",), get=get)
+        self.assertTrue(any("t.me/s/" in u for u in seen))
+        self.assertIn("big public news channels", out["sources"][1]["note"])
+
+    def test_x_falls_back_to_second_site(self):
+        a = datetime(2026, 11, 6, tzinfo=timezone.utc)
+        def get(url):
+            if "trends24" in url: raise OSError("403")
+            return '<a href="/india/trend/Foo">#IndVsNz</a>'
+        out = trending(a, a, "IN", [], platforms=("x",), get=get)
+        self.assertEqual(out["sources"][1]["items"][0]["term"], "#IndVsNz")
 
     def test_youtube_failure_is_reported_not_raised(self):
         a = datetime(2026, 11, 6, tzinfo=timezone.utc)

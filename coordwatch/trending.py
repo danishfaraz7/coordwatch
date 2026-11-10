@@ -14,7 +14,8 @@ from collections import Counter
 from datetime import datetime, timedelta, timezone
 from typing import Callable, Dict, List, Optional
 
-_UA = "Mozilla/5.0 (X11; Linux x86_64) coordwatch-trending"
+_UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0 Safari/537.36"
+DEFAULT_TG = ["bbcnews", "cnn", "ndtvofficial", "TheHinduOfficial", "reuters"]      # tried when the Telegram box is empty; failures are reported, never fatal
 STOP = set("""a an the and or of to in on for with at by from is are was were be been it its this that these those as but not no
 you your we our they their he she his her i me my will would can could should may might do does did have has had about after before
 over under into than then so if how what when where who why which new news live video watch full today latest says say said vs""".split())
@@ -24,7 +25,7 @@ _CAP = re.compile(r"\b(?:[A-Z][\w'’.-]+)(?:\s+(?:vs\.?|v|of|de|and|&|[A-Z][\w'
 
 def _get(url: str, timeout: int = 12) -> str:
     import requests
-    r = requests.get(url, headers={"User-Agent": _UA}, timeout=timeout)
+    r = requests.get(url, headers={"User-Agent": _UA, "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8", "Accept-Language": "en-US,en;q=0.9"}, timeout=timeout)
     r.raise_for_status()
     return r.text
 
@@ -89,11 +90,22 @@ def web_source(since: datetime, until: datetime, geo: str, get: Callable[[str], 
 def x_source(geo: str, get: Callable[[str], str]) -> dict:
     """Hashtags and topics trending on X, from the public trends24.in page (no login). Best effort."""
     slug = {"IN": "india", "US": "united-states", "GB": "united-kingdom", "AE": "united-arab-emirates", "PK": "pakistan", "AU": "australia"}.get(geo, "india")
-    try:
-        html = get(f"https://trends24.in/{slug}/")
-        names = re.findall(r'class="trend-link"[^>]*>([^<]{2,60})<', html)
-    except Exception as e:
-        return {"id": "x", "label": "X (Twitter)", "items": [], "note": f"Could not read X trends here ({type(e).__name__})."}
+    names, errs = [], []
+    for url, pats in ((f"https://trends24.in/{slug}/", (r'class="trend-link"[^>]*>([^<]{2,60})<', r'<a[^>]+href="https://twitter\.com/search\?q=[^"]*"[^>]*>([^<]{2,60})<')),
+                      (f"https://getdaytrends.com/{slug}/", (r'<a href="/%s/trend/[^"]+">([^<]{2,60})</a>' % slug, r'class="main"[^>]*>\s*<a[^>]*>([^<]{2,60})<'))):
+        try:
+            html = get(url)
+            for pat in pats:
+                names = re.findall(pat, html)
+                if names:
+                    break
+            if names:
+                break
+            errs.append(f"{url.split('/')[2]}: no trends found on the page")
+        except Exception as e:
+            errs.append(f"{url.split('/')[2]}: {type(e).__name__}")
+    if not names:
+        return {"id": "x", "label": "X (Twitter)", "items": [], "note": "Could not read X trends here (" + "; ".join(errs) + "). Type a topic or #hashtag yourself; X search itself needs an X key or browser session."}
     seen, items = set(), []
     for n in names:
         n = n.strip()
@@ -134,8 +146,9 @@ def _yt_search(term: str) -> List[dict]:
 
 def telegram_source(channels: List[str], since: datetime, until: datetime, get: Callable[[str], str]) -> dict:
     chans = [c.strip().lstrip("@").replace("https://t.me/", "").strip("/") for c in channels if c.strip()]
-    if not chans:
-        return {"id": "telegram", "label": "Telegram", "items": [], "note": "Type some public channels in the Telegram box (for example @bbcnews) and press the button again."}
+    default = not chans
+    if default:
+        chans = list(DEFAULT_TG)
     from .collectors.telegram_web import parse_page
     texts, errs = [], []
     for ch in chans[:8]:
@@ -145,7 +158,7 @@ def telegram_source(channels: List[str], since: datetime, until: datetime, get: 
                     texts.append((p.text, max(1, int(p.views or 1))))
         except Exception as e:
             errs.append(f"{ch}: {type(e).__name__}")
-    note = "From the latest posts of the channels you listed." + (" Problems: " + ", ".join(errs) if errs else "")
+    note = ("From the latest posts of some big public news channels (type your own in the Telegram box to use those instead)." if default else "From the latest posts of the channels you listed.") + (" Problems: " + ", ".join(errs) if errs else "")
     return {"id": "telegram", "label": "Telegram", "items": terms_from(texts, 12), "note": note}
 
 

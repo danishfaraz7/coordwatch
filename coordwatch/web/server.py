@@ -172,12 +172,19 @@ def _run_job(job: Job, p: dict):
         job.status, job.error = "cancelled", "Aborted by user."
         job.log("aborted by user")
     except SystemExit as e:                      # analyse() raises this when nothing matched
-        job.error, job.status = str(e) or "No posts matched.", "error"
-        if notes_hint := _hint(job):
-            job.error += " " + notes_hint
+        job.status = "error"
+        job.error = NO_MATCH if "No posts matched" in (str(e) or "No posts matched") else str(e)
+        why = [l.split("  ", 1)[-1] for l in job.logs if "skipped" in l or "blocked" in l][:2]      # missing keys / blocked platform: worth saying
+        if why:
+            job.error += "\nNote: " + " | ".join(why)
     except Exception as e:
         traceback.print_exc()
         job.error, job.status = f"{type(e).__name__}: {e}", "error"
+
+
+NO_MATCH = ("No matches found for this search. Try another keyword, hashtag, person, brand or event, or widen the date range.\n"
+            "Examples:  \"Acme Bank\"   \"#AcmeBankCollapse\"   \"Jensen Huang\"   \"IPL auction\"   \"Tata Motors\"\n"
+            "Tip: hashtags work best on Telegram; the 'See what's trending' button suggests topics people are searching right now.")
 
 
 def _hint(job: Job) -> str:
