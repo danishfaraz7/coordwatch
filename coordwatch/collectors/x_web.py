@@ -58,12 +58,17 @@ class XWeb(Collector):
 
     def collect(self, topic: str, since: datetime, until: datetime, limit: int = 1000) -> List[Post]:
         be = self._backend()
+        serper = type(be).__name__ == "SerperBackend"
+        self.log("x: searching Google results through your Serper key" if serper else "x: searching with the built-in free search (add a Serper key in Settings for more posts)")
         posts, seen = [], set()
         terms = topic_terms(topic) or [topic]
         queries = []
         for t in terms:
             q = t if t.startswith("#") or " " not in t else f'"{t}"'
             # looser forms first: "inurl:status" often makes search engines return nothing, so it is only a last resort
+            if serper:
+                queries.append(f"site:x.com {q} after:{since:%Y-%m-%d}")     # Google date operator: favours posts inside your window
+                queries.append(f"site:x.com inurl:status {q}")       # Google honours inurl: (other engines often return nothing for it)
             for site in ("x.com", "twitter.com"):
                 queries.append(f"site:{site} {q}")
             queries.append(f"{q} x.com/status")
@@ -77,19 +82,23 @@ class XWeb(Collector):
             except Exception as e:
                 self.log(f"x: public-post lookup skipped ({type(e).__name__}: {str(e)[:100]})")
                 continue
-            kept = 0
+            kept = n_post = n_window = 0
             for r in rows:
                 h = parse_hit(r)
                 if not h or h["id"] in seen:
                     continue
+                n_post += 1
                 created = snowflake_time(h["id"])
-                if created < since or created > until or not (matches_topic(h["text"], topic) or matches_topic(h["title"], topic)):
+                if created < since or created > until:
+                    n_window += 1
+                    continue
+                if not (matches_topic(h["text"], topic) or matches_topic(h["title"], topic)):
                     continue
                 seen.add(h["id"])
                 posts.append(Post(id=h["id"], platform="x", author_id=h["handle"], author_name=h["handle"], text=h["text"],
                                   created_at=created, url=h["url"]))
                 kept += 1
-            self.log(f"x: {len(rows)} found, {kept} kept for the window/topic ({len(posts)} total)")
+            self.log(f"x: {len(rows)} results, {n_post} are posts, {n_window} outside your dates, {kept} kept ({len(posts)} total)")
             if len(posts) >= limit:
                 break
             time.sleep(self.pause)

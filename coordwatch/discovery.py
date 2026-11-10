@@ -71,21 +71,49 @@ class SerperBackend:
     def __init__(self, key: str):
         self.key = key
 
-    def text(self, query, timelimit, max_results):
+    def _post(self, body):
         import json
         import urllib.error
         import urllib.request
-        body = {"q": query, "num": max(10, min(int(max_results or 20), 20))}
-        if timelimit in ("d", "w", "m", "y"):
-            body["tbs"] = "qdr:" + timelimit
         req = urllib.request.Request(self.URL, data=json.dumps(body).encode(), method="POST",
                                      headers={"X-API-KEY": self.key, "Content-Type": "application/json"})
-        try:
-            with urllib.request.urlopen(req, timeout=25) as r:
-                data = json.loads(r.read().decode("utf-8"))
-        except urllib.error.HTTPError as e:
-            raise RuntimeError(f"Serper HTTP {e.code} (check the API key and your remaining free queries)")
-        return [{"href": it.get("link", ""), "title": it.get("title", ""), "body": it.get("snippet", "")} for it in data.get("organic") or []]
+        with urllib.request.urlopen(req, timeout=25) as r:
+            return json.loads(r.read().decode("utf-8"))
+
+    def text(self, query, timelimit, max_results):
+        """Up to 3 pages of 10 results.  If Serper answers HTTP 400 for a request, retry it with fewer options (no date filter, then
+        just the query) and report Serper's own message if it still fails."""
+        import urllib.error
+        rows = []
+        for page in range(1, 4):
+            attempts = []
+            full = {"q": query, "num": 10, "page": page}
+            if timelimit in ("d", "w", "m", "y"):
+                attempts.append({**full, "tbs": "qdr:" + timelimit})
+            attempts += [full, {"q": query}] if page > 1 else [full, {"q": query}]
+            data, err = None, None
+            for body in attempts:
+                try:
+                    data = self._post(body)
+                    break
+                except urllib.error.HTTPError as e:
+                    msg = ""
+                    try:
+                        msg = e.read().decode("utf-8", "replace")[:160]
+                    except Exception:
+                        pass
+                    err = f"Serper HTTP {e.code}: {msg or 'no details'} (check the API key and your remaining free queries)"
+                    if e.code not in (400, 422):
+                        break
+            if data is None:
+                if rows:
+                    break
+                raise RuntimeError(err or "Serper request failed")
+            got = [{"href": it.get("link", ""), "title": it.get("title", ""), "body": it.get("snippet", "")} for it in data.get("organic") or []]
+            rows += got
+            if len(got) < 10 or len(rows) >= max_results:
+                break
+        return rows
 
 
 def timelimit_for(start: datetime, now: Optional[datetime] = None) -> Optional[str]:
