@@ -1,7 +1,7 @@
 # coordwatch: application documentation
 
 ## Application purpose
-coordwatch is a free tool that looks at what people are posting about a topic on **YouTube, Telegram and X**, and reports three things:
+coordwatch is an open source tool that looks at what people are posting about a topic on **YouTube, Telegram and X**, and reports three things:
 
 1. **Content.** Posts are grouped into "stories".
 2. **Origin and spread.** The first posts of each story, and how it moved between platforms.

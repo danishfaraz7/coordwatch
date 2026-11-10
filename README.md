@@ -6,7 +6,7 @@ You give it a **topic** (keyword, hashtag, person, brand or event), a **date ran
 finds accounts that appear to act in concert (with the evidence for each group), traces where each narrative started and how it jumped between platforms, and
 exports everything as JSON/CSV plus an interactive dashboard and a self-contained HTML report.
 
-It is built to run **at zero cost**: every platform has a free route, and paid or official routes are used first only if you have configured them.
+It is open source (MIT licence) and built to run **at zero cost**: every platform has a free route, and paid or official routes are used first only if you have configured them.
 Findings are leads for a human analyst, not attribution. Coordination is not the same as inauthenticity (fandoms, newsrooms and plain virality look similar).
 
 **New here? Read the short plain-language [OVERVIEW.md](OVERVIEW.md), then follow the click-by-click guide in [GETTING_STARTED.md](GETTING_STARTED.md).**
