@@ -70,7 +70,11 @@ def _gemini(get) -> dict:
 def _x(get) -> dict:
     tok = S.get("X_BEARER_TOKEN")
     if not tok:
-        return _res("x", "unset", "No bearer token saved.")
+        if S.get("SERPER_API_KEY"):
+            return _res("x", "saved", "No bearer token needed: X posts will come from Google results through your Serper key (a free sample: text and time only).")
+        if S.get("X_COOKIES_FILE"):
+            return _res("x", "saved", "Browser-session route set (cookies file).")
+        return _res("x", "unset", "Nothing saved: X will use the built-in free sample. Add a Serper key (free) for more posts, or a bearer token for full coverage.")
     r = get("https://api.x.com/2/usage/tweets", headers={"Authorization": f"Bearer {tok}"}, timeout=15)
     if r.status_code == 200:
         return _res("x", "connected", "Token accepted. (Searching still uses paid credits.)")
