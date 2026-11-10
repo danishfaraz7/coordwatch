@@ -108,7 +108,7 @@ Everything runs on your own machine or Codespace. Posts are not sent anywhere.
 * **Caching.** Responses are cached on disk, so repeat runs cost no quota. YouTube search is capped because each search costs 100 quota units.
 * **Telegram.** Flood-wait errors make the tool sleep as long as requested. Private channels are skipped and reported. Free-text search needs Premium; otherwise hashtags, channel names and global search are used.
 * **No evasion.** 401 and 403 are never retried. No proxy rotation, fingerprint spoofing, login scraping or fake accounts. Access limits are reported as limitations.
-* **The one exception.** X has no free API, so an optional, off-by-default browser-session route uses a spare account\u2019s own session. It goes against X\u2019s terms, is labelled experimental, and stops at a rate limit, login redirect or empty timeline. The default free X route reads public posts found through web search.
+* **The one exception.** X has no free API, so an optional, off-by-default browser-session route uses a spare account's own session. It goes against X's terms, is labelled experimental, and stops at a rate limit, login redirect or empty timeline. The default free X route reads public posts found through web search.
 * **Blocked or missing keys.** YouTube without a key is often blocked on cloud computers, so a free key is recommended. Free AI services are rate limited, so the app waits, shows a countdown and retries.
 
 ## Use of AI and how its output was checked
