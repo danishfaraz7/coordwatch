@@ -96,6 +96,9 @@ class YouTubeCollector(Collector):
                 d = self.c.get_json(f"{API}/commentThreads", p)
             except PlatformBlocked:            # comments disabled on this video -> 403 is expected
                 break
+            except RuntimeError as e:          # odd 400 from one video: keep what we have, skip the rest of it
+                self.log(f"youtube: skipped the rest of one video's comments ({str(e)[:90]})")
+                break
             for it in d.get("items", []):
                 items.append((v, it)); got += 1
             token = d.get("nextPageToken")

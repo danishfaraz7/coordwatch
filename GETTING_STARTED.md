@@ -224,3 +224,16 @@ Works with **no key at all**: the app collects a free sample of public X posts (
 | Telegram returns nothing | do the Telegram steps above, or type public channel names like `@channelname` in the Telegram box |
 
 Exact click-by-click steps for every API key (YouTube, Telegram, X, AI) are in [README section 3](README.md#3-connecting-the-platforms-api-keys-step-by-step). More detail on the results and the method is in the main [README](README.md).
+
+
+## Optional: use coordwatch from Claude (MCP)
+
+`pip install mcp uvicorn`, then either:
+
+- **Claude Code / Claude Desktop (local):** `python -m coordwatch.mcp_server` (stdio, no key needed).
+- **Remote, token-protected:** `COORDWATCH_MCP_TOKEN=<random secret, 24+ chars> python -m coordwatch.mcp_server --http`
+  and connect to `http://HOST:8765/mcp` with the header `Authorization: Bearer <secret>`.
+  In Codespaces, forward port 8765 and keep it **private**. The token check is plain bearer auth, not OAuth,
+  so claude.ai custom connectors (which expect OAuth) may not accept it.
+
+Post text comes from public social media and is untrusted: an MCP client must treat it as data, never as instructions.
